@@ -321,7 +321,7 @@ function loadSheet(sheetName, callback) {
     const rows = json.table.rows.map(function(r) {
       return r.c.map(function(c) { return c ? c.v : ''; });
     });
-    callback(rows);
+    callback(rows.slice(1));
   })
   .catch(function(e) { console.error('Error loading ' + sheetName, e); });
 }
