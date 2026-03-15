@@ -25,6 +25,9 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
 .msg { text-align: center; margin-top: 16px; font-size: 15px; font-weight: bold; }
 .success { color: #15803D; }
 .error { color: #B91C1C; }
+.warn-msg { font-size: 13px; margin-top: 6px; display: none; }
+.warn-red { color: #B91C1C; }
+.warn-amber { color: #B45309; }
 .draft-banner { background: #FFFBEB; border: 1px solid #F59E0B; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 14px; color: #92400E; display: none; }
 .pin-screen { text-align: center; padding: 40px 20px; }
 .pin-screen h2 { margin-bottom: 20px; }
@@ -77,7 +80,6 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
   <div id="formScreen" style="display:none;">
     <h2>📚 Complementary Book Distribution</h2>
 
-    <!-- DRAFT BANNER -->
     <div id="draftBanner" class="draft-banner">
       📋 You have a saved draft. Your previous data has been restored.
     </div>
@@ -125,7 +127,8 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
     <div id="newContactBox" class="new-entry" style="display:none;">
       <div class="field">
         <label>New Contact Name *</label>
-        <input type="text" id="newContactName" placeholder="Type contact name" />
+        <input type="text" id="newContactName" placeholder="Type contact name" oninput="checkDuplicateContact()" />
+        <p id="dupContactMsg" class="warn-msg"></p>
       </div>
     </div>
 
@@ -168,7 +171,8 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
     <div id="newInstitutionBox" class="new-entry" style="display:none;">
       <div class="field">
         <label>New Institution Name *</label>
-        <input type="text" id="newInstitutionName" placeholder="Type institution name" />
+        <input type="text" id="newInstitutionName" placeholder="Type institution name" oninput="checkDuplicateInstitution()" />
+        <p id="dupInstitutionMsg" class="warn-msg"></p>
       </div>
     </div>
 
@@ -253,10 +257,10 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
 
 <script>
 
-var SHEET_ID = '1IklTD1JAhWOGmtm2w5UWMkuVMc8gFeIrgNL1I193xxs';
-var PIN      = '3693';
-var COMPANY  = 'CBS Publishers & Distributors';
-var API      = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:json&sheet=';
+var SHEET_ID  = '1IklTD1JAhWOGmtm2w5UWMkuVMc8gFeIrgNL1I193xxs';
+var PIN       = '3693';
+var COMPANY   = 'CBS Publishers & Distributors';
+var API       = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:json&sheet=';
 var DRAFT_KEY = 'bookDistributionDraft';
 
 var allContacts     = [];
@@ -313,27 +317,27 @@ function loadAllData() {
 // ── DRAFT SAVE ───────────────────────────────
 function saveDraft() {
   var draft = {
-    salesperson:      document.getElementById('salesperson').value,
-    visitDate:        document.getElementById('visitDate').value,
-    contact:          document.getElementById('contact').value,
-    contactText:      document.getElementById('sdContact_text').textContent,
-    institution:      document.getElementById('institution').value,
-    institutionText:  document.getElementById('sdInstitution_text').textContent,
-    city:             document.getElementById('city').value,
-    state:            document.getElementById('state').value,
-    email:            document.getElementById('email').value,
-    mobile:           document.getElementById('mobile').value,
-    designation:      document.getElementById('designation').value,
-    department:       document.getElementById('department').value,
-    isbn:             document.getElementById('isbn').value,
-    bookTitle:        document.getElementById('bookTitle').value,
-    author:           document.getElementById('author').value,
-    edition:          document.getElementById('edition').value,
-    numBooks:         document.getElementById('numBooks').value,
-    remarks:          document.getElementById('remarks').value,
-    newContactName:   document.getElementById('newContactName').value,
+    salesperson:        document.getElementById('salesperson').value,
+    salespersonText:    document.getElementById('sdSalesperson_text').textContent,
+    visitDate:          document.getElementById('visitDate').value,
+    contact:            document.getElementById('contact').value,
+    contactText:        document.getElementById('sdContact_text').textContent,
+    institution:        document.getElementById('institution').value,
+    institutionText:    document.getElementById('sdInstitution_text').textContent,
+    city:               document.getElementById('city').value,
+    state:              document.getElementById('state').value,
+    email:              document.getElementById('email').value,
+    mobile:             document.getElementById('mobile').value,
+    designation:        document.getElementById('designation').value,
+    department:         document.getElementById('department').value,
+    isbn:               document.getElementById('isbn').value,
+    bookTitle:          document.getElementById('bookTitle').value,
+    author:             document.getElementById('author').value,
+    edition:            document.getElementById('edition').value,
+    numBooks:           document.getElementById('numBooks').value,
+    remarks:            document.getElementById('remarks').value,
+    newContactName:     document.getElementById('newContactName').value,
     newInstitutionName: document.getElementById('newInstitutionName').value,
-    salespersonText:  document.getElementById('sdSalesperson_text').textContent,
   };
   localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
   showMsg('Draft saved. You can close the form and come back later.', true);
@@ -343,16 +347,13 @@ function saveDraft() {
 function checkDraft() {
   var saved = localStorage.getItem(DRAFT_KEY);
   if (!saved) return;
-
   var draft = JSON.parse(saved);
   if (!draft.salesperson && !draft.contact && !draft.institution) return;
 
   document.getElementById('draftBanner').style.display = 'block';
 
-  // Restore date
   if (draft.visitDate) document.getElementById('visitDate').value = draft.visitDate;
 
-  // Restore salesperson
   if (draft.salesperson && draft.salespersonText) {
     document.getElementById('salesperson').value = draft.salesperson;
     document.getElementById('sdSalesperson_text').textContent = draft.salespersonText;
@@ -360,7 +361,6 @@ function checkDraft() {
     document.getElementById('sdSalesperson_display').classList.add('has-value');
   }
 
-  // Restore contact
   if (draft.contact) {
     document.getElementById('contact').value = draft.contact;
     document.getElementById('sdContact_text').textContent = draft.contactText;
@@ -373,7 +373,6 @@ function checkDraft() {
     }
   }
 
-  // Restore institution
   if (draft.institution) {
     document.getElementById('institution').value = draft.institution;
     document.getElementById('sdInstitution_text').textContent = draft.institutionText;
@@ -386,7 +385,6 @@ function checkDraft() {
     }
   }
 
-  // Restore auto-fill fields
   if (draft.city)        document.getElementById('city').value        = draft.city;
   if (draft.state)       document.getElementById('state').value       = draft.state;
   if (draft.email)       document.getElementById('email').value       = draft.email;
@@ -491,6 +489,7 @@ function selectItem(id, value, label) {
     document.getElementById('sdInstitution_clear').style.display = 'inline';
     document.getElementById('newInstitutionBox').style.display = 'none';
     document.getElementById('newInstitutionName').value = '';
+    document.getElementById('dupInstitutionMsg').style.display = 'none';
     allInstitutions.forEach(function(r) {
       if (r[0] === value) {
         document.getElementById('city').value  = r[1] || '';
@@ -506,6 +505,7 @@ function selectItem(id, value, label) {
     document.getElementById('sdContact_clear').style.display = 'inline';
     document.getElementById('newContactBox').style.display = 'none';
     document.getElementById('newContactName').value = '';
+    document.getElementById('dupContactMsg').style.display = 'none';
 
     var contactData = null;
     allContacts.forEach(function(r) {
@@ -585,6 +585,7 @@ function clearContact() {
   document.getElementById('sdContact_clear').style.display = 'none';
   document.getElementById('newContactBox').style.display = 'none';
   document.getElementById('newContactName').value = '';
+  document.getElementById('dupContactMsg').style.display = 'none';
   clearContactAutoFill();
   rebuildContactDropdown(null);
   rebuildInstitutionDropdown(null);
@@ -594,6 +595,7 @@ function clearContact() {
   document.getElementById('sdInstitution_display').classList.remove('has-value');
   document.getElementById('sdInstitution_clear').style.display = 'none';
   document.getElementById('newInstitutionBox').style.display = 'none';
+  document.getElementById('dupInstitutionMsg').style.display = 'none';
   clearField('city');
   clearField('state');
 }
@@ -606,11 +608,77 @@ function clearInstitution() {
   document.getElementById('sdInstitution_clear').style.display = 'none';
   document.getElementById('newInstitutionBox').style.display = 'none';
   document.getElementById('newInstitutionName').value = '';
+  document.getElementById('dupInstitutionMsg').style.display = 'none';
   clearField('city');
   clearField('state');
   rebuildInstitutionDropdown(null);
   rebuildContactDropdown(null);
   resetContactSelection();
+}
+
+// ── DUPLICATE CHECKS ─────────────────────────
+function checkDuplicateInstitution() {
+  var typed = document.getElementById('newInstitutionName').value.trim().toLowerCase();
+  var msg   = document.getElementById('dupInstitutionMsg');
+
+  if (!typed) { msg.style.display = 'none'; return; }
+
+  var exact = allInstitutions.find(function(r) {
+    return r[0] && r[0].trim().toLowerCase() === typed;
+  });
+
+  if (exact) {
+    msg.textContent = '⚠️ "' + exact[0] + '" already exists. Please select it from the dropdown instead.';
+    msg.className = 'warn-msg warn-red';
+    msg.style.display = 'block';
+    return;
+  }
+
+  if (typed.length > 4) {
+    var similar = allInstitutions.find(function(r) {
+      return r[0] && r[0].trim().toLowerCase().indexOf(typed) !== -1;
+    });
+    if (similar) {
+      msg.textContent = '⚠️ Similar entry found: "' + similar[0] + '". Is this the same institution?';
+      msg.className = 'warn-msg warn-amber';
+      msg.style.display = 'block';
+      return;
+    }
+  }
+
+  msg.style.display = 'none';
+}
+
+function checkDuplicateContact() {
+  var typed = document.getElementById('newContactName').value.trim().toLowerCase();
+  var msg   = document.getElementById('dupContactMsg');
+
+  if (!typed) { msg.style.display = 'none'; return; }
+
+  var exact = allContacts.find(function(r) {
+    return r[0] && r[0].trim().toLowerCase() === typed;
+  });
+
+  if (exact) {
+    msg.textContent = '⚠️ "' + exact[0] + '" already exists at ' + exact[1] + '. Please select from the dropdown instead.';
+    msg.className = 'warn-msg warn-red';
+    msg.style.display = 'block';
+    return;
+  }
+
+  if (typed.length > 4) {
+    var similar = allContacts.find(function(r) {
+      return r[0] && r[0].trim().toLowerCase().indexOf(typed) !== -1;
+    });
+    if (similar) {
+      msg.textContent = '⚠️ Similar contact found: "' + similar[0] + '" at ' + similar[1] + '. Is this the same person?';
+      msg.className = 'warn-msg warn-amber';
+      msg.style.display = 'block';
+      return;
+    }
+  }
+
+  msg.style.display = 'none';
 }
 
 // ── ISBN LOOKUP ─────────────────────────────
@@ -673,6 +741,30 @@ function submitForm() {
     return;
   }
 
+  // Block exact duplicate institution
+  if (instVal === '__NEW__') {
+    var newInstLower = institution.toLowerCase();
+    var dupInst = allInstitutions.find(function(r) {
+      return r[0] && r[0].trim().toLowerCase() === newInstLower;
+    });
+    if (dupInst) {
+      showMsg('Institution already exists. Please select it from the dropdown.', false);
+      return;
+    }
+  }
+
+  // Block exact duplicate contact
+  if (contactVal === '__NEW__') {
+    var newContLower = contact.toLowerCase();
+    var dupCont = allContacts.find(function(r) {
+      return r[0] && r[0].trim().toLowerCase() === newContLower;
+    });
+    if (dupCont) {
+      showMsg('Contact already exists. Please select from the dropdown.', false);
+      return;
+    }
+  }
+
   var row = [
     visitDate, salesperson, institution,
     document.getElementById('city').value,
@@ -689,22 +781,23 @@ function submitForm() {
     document.getElementById('remarks').value,
   ];
 
-  // Save for receipt
   lastSubmission = {
-    date: visitDate, salesperson: salesperson,
+    date:        visitDate,
+    salesperson: salesperson,
     institution: institution,
-    city: document.getElementById('city').value,
-    state: document.getElementById('state').value,
-    contact: contact,
-    email: document.getElementById('email').value,
-    mobile: document.getElementById('mobile').value,
+    city:        document.getElementById('city').value,
+    state:       document.getElementById('state').value,
+    contact:     contact,
+    email:       document.getElementById('email').value,
+    mobile:      document.getElementById('mobile').value,
     designation: document.getElementById('designation').value,
-    department: document.getElementById('department').value,
-    bookTitle: bookTitle, isbn: isbn,
-    author: document.getElementById('author').value,
-    edition: document.getElementById('edition').value,
-    numBooks: numBooks,
-    remarks: document.getElementById('remarks').value,
+    department:  document.getElementById('department').value,
+    bookTitle:   bookTitle,
+    isbn:        isbn,
+    author:      document.getElementById('author').value,
+    edition:     document.getElementById('edition').value,
+    numBooks:    numBooks,
+    remarks:     document.getElementById('remarks').value,
   };
 
   var SUBMIT_URL = 'YOUR_DEVELOPER_ENDPOINT_HERE';
@@ -722,7 +815,6 @@ function submitForm() {
     clearForm();
   })
   .catch(function() {
-    // For testing without endpoint — show receipt anyway
     localStorage.removeItem(DRAFT_KEY);
     showMsg('Submitted successfully!', true);
     showReceipt();
@@ -749,7 +841,7 @@ function showReceipt() {
   document.getElementById('r_author').textContent      = s.author;
   document.getElementById('r_edition').textContent     = s.edition;
   document.getElementById('r_numBooks').textContent    = s.numBooks;
-  document.getElementById('r_remarks').textContent     = s.remarks;
+  document.getElementById('r_remarks').textContent     = s.remarks || '—';
   document.getElementById('receipt').style.display     = 'block';
 }
 
@@ -757,18 +849,17 @@ function showReceipt() {
 function downloadPDF() {
   if (!lastSubmission) return;
   var s = lastSubmission;
-
   var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">';
   html += '<title>Distribution Receipt</title>';
   html += '<style>';
-  html += 'body { font-family: Arial, sans-serif; padding: 40px; color: #111827; }';
-  html += 'h1 { color: #1B3A6B; text-align: center; font-size: 22px; margin-bottom: 6px; }';
-  html += 'p.sub { text-align: center; color: #6B7280; font-size: 13px; margin-bottom: 30px; }';
-  html += 'table { width: 100%; border-collapse: collapse; }';
-  html += 'td { padding: 10px 14px; border-bottom: 1px solid #E5E7EB; font-size: 14px; }';
-  html += 'td:first-child { color: #6B7280; font-weight: bold; width: 40%; }';
-  html += 'td:last-child { color: #111827; }';
-  html += '.footer { margin-top: 30px; text-align: center; font-size: 12px; color: #9CA3AF; }';
+  html += 'body{font-family:Arial,sans-serif;padding:40px;color:#111827;}';
+  html += 'h1{color:#1B3A6B;text-align:center;font-size:22px;margin-bottom:6px;}';
+  html += 'p.sub{text-align:center;color:#6B7280;font-size:13px;margin-bottom:30px;}';
+  html += 'table{width:100%;border-collapse:collapse;}';
+  html += 'td{padding:10px 14px;border-bottom:1px solid #E5E7EB;font-size:14px;}';
+  html += 'td:first-child{color:#6B7280;font-weight:bold;width:40%;}';
+  html += 'td:last-child{color:#111827;}';
+  html += '.footer{margin-top:30px;text-align:center;font-size:12px;color:#9CA3AF;}';
   html += '</style></head><body>';
   html += '<h1>📚 ' + COMPANY + '</h1>';
   html += '<p class="sub">Complementary Book Distribution Receipt</p>';
@@ -790,16 +881,14 @@ function downloadPDF() {
   html += '<tr><td>Number of Books</td><td>' + s.numBooks + '</td></tr>';
   html += '<tr><td>Remarks</td><td>' + (s.remarks || '—') + '</td></tr>';
   html += '</table>';
-  html += '<p class="footer">Generated on ' + new Date().toLocaleString() + '</p>';
+  html += '<p class="footer">Generated on ' + new Date().toLocaleString() + ' &nbsp;|&nbsp; ' + COMPANY + '</p>';
   html += '</body></html>';
 
   var blob = new Blob([html], { type: 'text/html' });
   var url  = URL.createObjectURL(blob);
   var win  = window.open(url, '_blank');
   if (win) {
-    win.onload = function() {
-      win.print();
-    };
+    win.onload = function() { win.print(); };
   }
 }
 
@@ -833,6 +922,7 @@ function resetContactSelection() {
   document.getElementById('sdContact_clear').style.display = 'none';
   clearContactAutoFill();
   document.getElementById('newContactBox').style.display = 'none';
+  document.getElementById('dupContactMsg').style.display = 'none';
 }
 
 function clearForm() {
@@ -847,6 +937,7 @@ function clearForm() {
   document.getElementById('sdInstitution_clear').style.display = 'none';
   document.getElementById('newInstitutionBox').style.display = 'none';
   document.getElementById('newInstitutionName').value = '';
+  document.getElementById('dupInstitutionMsg').style.display = 'none';
   rebuildInstitutionDropdown(null);
   resetContactSelection();
   document.getElementById('newContactName').value = '';
@@ -856,6 +947,7 @@ function clearForm() {
   document.getElementById('visitDate').valueAsDate = new Date();
   document.getElementById('isbnNotFound').style.display = 'none';
   document.getElementById('draftBanner').style.display = 'none';
+  document.getElementById('receipt').style.display = 'none';
 }
 
 function showMsg(text, success) {
