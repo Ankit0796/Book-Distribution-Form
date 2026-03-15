@@ -23,6 +23,13 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
 .pin-screen h2 { margin-bottom: 20px; }
 .pin-screen input { max-width: 200px; margin: auto; text-align: center; font-size: 24px; letter-spacing: 8px; }
 .pin-screen .btn { max-width: 200px; margin: 16px auto 0; }
+.new-entry { background: #EFF6FF; border: 1px dashed #2563EB; border-radius: 8px; padding: 14px; margin-top: 8px; }
+.new-entry label { color: #2563EB; }
+.isbn-row { display: flex; gap: 10px; }
+.isbn-row input { flex: 1; }
+.isbn-row button { padding: 10px 16px; background: #2563EB; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+.isbn-row button:hover { background: #1B3A6B; }
+.not-found { color: #B91C1C; font-size: 13px; margin-top: 6px; display: none; }
 </style>
 </head>
 <body>
@@ -44,6 +51,7 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
   <div id="formScreen" style="display:none;">
     <h2>📚 Complementary Book Distribution</h2>
 
+    <!-- SALESPERSON -->
     <div class="field">
       <label>Salesperson Name *</label>
       <select id="salesperson">
@@ -51,72 +59,105 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
       </select>
     </div>
 
+    <!-- DATE -->
     <div class="field">
       <label>Date of Visit *</label>
       <input type="date" id="visitDate" />
     </div>
 
+    <!-- INSTITUTION -->
     <div class="field">
       <label>Institution *</label>
       <select id="institution" onchange="onInstitutionChange()">
         <option value="">-- Select Institution --</option>
+        <option value="__NEW__">+ Add New Institution</option>
       </select>
     </div>
 
+    <!-- NEW INSTITUTION FIELDS -->
+    <div id="newInstitutionBox" class="new-entry" style="display:none;">
+      <div class="field">
+        <label>New Institution Name *</label>
+        <input type="text" id="newInstitutionName" placeholder="Type institution name" />
+      </div>
+    </div>
+
+    <!-- CITY STATE -->
     <div class="field">
       <label>City</label>
       <input type="text" id="city" readonly placeholder="Auto-filled" />
     </div>
-
     <div class="field">
       <label>State</label>
       <input type="text" id="state" readonly placeholder="Auto-filled" />
     </div>
 
+    <!-- CONTACT PERSON -->
     <div class="field">
       <label>Contact Person *</label>
       <select id="contact" onchange="onContactChange()">
         <option value="">-- Select Contact --</option>
+        <option value="__NEW__">+ Add New Contact</option>
       </select>
     </div>
 
+    <!-- NEW CONTACT FIELDS -->
+    <div id="newContactBox" class="new-entry" style="display:none;">
+      <div class="field">
+        <label>New Contact Name *</label>
+        <input type="text" id="newContactName" placeholder="Type contact name" />
+      </div>
+    </div>
+
+    <!-- CONTACT AUTO-FILL FIELDS -->
     <div class="field">
       <label>Email</label>
       <input type="text" id="email" readonly placeholder="Auto-filled" />
     </div>
-
     <div class="field">
       <label>Mobile</label>
       <input type="text" id="mobile" readonly placeholder="Auto-filled" />
     </div>
-
     <div class="field">
       <label>Designation</label>
       <input type="text" id="designation" readonly placeholder="Auto-filled" />
     </div>
-
     <div class="field">
-      <label>Book Title *</label>
-      <select id="book" onchange="onBookChange()">
-        <option value="">-- Select Book --</option>
-      </select>
+      <label>Department</label>
+      <input type="text" id="department" readonly placeholder="Auto-filled" />
     </div>
 
+    <!-- BOOK ISBN -->
+    <div class="field">
+      <label>ISBN *</label>
+      <div class="isbn-row">
+        <input type="text" id="isbn" maxlength="13" placeholder="Type 13 digit ISBN" />
+        <button onclick="lookupISBN()">Search</button>
+      </div>
+      <p id="isbnNotFound" class="not-found">Book not found. Please check the ISBN.</p>
+    </div>
+
+    <!-- BOOK AUTO-FILL FIELDS -->
+    <div class="field">
+      <label>Book Title</label>
+      <input type="text" id="bookTitle" readonly placeholder="Auto-filled" />
+    </div>
     <div class="field">
       <label>Author</label>
       <input type="text" id="author" readonly placeholder="Auto-filled" />
     </div>
-
     <div class="field">
       <label>Edition</label>
       <input type="text" id="edition" readonly placeholder="Auto-filled" />
     </div>
 
+    <!-- NUMBER OF BOOKS -->
     <div class="field">
       <label>Number of Books *</label>
       <input type="number" id="numBooks" min="1" placeholder="Enter quantity" />
     </div>
 
+    <!-- REMARKS -->
     <div class="field">
       <label>Remarks</label>
       <textarea id="remarks" rows="3" placeholder="Optional"></textarea>
@@ -133,14 +174,15 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
 // ═══════════════════════════════════════════
 // CONFIGURATION
 // ═══════════════════════════════════════════
-const SHEET_ID   = '1IklTD1JAhWOGmtm2w5UWMkuVMc8gFeIrgNL1I193xxs';
-const PIN        = '3693';
-const COMPANY    = 'CBS Publishers and Dsitribution';
+const SHEET_ID = '1IklTD1JAhWOGmtm2w5UWMkuVMc8gFeIrgNL1I193xxs';
+const PIN      = '3693';
+const COMPANY  = 'CBS Publishers & Distributors';
 // ═══════════════════════════════════════════
 
 const API = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:json&sheet=';
 
 let allContacts = [];
+let allBooks    = [];
 
 // ── PIN CHECK ───────────────────────────────
 function checkPin() {
@@ -154,12 +196,11 @@ function checkPin() {
   }
 }
 
-// Allow Enter key on PIN screen
 document.getElementById('pinInput').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') checkPin();
 });
 
-// ── SET TODAY'S DATE ────────────────────────
+// ── SET TODAY DATE ──────────────────────────
 document.getElementById('visitDate').valueAsDate = new Date();
 
 // ── LOAD ALL DATA ───────────────────────────
@@ -174,43 +215,47 @@ function loadAllData() {
   loadSheet('Institutions', function(rows) {
     const sel = document.getElementById('institution');
     rows.forEach(function(r) {
-      if (r[0]) addOption(sel, r[0], r[0]);
-    });
-  });
-
-  loadSheet('Books', function(rows) {
-    const sel = document.getElementById('book');
-    rows.forEach(function(r) {
-      if (r[0]) addOption(sel, r[0], r[0]);
+      if (r[0]) {
+        const opt = document.createElement('option');
+        opt.value = r[0];
+        opt.textContent = r[0];
+        sel.insertBefore(opt, sel.lastElementChild);
+      }
     });
   });
 
   loadSheet('Contacts', function(rows) {
     allContacts = rows;
   });
+
+  loadSheet('Books', function(rows) {
+    allBooks = rows;
+  });
 }
 
 // ── INSTITUTION CHANGE ──────────────────────
 function onInstitutionChange() {
-  const inst = document.getElementById('institution').value;
+  const val = document.getElementById('institution').value;
+  const newBox = document.getElementById('newInstitutionBox');
 
-  // Clear contact dropdown
-  const contSel = document.getElementById('contact');
-  contSel.innerHTML = '<option value="">-- Select Contact --</option>';
-  clearField('email');
-  clearField('mobile');
-  clearField('designation');
+  clearField('city');
+  clearField('state');
+  clearContactFields();
+  resetContactDropdown();
 
-  if (!inst) {
-    clearField('city');
-    clearField('state');
+  if (val === '__NEW__') {
+    newBox.style.display = 'block';
     return;
   }
 
-  // Auto-fill City and State from Institutions sheet
+  newBox.style.display = 'none';
+
+  if (!val) return;
+
+  // Auto-fill City and State
   loadSheet('Institutions', function(rows) {
     rows.forEach(function(r) {
-      if (r[0] === inst) {
+      if (r[0] === val) {
         document.getElementById('city').value  = r[1] || '';
         document.getElementById('state').value = r[2] || '';
       }
@@ -218,60 +263,100 @@ function onInstitutionChange() {
   });
 
   // Filter contacts by institution
+  const contSel = document.getElementById('contact');
   allContacts.forEach(function(r) {
-    if (r[1] === inst && r[0]) {
-      addOption(contSel, r[0], r[0]);
+    if (r[1] === val && r[0]) {
+      const opt = document.createElement('option');
+      opt.value = r[0];
+      opt.textContent = r[0];
+      contSel.insertBefore(opt, contSel.lastElementChild);
     }
   });
 }
 
 // ── CONTACT CHANGE ──────────────────────────
 function onContactChange() {
-  const name = document.getElementById('contact').value;
-  if (!name) {
-    clearField('email');
-    clearField('mobile');
-    clearField('designation');
+  const val = document.getElementById('contact').value;
+  const newBox = document.getElementById('newContactBox');
+
+  clearContactFields();
+
+  if (val === '__NEW__') {
+    newBox.style.display = 'block';
     return;
   }
+
+  newBox.style.display = 'none';
+
+  if (!val) return;
+
   const inst = document.getElementById('institution').value;
   allContacts.forEach(function(r) {
-    if (r[0] === name && r[1] === inst) {
+    if (r[0] === val && r[1] === inst) {
       document.getElementById('email').value       = r[2] || '';
       document.getElementById('mobile').value      = r[3] || '';
       document.getElementById('designation').value = r[4] || '';
+      document.getElementById('department').value  = r[5] || '';
     }
   });
 }
 
-// ── BOOK CHANGE ─────────────────────────────
-function onBookChange() {
-  const title = document.getElementById('book').value;
-  if (!title) {
-    clearField('author');
-    clearField('edition');
+// ── ISBN LOOKUP ─────────────────────────────
+function lookupISBN() {
+  const isbn = document.getElementById('isbn').value.trim();
+  const notFound = document.getElementById('isbnNotFound');
+
+  clearField('bookTitle');
+  clearField('author');
+  clearField('edition');
+  notFound.style.display = 'none';
+
+  if (!isbn || isbn.length !== 13) {
+    notFound.textContent = 'Please enter a valid 13 digit ISBN.';
+    notFound.style.display = 'block';
     return;
   }
-  loadSheet('Books', function(rows) {
-    rows.forEach(function(r) {
-      if (r[0] === title) {
-        document.getElementById('author').value  = r[1] || '';
-        document.getElementById('edition').value = r[2] || '';
-      }
-    });
+
+  const found = allBooks.find(function(r) {
+    return String(r[3]).replace(/\D/g,'') === isbn;
   });
+
+  if (found) {
+    document.getElementById('bookTitle').value = found[0] || '';
+    document.getElementById('author').value    = found[1] || '';
+    document.getElementById('edition').value   = found[2] || '';
+    notFound.style.display = 'none';
+  } else {
+    notFound.textContent = 'Book not found. Please check the ISBN.';
+    notFound.style.display = 'block';
+  }
 }
+
+// Allow Enter key on ISBN field
+document.getElementById('isbn').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') lookupISBN();
+});
 
 // ── SUBMIT FORM ─────────────────────────────
 function submitForm() {
   const salesperson = document.getElementById('salesperson').value;
   const visitDate   = document.getElementById('visitDate').value;
-  const institution = document.getElementById('institution').value;
-  const contact     = document.getElementById('contact').value;
-  const book        = document.getElementById('book').value;
   const numBooks    = document.getElementById('numBooks').value;
+  const bookTitle   = document.getElementById('bookTitle').value;
+  const isbn        = document.getElementById('isbn').value.trim();
 
-  if (!salesperson || !visitDate || !institution || !contact || !book || !numBooks) {
+  const instVal     = document.getElementById('institution').value;
+  const contactVal  = document.getElementById('contact').value;
+
+  const institution = instVal === '__NEW__'
+    ? document.getElementById('newInstitutionName').value.trim()
+    : instVal;
+
+  const contact = contactVal === '__NEW__'
+    ? document.getElementById('newContactName').value.trim()
+    : contactVal;
+
+  if (!salesperson || !visitDate || !institution || !contact || !bookTitle || !numBooks) {
     showMsg('Please fill all required fields marked with *', false);
     return;
   }
@@ -286,14 +371,15 @@ function submitForm() {
     document.getElementById('email').value,
     document.getElementById('mobile').value,
     document.getElementById('designation').value,
-    book,
+    document.getElementById('department').value,
+    bookTitle,
+    isbn,
     document.getElementById('author').value,
     document.getElementById('edition').value,
     numBooks,
     document.getElementById('remarks').value,
   ];
 
-  // Send to Google Sheets via your developer's endpoint
   // YOUR DEVELOPER WILL REPLACE THIS URL
   const SUBMIT_URL = 'YOUR_DEVELOPER_ENDPOINT_HERE';
 
@@ -303,11 +389,11 @@ function submitForm() {
     body: JSON.stringify({ values: row })
   })
   .then(function(res) { return res.json(); })
-  .then(function(data) {
+  .then(function() {
     showMsg('Submitted successfully!', true);
     clearForm();
   })
-  .catch(function(err) {
+  .catch(function() {
     showMsg('Submission failed. Please try again.', false);
   });
 }
@@ -337,12 +423,28 @@ function clearField(id) {
   document.getElementById(id).value = '';
 }
 
+function clearContactFields() {
+  ['email','mobile','designation','department'].forEach(clearField);
+  document.getElementById('newContactBox').style.display = 'none';
+}
+
+function resetContactDropdown() {
+  const contSel = document.getElementById('contact');
+  contSel.innerHTML = '<option value="">-- Select Contact --</option><option value="__NEW__">+ Add New Contact</option>';
+}
+
 function clearForm() {
-  ['salesperson','institution','contact','book'].forEach(function(id) {
-    document.getElementById(id).selectedIndex = 0;
-  });
-  ['city','state','email','mobile','designation','author','edition','remarks','numBooks'].forEach(clearField);
+  document.getElementById('salesperson').selectedIndex = 0;
+  document.getElementById('institution').selectedIndex = 0;
+  resetContactDropdown();
+  document.getElementById('newInstitutionBox').style.display = 'none';
+  document.getElementById('newContactBox').style.display = 'none';
+  document.getElementById('newInstitutionName').value = '';
+  document.getElementById('newContactName').value = '';
+  ['city','state','email','mobile','designation','department',
+   'isbn','bookTitle','author','edition','numBooks','remarks'].forEach(clearField);
   document.getElementById('visitDate').valueAsDate = new Date();
+  document.getElementById('isbnNotFound').style.display = 'none';
 }
 
 function showMsg(text, success) {
@@ -356,4 +458,3 @@ function showMsg(text, success) {
 </script>
 </body>
 </html>
-
