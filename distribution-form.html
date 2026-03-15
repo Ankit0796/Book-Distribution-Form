@@ -65,33 +65,6 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
       <input type="date" id="visitDate" />
     </div>
 
-    <!-- INSTITUTION -->
-    <div class="field">
-      <label>Institution *</label>
-      <select id="institution" onchange="onInstitutionChange()">
-        <option value="">-- Select Institution --</option>
-        <option value="__NEW__">+ Add New Institution</option>
-      </select>
-    </div>
-
-    <!-- NEW INSTITUTION FIELDS -->
-    <div id="newInstitutionBox" class="new-entry" style="display:none;">
-      <div class="field">
-        <label>New Institution Name *</label>
-        <input type="text" id="newInstitutionName" placeholder="Type institution name" />
-      </div>
-    </div>
-
-    <!-- CITY STATE -->
-    <div class="field">
-      <label>City</label>
-      <input type="text" id="city" readonly placeholder="Auto-filled" />
-    </div>
-    <div class="field">
-      <label>State</label>
-      <input type="text" id="state" readonly placeholder="Auto-filled" />
-    </div>
-
     <!-- CONTACT PERSON -->
     <div class="field">
       <label>Contact Person *</label>
@@ -127,6 +100,35 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
       <input type="text" id="department" readonly placeholder="Auto-filled" />
     </div>
 
+
+    <!-- INSTITUTION -->
+    <div class="field">
+      <label>Institution *</label>
+      <select id="institution" onchange="onInstitutionChange()">
+        <option value="">-- Select Institution --</option>
+        <option value="__NEW__">+ Add New Institution</option>
+      </select>
+    </div>
+
+    <!-- NEW INSTITUTION FIELDS -->
+    <div id="newInstitutionBox" class="new-entry" style="display:none;">
+      <div class="field">
+        <label>New Institution Name *</label>
+        <input type="text" id="newInstitutionName" placeholder="Type institution name" />
+      </div>
+    </div>
+
+    <!-- CITY STATE -->
+    <div class="field">
+      <label>City</label>
+      <input type="text" id="city" readonly placeholder="Auto-filled" />
+    </div>
+    <div class="field">
+      <label>State</label>
+      <input type="text" id="state" readonly placeholder="Auto-filled" />
+    </div>
+
+    
     <!-- BOOK ISBN -->
     <div class="field">
       <label>ISBN *</label>
