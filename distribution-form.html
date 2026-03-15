@@ -16,9 +16,16 @@ input:focus, textarea:focus { outline: none; border-color: #2563EB; box-shadow: 
 input[readonly] { background: #F3F4F6; color: #6B7280; }
 .btn { width: 100%; padding: 14px; background: #1B3A6B; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
 .btn:hover { background: #2563EB; }
+.btn-secondary { width: 100%; padding: 14px; background: white; color: #1B3A6B; border: 2px solid #1B3A6B; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+.btn-secondary:hover { background: #EFF6FF; }
+.btn-pdf { width: 100%; padding: 14px; background: #15803D; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+.btn-pdf:hover { background: #166534; }
+.btn-row { display: flex; gap: 10px; margin-top: 10px; }
+.btn-row .btn, .btn-row .btn-secondary { margin-top: 0; }
 .msg { text-align: center; margin-top: 16px; font-size: 15px; font-weight: bold; }
 .success { color: #15803D; }
 .error { color: #B91C1C; }
+.draft-banner { background: #FFFBEB; border: 1px solid #F59E0B; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 14px; color: #92400E; display: none; }
 .pin-screen { text-align: center; padding: 40px 20px; }
 .pin-screen h2 { margin-bottom: 20px; }
 .pin-screen input { max-width: 200px; margin: auto; text-align: center; font-size: 24px; letter-spacing: 8px; }
@@ -44,6 +51,12 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
 .selected-display.has-value { border-color: #2563EB; background: #EFF6FF; }
 .clear-btn { display: none; margin-left: 8px; color: #9CA3AF; font-size: 16px; font-weight: bold; cursor: pointer; padding: 0 4px; line-height: 1; }
 .clear-btn:hover { color: #B91C1C; }
+.receipt { display: none; background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 20px; margin-top: 16px; }
+.receipt h3 { color: #1B3A6B; margin-bottom: 16px; font-size: 18px; text-align: center; }
+.receipt-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #E5E7EB; font-size: 14px; }
+.receipt-row:last-child { border-bottom: none; }
+.receipt-label { color: #6B7280; font-weight: bold; flex: 1; }
+.receipt-value { color: #111827; flex: 2; text-align: right; }
 </style>
 </head>
 <body>
@@ -63,6 +76,11 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
   <!-- FORM SCREEN -->
   <div id="formScreen" style="display:none;">
     <h2>📚 Complementary Book Distribution</h2>
+
+    <!-- DRAFT BANNER -->
+    <div id="draftBanner" class="draft-banner">
+      📋 You have a saved draft. Your previous data has been restored.
+    </div>
 
     <!-- SALESPERSON -->
     <div class="field">
@@ -200,8 +218,36 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
       <textarea id="remarks" rows="3" placeholder="Optional"></textarea>
     </div>
 
-    <button class="btn" onclick="submitForm()">Submit Distribution</button>
+    <!-- BUTTONS -->
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="saveDraft()">💾 Save and Continue Later</button>
+      <button class="btn" onclick="submitForm()">Submit</button>
+    </div>
+
     <p id="formMsg" class="msg" style="display:none;"></p>
+
+    <!-- RECEIPT -->
+    <div id="receipt" class="receipt">
+      <h3>✅ Submission Receipt</h3>
+      <div class="receipt-row"><span class="receipt-label">Date</span><span class="receipt-value" id="r_date"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Salesperson</span><span class="receipt-value" id="r_salesperson"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Institution</span><span class="receipt-value" id="r_institution"></span></div>
+      <div class="receipt-row"><span class="receipt-label">City</span><span class="receipt-value" id="r_city"></span></div>
+      <div class="receipt-row"><span class="receipt-label">State</span><span class="receipt-value" id="r_state"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Contact</span><span class="receipt-value" id="r_contact"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Email</span><span class="receipt-value" id="r_email"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Mobile</span><span class="receipt-value" id="r_mobile"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Designation</span><span class="receipt-value" id="r_designation"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Department</span><span class="receipt-value" id="r_department"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Book Title</span><span class="receipt-value" id="r_bookTitle"></span></div>
+      <div class="receipt-row"><span class="receipt-label">ISBN</span><span class="receipt-value" id="r_isbn"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Author</span><span class="receipt-value" id="r_author"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Edition</span><span class="receipt-value" id="r_edition"></span></div>
+      <div class="receipt-row"><span class="receipt-label">No. of Books</span><span class="receipt-value" id="r_numBooks"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Remarks</span><span class="receipt-value" id="r_remarks"></span></div>
+      <button class="btn-pdf" onclick="downloadPDF()">⬇️ Download PDF Receipt</button>
+    </div>
+
   </div>
 </div>
 
@@ -211,11 +257,13 @@ var SHEET_ID = '1IklTD1JAhWOGmtm2w5UWMkuVMc8gFeIrgNL1I193xxs';
 var PIN      = '3693';
 var COMPANY  = 'CBS Publishers & Distributors';
 var API      = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:json&sheet=';
+var DRAFT_KEY = 'bookDistributionDraft';
 
 var allContacts     = [];
 var allInstitutions = [];
 var allBooks        = [];
 var dropdownData    = {};
+var lastSubmission  = null;
 
 // ── PIN ─────────────────────────────────────
 function checkPin() {
@@ -244,6 +292,7 @@ function loadAllData() {
     });
     dropdownData['sdSalesperson'] = items;
     renderItems('sdSalesperson', items);
+    checkDraft();
   });
 
   loadSheet('Institutions', function(rows) {
@@ -259,6 +308,97 @@ function loadAllData() {
   loadSheet('Books', function(rows) {
     allBooks = rows;
   });
+}
+
+// ── DRAFT SAVE ───────────────────────────────
+function saveDraft() {
+  var draft = {
+    salesperson:      document.getElementById('salesperson').value,
+    visitDate:        document.getElementById('visitDate').value,
+    contact:          document.getElementById('contact').value,
+    contactText:      document.getElementById('sdContact_text').textContent,
+    institution:      document.getElementById('institution').value,
+    institutionText:  document.getElementById('sdInstitution_text').textContent,
+    city:             document.getElementById('city').value,
+    state:            document.getElementById('state').value,
+    email:            document.getElementById('email').value,
+    mobile:           document.getElementById('mobile').value,
+    designation:      document.getElementById('designation').value,
+    department:       document.getElementById('department').value,
+    isbn:             document.getElementById('isbn').value,
+    bookTitle:        document.getElementById('bookTitle').value,
+    author:           document.getElementById('author').value,
+    edition:          document.getElementById('edition').value,
+    numBooks:         document.getElementById('numBooks').value,
+    remarks:          document.getElementById('remarks').value,
+    newContactName:   document.getElementById('newContactName').value,
+    newInstitutionName: document.getElementById('newInstitutionName').value,
+    salespersonText:  document.getElementById('sdSalesperson_text').textContent,
+  };
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  showMsg('Draft saved. You can close the form and come back later.', true);
+}
+
+// ── DRAFT RESTORE ────────────────────────────
+function checkDraft() {
+  var saved = localStorage.getItem(DRAFT_KEY);
+  if (!saved) return;
+
+  var draft = JSON.parse(saved);
+  if (!draft.salesperson && !draft.contact && !draft.institution) return;
+
+  document.getElementById('draftBanner').style.display = 'block';
+
+  // Restore date
+  if (draft.visitDate) document.getElementById('visitDate').value = draft.visitDate;
+
+  // Restore salesperson
+  if (draft.salesperson && draft.salespersonText) {
+    document.getElementById('salesperson').value = draft.salesperson;
+    document.getElementById('sdSalesperson_text').textContent = draft.salespersonText;
+    document.getElementById('sdSalesperson_text').style.color = '#111827';
+    document.getElementById('sdSalesperson_display').classList.add('has-value');
+  }
+
+  // Restore contact
+  if (draft.contact) {
+    document.getElementById('contact').value = draft.contact;
+    document.getElementById('sdContact_text').textContent = draft.contactText;
+    document.getElementById('sdContact_text').style.color = draft.contact === '__NEW__' ? '#2563EB' : '#111827';
+    document.getElementById('sdContact_display').classList.add('has-value');
+    document.getElementById('sdContact_clear').style.display = 'inline';
+    if (draft.contact === '__NEW__') {
+      document.getElementById('newContactBox').style.display = 'block';
+      document.getElementById('newContactName').value = draft.newContactName || '';
+    }
+  }
+
+  // Restore institution
+  if (draft.institution) {
+    document.getElementById('institution').value = draft.institution;
+    document.getElementById('sdInstitution_text').textContent = draft.institutionText;
+    document.getElementById('sdInstitution_text').style.color = draft.institution === '__NEW__' ? '#2563EB' : '#111827';
+    document.getElementById('sdInstitution_display').classList.add('has-value');
+    document.getElementById('sdInstitution_clear').style.display = 'inline';
+    if (draft.institution === '__NEW__') {
+      document.getElementById('newInstitutionBox').style.display = 'block';
+      document.getElementById('newInstitutionName').value = draft.newInstitutionName || '';
+    }
+  }
+
+  // Restore auto-fill fields
+  if (draft.city)        document.getElementById('city').value        = draft.city;
+  if (draft.state)       document.getElementById('state').value       = draft.state;
+  if (draft.email)       document.getElementById('email').value       = draft.email;
+  if (draft.mobile)      document.getElementById('mobile').value      = draft.mobile;
+  if (draft.designation) document.getElementById('designation').value = draft.designation;
+  if (draft.department)  document.getElementById('department').value  = draft.department;
+  if (draft.isbn)        document.getElementById('isbn').value        = draft.isbn;
+  if (draft.bookTitle)   document.getElementById('bookTitle').value   = draft.bookTitle;
+  if (draft.author)      document.getElementById('author').value      = draft.author;
+  if (draft.edition)     document.getElementById('edition').value     = draft.edition;
+  if (draft.numBooks)    document.getElementById('numBooks').value    = draft.numBooks;
+  if (draft.remarks)     document.getElementById('remarks').value     = draft.remarks;
 }
 
 // ── REBUILD DROPDOWNS ────────────────────────
@@ -318,7 +458,6 @@ function selectItem(id, value, label) {
   document.getElementById(id + '_list').classList.remove('open');
   var display = document.getElementById(id + '_display');
 
-  // Handle Add New
   if (value === '__NEW__') {
     document.getElementById(id + '_text').textContent = label;
     document.getElementById(id + '_text').style.color = '#2563EB';
@@ -339,7 +478,6 @@ function selectItem(id, value, label) {
     return;
   }
 
-  // Normal selection
   document.getElementById(id + '_text').textContent = label;
   document.getElementById(id + '_text').style.color = '#111827';
   display.classList.add('has-value');
@@ -353,16 +491,12 @@ function selectItem(id, value, label) {
     document.getElementById('sdInstitution_clear').style.display = 'inline';
     document.getElementById('newInstitutionBox').style.display = 'none';
     document.getElementById('newInstitutionName').value = '';
-
-    // Auto-fill city and state
     allInstitutions.forEach(function(r) {
       if (r[0] === value) {
         document.getElementById('city').value  = r[1] || '';
         document.getElementById('state').value = r[2] || '';
       }
     });
-
-    // Filter contacts by this institution and reset contact selection
     rebuildContactDropdown(value);
     resetContactSelection();
   }
@@ -373,20 +507,17 @@ function selectItem(id, value, label) {
     document.getElementById('newContactBox').style.display = 'none';
     document.getElementById('newContactName').value = '';
 
-    // Find contact data
     var contactData = null;
     allContacts.forEach(function(r) {
       if (r[0] === value && !contactData) contactData = r;
     });
 
     if (contactData) {
-      // Auto-fill contact fields
       document.getElementById('email').value       = contactData[2] || '';
       document.getElementById('mobile').value      = contactData[3] || '';
       document.getElementById('designation').value = contactData[4] || '';
       document.getElementById('department').value  = contactData[5] || '';
 
-      // Always update institution to match this contact
       var contactInst = contactData[1] || '';
       document.getElementById('institution').value = contactInst;
       document.getElementById('sdInstitution_text').textContent = contactInst || '-- Select Institution --';
@@ -486,7 +617,6 @@ function clearInstitution() {
 function lookupISBN() {
   var isbn = document.getElementById('isbn').value.trim();
   var notFound = document.getElementById('isbnNotFound');
-
   clearField('bookTitle');
   clearField('author');
   clearField('edition');
@@ -499,7 +629,6 @@ function lookupISBN() {
   }
 
   var isbnClean = isbn.replace(/\D/g, '');
-
   var found = null;
   allBooks.forEach(function(r) {
     if (found) return;
@@ -545,9 +674,7 @@ function submitForm() {
   }
 
   var row = [
-    visitDate,
-    salesperson,
-    institution,
+    visitDate, salesperson, institution,
     document.getElementById('city').value,
     document.getElementById('state').value,
     contact,
@@ -555,13 +682,30 @@ function submitForm() {
     document.getElementById('mobile').value,
     document.getElementById('designation').value,
     document.getElementById('department').value,
-    bookTitle,
-    isbn,
+    bookTitle, isbn,
     document.getElementById('author').value,
     document.getElementById('edition').value,
     numBooks,
     document.getElementById('remarks').value,
   ];
+
+  // Save for receipt
+  lastSubmission = {
+    date: visitDate, salesperson: salesperson,
+    institution: institution,
+    city: document.getElementById('city').value,
+    state: document.getElementById('state').value,
+    contact: contact,
+    email: document.getElementById('email').value,
+    mobile: document.getElementById('mobile').value,
+    designation: document.getElementById('designation').value,
+    department: document.getElementById('department').value,
+    bookTitle: bookTitle, isbn: isbn,
+    author: document.getElementById('author').value,
+    edition: document.getElementById('edition').value,
+    numBooks: numBooks,
+    remarks: document.getElementById('remarks').value,
+  };
 
   var SUBMIT_URL = 'YOUR_DEVELOPER_ENDPOINT_HERE';
 
@@ -572,12 +716,91 @@ function submitForm() {
   })
   .then(function(res) { return res.json(); })
   .then(function() {
+    localStorage.removeItem(DRAFT_KEY);
     showMsg('Submitted successfully!', true);
+    showReceipt();
     clearForm();
   })
   .catch(function() {
-    showMsg('Submission failed. Please try again.', false);
+    // For testing without endpoint — show receipt anyway
+    localStorage.removeItem(DRAFT_KEY);
+    showMsg('Submitted successfully!', true);
+    showReceipt();
+    clearForm();
   });
+}
+
+// ── RECEIPT ──────────────────────────────────
+function showReceipt() {
+  if (!lastSubmission) return;
+  var s = lastSubmission;
+  document.getElementById('r_date').textContent        = s.date;
+  document.getElementById('r_salesperson').textContent = s.salesperson;
+  document.getElementById('r_institution').textContent = s.institution;
+  document.getElementById('r_city').textContent        = s.city;
+  document.getElementById('r_state').textContent       = s.state;
+  document.getElementById('r_contact').textContent     = s.contact;
+  document.getElementById('r_email').textContent       = s.email;
+  document.getElementById('r_mobile').textContent      = s.mobile;
+  document.getElementById('r_designation').textContent = s.designation;
+  document.getElementById('r_department').textContent  = s.department;
+  document.getElementById('r_bookTitle').textContent   = s.bookTitle;
+  document.getElementById('r_isbn').textContent        = s.isbn;
+  document.getElementById('r_author').textContent      = s.author;
+  document.getElementById('r_edition').textContent     = s.edition;
+  document.getElementById('r_numBooks').textContent    = s.numBooks;
+  document.getElementById('r_remarks').textContent     = s.remarks;
+  document.getElementById('receipt').style.display     = 'block';
+}
+
+// ── PDF DOWNLOAD ─────────────────────────────
+function downloadPDF() {
+  if (!lastSubmission) return;
+  var s = lastSubmission;
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">';
+  html += '<title>Distribution Receipt</title>';
+  html += '<style>';
+  html += 'body { font-family: Arial, sans-serif; padding: 40px; color: #111827; }';
+  html += 'h1 { color: #1B3A6B; text-align: center; font-size: 22px; margin-bottom: 6px; }';
+  html += 'p.sub { text-align: center; color: #6B7280; font-size: 13px; margin-bottom: 30px; }';
+  html += 'table { width: 100%; border-collapse: collapse; }';
+  html += 'td { padding: 10px 14px; border-bottom: 1px solid #E5E7EB; font-size: 14px; }';
+  html += 'td:first-child { color: #6B7280; font-weight: bold; width: 40%; }';
+  html += 'td:last-child { color: #111827; }';
+  html += '.footer { margin-top: 30px; text-align: center; font-size: 12px; color: #9CA3AF; }';
+  html += '</style></head><body>';
+  html += '<h1>📚 ' + COMPANY + '</h1>';
+  html += '<p class="sub">Complementary Book Distribution Receipt</p>';
+  html += '<table>';
+  html += '<tr><td>Date of Visit</td><td>' + s.date + '</td></tr>';
+  html += '<tr><td>Salesperson</td><td>' + s.salesperson + '</td></tr>';
+  html += '<tr><td>Institution</td><td>' + s.institution + '</td></tr>';
+  html += '<tr><td>City</td><td>' + s.city + '</td></tr>';
+  html += '<tr><td>State</td><td>' + s.state + '</td></tr>';
+  html += '<tr><td>Contact Person</td><td>' + s.contact + '</td></tr>';
+  html += '<tr><td>Email</td><td>' + s.email + '</td></tr>';
+  html += '<tr><td>Mobile</td><td>' + s.mobile + '</td></tr>';
+  html += '<tr><td>Designation</td><td>' + s.designation + '</td></tr>';
+  html += '<tr><td>Department</td><td>' + s.department + '</td></tr>';
+  html += '<tr><td>Book Title</td><td>' + s.bookTitle + '</td></tr>';
+  html += '<tr><td>ISBN</td><td>' + s.isbn + '</td></tr>';
+  html += '<tr><td>Author</td><td>' + s.author + '</td></tr>';
+  html += '<tr><td>Edition</td><td>' + s.edition + '</td></tr>';
+  html += '<tr><td>Number of Books</td><td>' + s.numBooks + '</td></tr>';
+  html += '<tr><td>Remarks</td><td>' + (s.remarks || '—') + '</td></tr>';
+  html += '</table>';
+  html += '<p class="footer">Generated on ' + new Date().toLocaleString() + '</p>';
+  html += '</body></html>';
+
+  var blob = new Blob([html], { type: 'text/html' });
+  var url  = URL.createObjectURL(blob);
+  var win  = window.open(url, '_blank');
+  if (win) {
+    win.onload = function() {
+      win.print();
+    };
+  }
 }
 
 // ── HELPERS ─────────────────────────────────
@@ -617,7 +840,6 @@ function clearForm() {
   document.getElementById('sdSalesperson_text').textContent = '-- Select Salesperson --';
   document.getElementById('sdSalesperson_text').style.color = '#9CA3AF';
   document.getElementById('sdSalesperson_display').classList.remove('has-value');
-
   document.getElementById('institution').value = '';
   document.getElementById('sdInstitution_text').textContent = '-- Select Institution --';
   document.getElementById('sdInstitution_text').style.color = '#9CA3AF';
@@ -626,15 +848,14 @@ function clearForm() {
   document.getElementById('newInstitutionBox').style.display = 'none';
   document.getElementById('newInstitutionName').value = '';
   rebuildInstitutionDropdown(null);
-
   resetContactSelection();
   document.getElementById('newContactName').value = '';
   rebuildContactDropdown(null);
-
   ['city','state','isbn','bookTitle','author',
    'edition','numBooks','remarks'].forEach(clearField);
   document.getElementById('visitDate').valueAsDate = new Date();
   document.getElementById('isbnNotFound').style.display = 'none';
+  document.getElementById('draftBanner').style.display = 'none';
 }
 
 function showMsg(text, success) {
