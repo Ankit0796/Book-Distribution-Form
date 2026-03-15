@@ -383,44 +383,50 @@ function selectItem(id, value, label) {
     document.getElementById('newContactBox').style.display = 'none';
     document.getElementById('newContactName').value = '';
 
-    // Auto-fill contact fields
-    var instVal = document.getElementById('institution').value;
-    var matched = false;
-
+    // Find this contact's data
+    var contactData = null;
     allContacts.forEach(function(r) {
-      if (r[0] === value) {
-        // If institution already selected, match both
-        // If institution not selected, use first match and filter institution
-        if (!instVal || instVal === r[1]) {
-          document.getElementById('email').value       = r[2] || '';
-          document.getElementById('mobile').value      = r[3] || '';
-          document.getElementById('designation').value = r[4] || '';
-          document.getElementById('department').value  = r[5] || '';
-
-          // If institution not yet selected, auto-select it
-          if (!instVal || instVal !== r[1]) {
-            document.getElementById('institution').value = r[1];
-            document.getElementById('sdInstitution_text').textContent = r[1];
-            document.getElementById('sdInstitution_text').style.color = '#111827';
-            document.getElementById('sdInstitution_display').classList.add('has-value');
-
-            // Auto-fill city state from institution
-            allInstitutions.forEach(function(inst) {
-              if (inst[0] === r[1]) {
-                document.getElementById('city').value  = inst[1] || '';
-                document.getElementById('state').value = inst[2] || '';
-              }
-            });
-
-            // Filter institution dropdown to this contact's institution
-            rebuildInstitutionDropdown(r[1]);
-          }
-          matched = true;
-        }
+      if (r[0] === value && !contactData) {
+        contactData = r;
       }
     });
+
+    if (contactData) {
+      // Always auto-fill contact fields
+      document.getElementById('email').value       = contactData[2] || '';
+      document.getElementById('mobile').value      = contactData[3] || '';
+      document.getElementById('designation').value = contactData[4] || '';
+      document.getElementById('department').value  = contactData[5] || '';
+
+      // Always update institution to match this contact
+      var contactInstitution = contactData[1] || '';
+
+      document.getElementById('institution').value = contactInstitution;
+      document.getElementById('sdInstitution_text').textContent = contactInstitution || '-- Select Institution --';
+      document.getElementById('sdInstitution_text').style.color = contactInstitution ? '#111827' : '#9CA3AF';
+
+      if (contactInstitution) {
+        document.getElementById('sdInstitution_display').classList.add('has-value');
+        document.getElementById('newInstitutionBox').style.display = 'none';
+
+        // Auto-fill city and state from institution
+        allInstitutions.forEach(function(inst) {
+          if (inst[0] === contactInstitution) {
+            document.getElementById('city').value  = inst[1] || '';
+            document.getElementById('state').value = inst[2] || '';
+          }
+        });
+
+        // Filter institution dropdown to this contact's institution only
+        rebuildInstitutionDropdown(contactInstitution);
+      } else {
+        document.getElementById('sdInstitution_display').classList.remove('has-value');
+        clearField('city');
+        clearField('state');
+        rebuildInstitutionDropdown(null);
+      }
+    }
   }
-}
 
 // ── TOGGLE DROPDOWN ──────────────────────────
 function toggleDropdown(id) {
@@ -470,14 +476,22 @@ function lookupISBN() {
   clearField('edition');
   notFound.style.display = 'none';
 
-  if (!isbn || isbn.length !== 13) {
-    notFound.textContent = 'Please enter a valid 13 digit ISBN.';
+  if (!isbn) {
+    notFound.textContent = 'Please enter an ISBN.';
     notFound.style.display = 'block';
     return;
   }
 
+  // Normalise what user typed — remove all non-digits
+  var isbnClean = isbn.replace(/\D/g, '');
+
   var found = allBooks.find(function(r) {
-    return String(r[3]).replace(/\D/g,'') === isbn;
+    // Normalise sheet value — convert number to string, remove non-digits
+    var sheetISBN = String(r[3] || '').replace(/\D/g, '');
+    // Also try without leading zeros in case Sheets dropped them
+    return sheetISBN === isbnClean ||
+           sheetISBN === String(parseInt(isbnClean, 10)) ||
+           String(parseInt(sheetISBN, 10)) === isbnClean;
   });
 
   if (found) {
