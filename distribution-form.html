@@ -438,7 +438,7 @@ function lookupISBN() {
   var found = null;
   allBooks.forEach(function(r) {
     if (found) return;
-    var sheetISBN = String(r[3] || '').replace(/\D/g, '');
+    var sheetISBN = String(r[0] || '').replace(/\D/g, '');
     var sheetISBNNum = String(parseInt(sheetISBN, 10));
     var inputISBNNum = String(parseInt(isbnClean, 10));
     if (sheetISBN === isbnClean || sheetISBNNum === isbnClean || sheetISBN === inputISBNNum) {
@@ -447,9 +447,9 @@ function lookupISBN() {
   });
 
   if (found) {
-    document.getElementById('bookTitle').value = found[0] || '';
-    document.getElementById('author').value    = found[1] || '';
-    document.getElementById('edition').value   = found[2] || '';
+    document.getElementById('bookTitle').value = found[1] || '';
+    document.getElementById('author').value    = found[2] || '';
+    document.getElementById('edition').value   = found[3] || '';
   } else {
     notFound.textContent = 'Book not found. Please check the ISBN.';
     notFound.style.display = 'block';
