@@ -31,7 +31,6 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
 .isbn-row button:hover { background: #1B3A6B; }
 .not-found { color: #B91C1C; font-size: 13px; margin-top: 6px; display: none; }
 .search-dropdown { position: relative; }
-.search-dropdown input.search-input { border-radius: 8px; cursor: text; }
 .dropdown-list { display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #2563EB; border-radius: 0 0 8px 8px; max-height: 220px; overflow-y: auto; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 .dropdown-list.open { display: block; }
 .dropdown-item { padding: 10px 14px; cursor: pointer; font-size: 15px; color: #111827; border-bottom: 1px solid #F3F4F6; }
@@ -43,11 +42,14 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
 .selected-display:hover { border-color: #2563EB; }
 .selected-display .arrow { color: #6B7280; font-size: 12px; }
 .selected-display.has-value { border-color: #2563EB; background: #EFF6FF; }
+.clear-btn { display: none; margin-left: 8px; color: #9CA3AF; font-size: 16px; font-weight: bold; cursor: pointer; padding: 0 4px; line-height: 1; }
+.clear-btn:hover { color: #B91C1C; }
 </style>
 </head>
 <body>
 <div class="container">
 
+  <!-- PIN SCREEN -->
   <div id="pinScreen" class="pin-screen">
     <h2>📚 Book Distribution</h2>
     <p style="color:#6B7280;margin-bottom:20px;">Enter PIN to continue</p>
@@ -58,44 +60,50 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
     <p id="pinError" class="msg error" style="display:none;">Incorrect PIN. Try again.</p>
   </div>
 
+  <!-- FORM SCREEN -->
   <div id="formScreen" style="display:none;">
     <h2>📚 Complementary Book Distribution</h2>
 
+    <!-- SALESPERSON -->
     <div class="field">
       <label>Salesperson Name *</label>
       <div class="search-dropdown" id="sdSalesperson">
         <div class="selected-display" onclick="toggleDropdown('sdSalesperson')" id="sdSalesperson_display">
-          <span id="sdSalesperson_text" style="color:#9CA3AF;">-- Select Salesperson --</span>
+          <span id="sdSalesperson_text" style="color:#9CA3AF;flex:1;">-- Select Salesperson --</span>
           <span class="arrow">▼</span>
         </div>
         <div class="dropdown-list" id="sdSalesperson_list">
-          <input type="text" class="search-input" placeholder="Search salesperson..." oninput="filterList('sdSalesperson')" onclick="event.stopPropagation()" style="border:none;border-bottom:1px solid #E5E7EB;border-radius:0;margin:0;" />
+          <input type="text" placeholder="Search salesperson..." oninput="filterList('sdSalesperson')" onclick="event.stopPropagation()" style="width:100%;padding:10px 14px;border:none;border-bottom:1px solid #E5E7EB;border-radius:0;margin:0;font-size:15px;" />
           <div id="sdSalesperson_items"></div>
         </div>
       </div>
       <input type="hidden" id="salesperson" />
     </div>
 
+    <!-- DATE -->
     <div class="field">
       <label>Date of Visit *</label>
       <input type="date" id="visitDate" />
     </div>
 
+    <!-- CONTACT PERSON -->
     <div class="field">
       <label>Contact Person *</label>
       <div class="search-dropdown" id="sdContact">
-        <div class="selected-display" onclick="toggleDropdown('sdContact')" id="sdContact_display">
-          <span id="sdContact_text" style="color:#9CA3AF;">-- Select Contact --</span>
-          <span class="arrow">▼</span>
+        <div class="selected-display" id="sdContact_display">
+          <span id="sdContact_text" style="color:#9CA3AF;flex:1;cursor:pointer;" onclick="toggleDropdown('sdContact')">-- Select Contact --</span>
+          <span class="arrow" onclick="toggleDropdown('sdContact')" style="cursor:pointer;">▼</span>
+          <span id="sdContact_clear" class="clear-btn" onclick="clearContact()" title="Clear">✕</span>
         </div>
         <div class="dropdown-list" id="sdContact_list">
-          <input type="text" class="search-input" placeholder="Search contact..." oninput="filterList('sdContact')" onclick="event.stopPropagation()" style="border:none;border-bottom:1px solid #E5E7EB;border-radius:0;margin:0;" />
+          <input type="text" placeholder="Search contact..." oninput="filterList('sdContact')" onclick="event.stopPropagation()" style="width:100%;padding:10px 14px;border:none;border-bottom:1px solid #E5E7EB;border-radius:0;margin:0;font-size:15px;" />
           <div id="sdContact_items"></div>
         </div>
       </div>
       <input type="hidden" id="contact" />
     </div>
 
+    <!-- NEW CONTACT -->
     <div id="newContactBox" class="new-entry" style="display:none;">
       <div class="field">
         <label>New Contact Name *</label>
@@ -103,6 +111,7 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
       </div>
     </div>
 
+    <!-- CONTACT AUTO-FILL -->
     <div class="field">
       <label>Email</label>
       <input type="text" id="email" readonly placeholder="Auto-filled" />
@@ -120,21 +129,24 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
       <input type="text" id="department" readonly placeholder="Auto-filled" />
     </div>
 
+    <!-- INSTITUTION -->
     <div class="field">
       <label>Institution *</label>
       <div class="search-dropdown" id="sdInstitution">
-        <div class="selected-display" onclick="toggleDropdown('sdInstitution')" id="sdInstitution_display">
-          <span id="sdInstitution_text" style="color:#9CA3AF;">-- Select Institution --</span>
-          <span class="arrow">▼</span>
+        <div class="selected-display" id="sdInstitution_display">
+          <span id="sdInstitution_text" style="color:#9CA3AF;flex:1;cursor:pointer;" onclick="toggleDropdown('sdInstitution')">-- Select Institution --</span>
+          <span class="arrow" onclick="toggleDropdown('sdInstitution')" style="cursor:pointer;">▼</span>
+          <span id="sdInstitution_clear" class="clear-btn" onclick="clearInstitution()" title="Clear">✕</span>
         </div>
         <div class="dropdown-list" id="sdInstitution_list">
-          <input type="text" class="search-input" placeholder="Search institution..." oninput="filterList('sdInstitution')" onclick="event.stopPropagation()" style="border:none;border-bottom:1px solid #E5E7EB;border-radius:0;margin:0;" />
+          <input type="text" placeholder="Search institution..." oninput="filterList('sdInstitution')" onclick="event.stopPropagation()" style="width:100%;padding:10px 14px;border:none;border-bottom:1px solid #E5E7EB;border-radius:0;margin:0;font-size:15px;" />
           <div id="sdInstitution_items"></div>
         </div>
       </div>
       <input type="hidden" id="institution" />
     </div>
 
+    <!-- NEW INSTITUTION -->
     <div id="newInstitutionBox" class="new-entry" style="display:none;">
       <div class="field">
         <label>New Institution Name *</label>
@@ -142,6 +154,7 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
       </div>
     </div>
 
+    <!-- CITY STATE -->
     <div class="field">
       <label>City</label>
       <input type="text" id="city" readonly placeholder="Auto-filled" />
@@ -151,6 +164,7 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
       <input type="text" id="state" readonly placeholder="Auto-filled" />
     </div>
 
+    <!-- ISBN -->
     <div class="field">
       <label>ISBN *</label>
       <div class="isbn-row">
@@ -160,6 +174,7 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
       <p id="isbnNotFound" class="not-found"></p>
     </div>
 
+    <!-- BOOK AUTO-FILL -->
     <div class="field">
       <label>Book Title</label>
       <input type="text" id="bookTitle" readonly placeholder="Auto-filled" />
@@ -173,11 +188,13 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
       <input type="text" id="edition" readonly placeholder="Auto-filled" />
     </div>
 
+    <!-- NUMBER OF BOOKS -->
     <div class="field">
       <label>Number of Books *</label>
       <input type="number" id="numBooks" min="1" placeholder="Enter quantity" />
     </div>
 
+    <!-- REMARKS -->
     <div class="field">
       <label>Remarks</label>
       <textarea id="remarks" rows="3" placeholder="Optional"></textarea>
@@ -200,6 +217,7 @@ var allInstitutions = [];
 var allBooks        = [];
 var dropdownData    = {};
 
+// ── PIN ─────────────────────────────────────
 function checkPin() {
   var entered = document.getElementById('pinInput').value;
   if (entered === PIN) {
@@ -217,6 +235,7 @@ document.getElementById('pinInput').addEventListener('keydown', function(e) {
 
 document.getElementById('visitDate').valueAsDate = new Date();
 
+// ── LOAD DATA ───────────────────────────────
 function loadAllData() {
   loadSheet('Salespersons', function(rows) {
     var items = [];
@@ -242,36 +261,32 @@ function loadAllData() {
   });
 }
 
-function rebuildInstitutionDropdown(filterByInstitution) {
+// ── REBUILD DROPDOWNS ────────────────────────
+function rebuildInstitutionDropdown(filterBy) {
   var items = [];
   allInstitutions.forEach(function(r) {
     if (!r[0]) return;
-    if (filterByInstitution) {
-      if (r[0] === filterByInstitution) items.push({ value: r[0], label: r[0] });
-    } else {
-      items.push({ value: r[0], label: r[0] });
-    }
+    if (filterBy && r[0] !== filterBy) return;
+    items.push({ value: r[0], label: r[0] });
   });
   items.push({ value: '__NEW__', label: '+ Add New Institution', cls: 'add-new' });
   dropdownData['sdInstitution'] = items;
   renderItems('sdInstitution', items);
 }
 
-function rebuildContactDropdown(filterByInstitution) {
+function rebuildContactDropdown(filterBy) {
   var items = [];
   allContacts.forEach(function(r) {
     if (!r[0]) return;
-    if (filterByInstitution) {
-      if (r[1] === filterByInstitution) items.push({ value: r[0], label: r[0] });
-    } else {
-      items.push({ value: r[0], label: r[0] });
-    }
+    if (filterBy && r[1] !== filterBy) return;
+    items.push({ value: r[0], label: r[0] });
   });
   items.push({ value: '__NEW__', label: '+ Add New Contact', cls: 'add-new' });
   dropdownData['sdContact'] = items;
   renderItems('sdContact', items);
 }
 
+// ── RENDER ITEMS ─────────────────────────────
 function renderItems(id, items, search) {
   var container = document.getElementById(id + '_items');
   container.innerHTML = '';
@@ -298,10 +313,12 @@ function renderItems(id, items, search) {
   });
 }
 
+// ── SELECT ITEM ──────────────────────────────
 function selectItem(id, value, label) {
   document.getElementById(id + '_list').classList.remove('open');
   var display = document.getElementById(id + '_display');
 
+  // Handle Add New
   if (value === '__NEW__') {
     document.getElementById(id + '_text').textContent = label;
     document.getElementById(id + '_text').style.color = '#2563EB';
@@ -309,17 +326,20 @@ function selectItem(id, value, label) {
     if (id === 'sdInstitution') {
       document.getElementById('institution').value = '__NEW__';
       document.getElementById('newInstitutionBox').style.display = 'block';
+      document.getElementById('sdInstitution_clear').style.display = 'inline';
       clearField('city');
       clearField('state');
     }
     if (id === 'sdContact') {
       document.getElementById('contact').value = '__NEW__';
       document.getElementById('newContactBox').style.display = 'block';
+      document.getElementById('sdContact_clear').style.display = 'inline';
       clearContactAutoFill();
     }
     return;
   }
 
+  // Normal selection
   document.getElementById(id + '_text').textContent = label;
   document.getElementById(id + '_text').style.color = '#111827';
   display.classList.add('has-value');
@@ -330,9 +350,11 @@ function selectItem(id, value, label) {
 
   if (id === 'sdInstitution') {
     document.getElementById('institution').value = value;
+    document.getElementById('sdInstitution_clear').style.display = 'inline';
     document.getElementById('newInstitutionBox').style.display = 'none';
     document.getElementById('newInstitutionName').value = '';
 
+    // Auto-fill city and state
     allInstitutions.forEach(function(r) {
       if (r[0] === value) {
         document.getElementById('city').value  = r[1] || '';
@@ -340,46 +362,50 @@ function selectItem(id, value, label) {
       }
     });
 
+    // Filter contacts by this institution and reset contact selection
     rebuildContactDropdown(value);
     resetContactSelection();
   }
 
   if (id === 'sdContact') {
     document.getElementById('contact').value = value;
+    document.getElementById('sdContact_clear').style.display = 'inline';
     document.getElementById('newContactBox').style.display = 'none';
     document.getElementById('newContactName').value = '';
 
+    // Find contact data
     var contactData = null;
     allContacts.forEach(function(r) {
-      if (r[0] === value && !contactData) {
-        contactData = r;
-      }
+      if (r[0] === value && !contactData) contactData = r;
     });
 
     if (contactData) {
+      // Auto-fill contact fields
       document.getElementById('email').value       = contactData[2] || '';
       document.getElementById('mobile').value      = contactData[3] || '';
       document.getElementById('designation').value = contactData[4] || '';
       document.getElementById('department').value  = contactData[5] || '';
 
-      var contactInstitution = contactData[1] || '';
+      // Always update institution to match this contact
+      var contactInst = contactData[1] || '';
+      document.getElementById('institution').value = contactInst;
+      document.getElementById('sdInstitution_text').textContent = contactInst || '-- Select Institution --';
+      document.getElementById('sdInstitution_text').style.color = contactInst ? '#111827' : '#9CA3AF';
 
-      document.getElementById('institution').value = contactInstitution;
-      document.getElementById('sdInstitution_text').textContent = contactInstitution || '-- Select Institution --';
-      document.getElementById('sdInstitution_text').style.color = contactInstitution ? '#111827' : '#9CA3AF';
-
-      if (contactInstitution) {
+      if (contactInst) {
         document.getElementById('sdInstitution_display').classList.add('has-value');
+        document.getElementById('sdInstitution_clear').style.display = 'inline';
         document.getElementById('newInstitutionBox').style.display = 'none';
         allInstitutions.forEach(function(inst) {
-          if (inst[0] === contactInstitution) {
+          if (inst[0] === contactInst) {
             document.getElementById('city').value  = inst[1] || '';
             document.getElementById('state').value = inst[2] || '';
           }
         });
-        rebuildInstitutionDropdown(contactInstitution);
+        rebuildInstitutionDropdown(contactInst);
       } else {
         document.getElementById('sdInstitution_display').classList.remove('has-value');
+        document.getElementById('sdInstitution_clear').style.display = 'none';
         clearField('city');
         clearField('state');
         rebuildInstitutionDropdown(null);
@@ -388,6 +414,7 @@ function selectItem(id, value, label) {
   }
 }
 
+// ── TOGGLE DROPDOWN ──────────────────────────
 function toggleDropdown(id) {
   var list = document.getElementById(id + '_list');
   var isOpen = list.classList.contains('open');
@@ -396,7 +423,7 @@ function toggleDropdown(id) {
   });
   if (!isOpen) {
     list.classList.add('open');
-    var searchInput = list.querySelector('.search-input');
+    var searchInput = list.querySelector('input[type="text"]');
     if (searchInput) {
       searchInput.value = '';
       renderItems(id, dropdownData[id] || []);
@@ -406,7 +433,7 @@ function toggleDropdown(id) {
 }
 
 function filterList(id) {
-  var searchInput = document.getElementById(id + '_list').querySelector('.search-input');
+  var searchInput = document.getElementById(id + '_list').querySelector('input[type="text"]');
   renderItems(id, dropdownData[id] || [], searchInput.value);
 }
 
@@ -418,6 +445,44 @@ document.addEventListener('click', function(e) {
   }
 });
 
+// ── CLEAR BUTTONS ────────────────────────────
+function clearContact() {
+  document.getElementById('contact').value = '';
+  document.getElementById('sdContact_text').textContent = '-- Select Contact --';
+  document.getElementById('sdContact_text').style.color = '#9CA3AF';
+  document.getElementById('sdContact_display').classList.remove('has-value');
+  document.getElementById('sdContact_clear').style.display = 'none';
+  document.getElementById('newContactBox').style.display = 'none';
+  document.getElementById('newContactName').value = '';
+  clearContactAutoFill();
+  rebuildContactDropdown(null);
+  rebuildInstitutionDropdown(null);
+  document.getElementById('institution').value = '';
+  document.getElementById('sdInstitution_text').textContent = '-- Select Institution --';
+  document.getElementById('sdInstitution_text').style.color = '#9CA3AF';
+  document.getElementById('sdInstitution_display').classList.remove('has-value');
+  document.getElementById('sdInstitution_clear').style.display = 'none';
+  document.getElementById('newInstitutionBox').style.display = 'none';
+  clearField('city');
+  clearField('state');
+}
+
+function clearInstitution() {
+  document.getElementById('institution').value = '';
+  document.getElementById('sdInstitution_text').textContent = '-- Select Institution --';
+  document.getElementById('sdInstitution_text').style.color = '#9CA3AF';
+  document.getElementById('sdInstitution_display').classList.remove('has-value');
+  document.getElementById('sdInstitution_clear').style.display = 'none';
+  document.getElementById('newInstitutionBox').style.display = 'none';
+  document.getElementById('newInstitutionName').value = '';
+  clearField('city');
+  clearField('state');
+  rebuildInstitutionDropdown(null);
+  rebuildContactDropdown(null);
+  resetContactSelection();
+}
+
+// ── ISBN LOOKUP ─────────────────────────────
 function lookupISBN() {
   var isbn = document.getElementById('isbn').value.trim();
   var notFound = document.getElementById('isbnNotFound');
@@ -439,11 +504,7 @@ function lookupISBN() {
   allBooks.forEach(function(r) {
     if (found) return;
     var sheetISBN = String(r[0] || '').replace(/\D/g, '');
-    var sheetISBNNum = String(parseInt(sheetISBN, 10));
-    var inputISBNNum = String(parseInt(isbnClean, 10));
-    if (sheetISBN === isbnClean || sheetISBNNum === isbnClean || sheetISBN === inputISBNNum) {
-      found = r;
-    }
+    if (sheetISBN === isbnClean) found = r;
   });
 
   if (found) {
@@ -460,6 +521,7 @@ document.getElementById('isbn').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') lookupISBN();
 });
 
+// ── SUBMIT ───────────────────────────────────
 function submitForm() {
   var salesperson = document.getElementById('salesperson').value;
   var visitDate   = document.getElementById('visitDate').value;
@@ -518,6 +580,7 @@ function submitForm() {
   });
 }
 
+// ── HELPERS ─────────────────────────────────
 function loadSheet(sheetName, callback) {
   fetch(API + encodeURIComponent(sheetName))
   .then(function(r) { return r.text(); })
@@ -544,6 +607,7 @@ function resetContactSelection() {
   document.getElementById('sdContact_text').textContent = '-- Select Contact --';
   document.getElementById('sdContact_text').style.color = '#9CA3AF';
   document.getElementById('sdContact_display').classList.remove('has-value');
+  document.getElementById('sdContact_clear').style.display = 'none';
   clearContactAutoFill();
   document.getElementById('newContactBox').style.display = 'none';
 }
@@ -558,6 +622,7 @@ function clearForm() {
   document.getElementById('sdInstitution_text').textContent = '-- Select Institution --';
   document.getElementById('sdInstitution_text').style.color = '#9CA3AF';
   document.getElementById('sdInstitution_display').classList.remove('has-value');
+  document.getElementById('sdInstitution_clear').style.display = 'none';
   document.getElementById('newInstitutionBox').style.display = 'none';
   document.getElementById('newInstitutionName').value = '';
   rebuildInstitutionDropdown(null);
@@ -566,7 +631,8 @@ function clearForm() {
   document.getElementById('newContactName').value = '';
   rebuildContactDropdown(null);
 
-  ['city','state','isbn','bookTitle','author','edition','numBooks','remarks'].forEach(clearField);
+  ['city','state','isbn','bookTitle','author',
+   'edition','numBooks','remarks'].forEach(clearField);
   document.getElementById('visitDate').valueAsDate = new Date();
   document.getElementById('isbnNotFound').style.display = 'none';
 }
