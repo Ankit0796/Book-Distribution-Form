@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book Distribution Form</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #f0f4f8; padding: 20px; }
+.container { max-width: 600px; margin: auto; background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+h2 { text-align: center; color: #1B3A6B; margin-bottom: 24px; font-size: 22px; }
+.field { margin-bottom: 16px; }
+label { display: block; font-size: 14px; font-weight: bold; color: #374151; margin-bottom: 6px; }
+input, select, textarea { width: 100%; padding: 10px 14px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 15px; color: #111827; background: #fff; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+input[readonly] { background: #F3F4F6; color: #6B7280; }
+.btn { width: 100%; padding: 14px; background: #1B3A6B; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+.btn:hover { background: #2563EB; }
+.msg { text-align: center; margin-top: 16px; font-size: 15px; font-weight: bold; }
+.success { color: #15803D; }
+.error { color: #B91C1C; }
+.pin-screen { text-align: center; padding: 40px 20px; }
+.pin-screen h2 { margin-bottom: 20px; }
+.pin-screen input { max-width: 200px; margin: auto; text-align: center; font-size: 24px; letter-spacing: 8px; }
+.pin-screen .btn { max-width: 200px; margin: 16px auto 0; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- PIN SCREEN -->
+  <div id="pinScreen" class="pin-screen">
+    <h2>📚 Book Distribution</h2>
+    <p style="color:#6B7280;margin-bottom:20px;">Enter PIN to continue</p>
+    <div class="field">
+      <input type="password" id="pinInput" maxlength="4" placeholder="••••" />
+    </div>
+    <button class="btn" onclick="checkPin()">Enter</button>
+    <p id="pinError" class="msg error" style="display:none;">Incorrect PIN. Try again.</p>
+  </div>
+
+  <!-- FORM SCREEN -->
+  <div id="formScreen" style="display:none;">
+    <h2>📚 Complementary Book Distribution</h2>
+
+    <div class="field">
+      <label>Salesperson Name *</label>
+      <select id="salesperson">
+        <option value="">-- Select Salesperson --</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Date of Visit *</label>
+      <input type="date" id="visitDate" />
+    </div>
+
+    <div class="field">
+      <label>Institution *</label>
+      <select id="institution" onchange="onInstitutionChange()">
+        <option value="">-- Select Institution --</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>City</label>
+      <input type="text" id="city" readonly placeholder="Auto-filled" />
+    </div>
+
+    <div class="field">
+      <label>State</label>
+      <input type="text" id="state" readonly placeholder="Auto-filled" />
+    </div>
+
+    <div class="field">
+      <label>Contact Person *</label>
+      <select id="contact" onchange="onContactChange()">
+        <option value="">-- Select Contact --</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Email</label>
+      <input type="text" id="email" readonly placeholder="Auto-filled" />
+    </div>
+
+    <div class="field">
+      <label>Mobile</label>
+      <input type="text" id="mobile" readonly placeholder="Auto-filled" />
+    </div>
+
+    <div class="field">
+      <label>Designation</label>
+      <input type="text" id="designation" readonly placeholder="Auto-filled" />
+    </div>
+
+    <div class="field">
+      <label>Book Title *</label>
+      <select id="book" onchange="onBookChange()">
+        <option value="">-- Select Book --</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Author</label>
+      <input type="text" id="author" readonly placeholder="Auto-filled" />
+    </div>
+
+    <div class="field">
+      <label>Edition</label>
+      <input type="text" id="edition" readonly placeholder="Auto-filled" />
+    </div>
+
+    <div class="field">
+      <label>Number of Books *</label>
+      <input type="number" id="numBooks" min="1" placeholder="Enter quantity" />
+    </div>
+
+    <div class="field">
+      <label>Remarks</label>
+      <textarea id="remarks" rows="3" placeholder="Optional"></textarea>
+    </div>
+
+    <button class="btn" onclick="submitForm()">Submit Distribution</button>
+    <p id="formMsg" class="msg" style="display:none;"></p>
+
+  </div>
+</div>
+
+<script>
+
+// ═══════════════════════════════════════════
+// CONFIGURATION
+// ═══════════════════════════════════════════
+const SHEET_ID   = '1IklTD1JAhWOGmtm2w5UWMkuVMc8gFeIrgNL1I193xxs';
+const PIN        = '3693';
+const COMPANY    = 'CBS Publishers and Dsitribution';
+// ═══════════════════════════════════════════
+
+const API = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:json&sheet=';
+
+let allContacts = [];
+
+// ── PIN CHECK ───────────────────────────────
+function checkPin() {
+  const entered = document.getElementById('pinInput').value;
+  if (entered === PIN) {
+    document.getElementById('pinScreen').style.display = 'none';
+    document.getElementById('formScreen').style.display = 'block';
+    loadAllData();
+  } else {
+    document.getElementById('pinError').style.display = 'block';
+  }
+}
+
+// Allow Enter key on PIN screen
+document.getElementById('pinInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') checkPin();
+});
+
+// ── SET TODAY'S DATE ────────────────────────
+document.getElementById('visitDate').valueAsDate = new Date();
+
+// ── LOAD ALL DATA ───────────────────────────
+function loadAllData() {
+  loadSheet('Salespersons', function(rows) {
+    const sel = document.getElementById('salesperson');
+    rows.forEach(function(r) {
+      if (r[0]) addOption(sel, r[0], r[0]);
+    });
+  });
+
+  loadSheet('Institutions', function(rows) {
+    const sel = document.getElementById('institution');
+    rows.forEach(function(r) {
+      if (r[0]) addOption(sel, r[0], r[0]);
+    });
+  });
+
+  loadSheet('Books', function(rows) {
+    const sel = document.getElementById('book');
+    rows.forEach(function(r) {
+      if (r[0]) addOption(sel, r[0], r[0]);
+    });
+  });
+
+  loadSheet('Contacts', function(rows) {
+    allContacts = rows;
+  });
+}
+
+// ── INSTITUTION CHANGE ──────────────────────
+function onInstitutionChange() {
+  const inst = document.getElementById('institution').value;
+
+  // Clear contact dropdown
+  const contSel = document.getElementById('contact');
+  contSel.innerHTML = '<option value="">-- Select Contact --</option>';
+  clearField('email');
+  clearField('mobile');
+  clearField('designation');
+
+  if (!inst) {
+    clearField('city');
+    clearField('state');
+    return;
+  }
+
+  // Auto-fill City and State from Institutions sheet
+  loadSheet('Institutions', function(rows) {
+    rows.forEach(function(r) {
+      if (r[0] === inst) {
+        document.getElementById('city').value  = r[1] || '';
+        document.getElementById('state').value = r[2] || '';
+      }
+    });
+  });
+
+  // Filter contacts by institution
+  allContacts.forEach(function(r) {
+    if (r[1] === inst && r[0]) {
+      addOption(contSel, r[0], r[0]);
+    }
+  });
+}
+
+// ── CONTACT CHANGE ──────────────────────────
+function onContactChange() {
+  const name = document.getElementById('contact').value;
+  if (!name) {
+    clearField('email');
+    clearField('mobile');
+    clearField('designation');
+    return;
+  }
+  const inst = document.getElementById('institution').value;
+  allContacts.forEach(function(r) {
+    if (r[0] === name && r[1] === inst) {
+      document.getElementById('email').value       = r[2] || '';
+      document.getElementById('mobile').value      = r[3] || '';
+      document.getElementById('designation').value = r[4] || '';
+    }
+  });
+}
+
+// ── BOOK CHANGE ─────────────────────────────
+function onBookChange() {
+  const title = document.getElementById('book').value;
+  if (!title) {
+    clearField('author');
+    clearField('edition');
+    return;
+  }
+  loadSheet('Books', function(rows) {
+    rows.forEach(function(r) {
+      if (r[0] === title) {
+        document.getElementById('author').value  = r[1] || '';
+        document.getElementById('edition').value = r[2] || '';
+      }
+    });
+  });
+}
+
+// ── SUBMIT FORM ─────────────────────────────
+function submitForm() {
+  const salesperson = document.getElementById('salesperson').value;
+  const visitDate   = document.getElementById('visitDate').value;
+  const institution = document.getElementById('institution').value;
+  const contact     = document.getElementById('contact').value;
+  const book        = document.getElementById('book').value;
+  const numBooks    = document.getElementById('numBooks').value;
+
+  if (!salesperson || !visitDate || !institution || !contact || !book || !numBooks) {
+    showMsg('Please fill all required fields marked with *', false);
+    return;
+  }
+
+  const row = [
+    visitDate,
+    salesperson,
+    institution,
+    document.getElementById('city').value,
+    document.getElementById('state').value,
+    contact,
+    document.getElementById('email').value,
+    document.getElementById('mobile').value,
+    document.getElementById('designation').value,
+    book,
+    document.getElementById('author').value,
+    document.getElementById('edition').value,
+    numBooks,
+    document.getElementById('remarks').value,
+  ];
+
+  // Send to Google Sheets via your developer's endpoint
+  // YOUR DEVELOPER WILL REPLACE THIS URL
+  const SUBMIT_URL = 'YOUR_DEVELOPER_ENDPOINT_HERE';
+
+  fetch(SUBMIT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ values: row })
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    showMsg('Submitted successfully!', true);
+    clearForm();
+  })
+  .catch(function(err) {
+    showMsg('Submission failed. Please try again.', false);
+  });
+}
+
+// ── HELPERS ─────────────────────────────────
+function loadSheet(sheetName, callback) {
+  fetch(API + encodeURIComponent(sheetName))
+  .then(function(r) { return r.text(); })
+  .then(function(text) {
+    const json = JSON.parse(text.substring(47).slice(0,-2));
+    const rows = json.table.rows.map(function(r) {
+      return r.c.map(function(c) { return c ? c.v : ''; });
+    });
+    callback(rows);
+  })
+  .catch(function(e) { console.error('Error loading ' + sheetName, e); });
+}
+
+function addOption(sel, value, label) {
+  const opt = document.createElement('option');
+  opt.value = value;
+  opt.textContent = label;
+  sel.appendChild(opt);
+}
+
+function clearField(id) {
+  document.getElementById(id).value = '';
+}
+
+function clearForm() {
+  ['salesperson','institution','contact','book'].forEach(function(id) {
+    document.getElementById(id).selectedIndex = 0;
+  });
+  ['city','state','email','mobile','designation','author','edition','remarks','numBooks'].forEach(clearField);
+  document.getElementById('visitDate').valueAsDate = new Date();
+}
+
+function showMsg(text, success) {
+  const el = document.getElementById('formMsg');
+  el.textContent = text;
+  el.className = 'msg ' + (success ? 'success' : 'error');
+  el.style.display = 'block';
+  setTimeout(function() { el.style.display = 'none'; }, 4000);
+}
+
+</script>
+</body>
+</html>
+
