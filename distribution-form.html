@@ -29,10 +29,19 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
 .warn-red { color: #B91C1C; }
 .warn-amber { color: #B45309; }
 .draft-banner { background: #FFFBEB; border: 1px solid #F59E0B; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 14px; color: #92400E; display: none; }
+.welcome-banner { background: #EFF6FF; border: 1px solid #2563EB; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; display: none; }
+.welcome-banner .welcome-name { font-size: 18px; font-weight: bold; color: #1B3A6B; }
+.welcome-banner .welcome-sub { font-size: 13px; color: #6B7280; margin-top: 4px; }
+.rep-readonly { background: #F3F4F6; border: 1px solid #D1D5DB; border-radius: 8px; padding: 10px 14px; font-size: 15px; color: #374151; font-weight: bold; }
 .pin-screen { text-align: center; padding: 40px 20px; }
 .pin-screen h2 { margin-bottom: 20px; }
 .pin-screen input { max-width: 200px; margin: auto; text-align: center; font-size: 24px; letter-spacing: 8px; }
 .pin-screen .btn { max-width: 200px; margin: 16px auto 0; }
+.name-screen { text-align: center; padding: 40px 20px; }
+.name-screen h2 { margin-bottom: 10px; }
+.name-screen p { color: #6B7280; margin-bottom: 20px; font-size: 15px; }
+.name-screen input { max-width: 300px; margin: auto; text-align: center; }
+.name-screen .btn { max-width: 300px; margin: 16px auto 0; }
 .new-entry { background: #EFF6FF; border: 1px dashed #2563EB; border-radius: 8px; padding: 14px; margin-top: 8px; }
 .new-entry label { color: #2563EB; }
 .isbn-row { display: flex; gap: 10px; }
@@ -76,27 +85,36 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
     <p id="pinError" class="msg error" style="display:none;">Incorrect PIN. Try again.</p>
   </div>
 
+  <!-- NAME SCREEN — shown only when no rep in URL -->
+  <div id="nameScreen" class="name-screen" style="display:none;">
+    <h2>📚 Book Distribution</h2>
+    <p>Please enter your full name to continue</p>
+    <div class="field">
+      <input type="text" id="manualNameInput" placeholder="Your full name" />
+    </div>
+    <button class="btn" onclick="confirmName()" style="max-width:300px;margin:16px auto 0;display:block;">Continue</button>
+    <p id="nameError" class="msg error" style="display:none;">Please enter your name.</p>
+  </div>
+
   <!-- FORM SCREEN -->
   <div id="formScreen" style="display:none;">
+
+    <!-- WELCOME BANNER -->
+    <div id="welcomeBanner" class="welcome-banner">
+      <div class="welcome-name" id="welcomeName"></div>
+      <div class="welcome-sub">CBS Publishers &amp; Distributors — Complementary Distribution</div>
+    </div>
+
     <h2>📚 Complementary Book Distribution</h2>
 
     <div id="draftBanner" class="draft-banner">
       📋 You have a saved draft. Your previous data has been restored.
     </div>
 
-    <!-- SALESPERSON -->
+    <!-- SALESPERSON — read only display -->
     <div class="field">
-      <label>Salesperson Name *</label>
-      <div class="search-dropdown" id="sdSalesperson">
-        <div class="selected-display" onclick="toggleDropdown('sdSalesperson')" id="sdSalesperson_display">
-          <span id="sdSalesperson_text" style="color:#9CA3AF;flex:1;">-- Select Salesperson --</span>
-          <span class="arrow">▼</span>
-        </div>
-        <div class="dropdown-list" id="sdSalesperson_list">
-          <input type="text" placeholder="Search salesperson..." oninput="filterList('sdSalesperson')" onclick="event.stopPropagation()" style="width:100%;padding:10px 14px;border:none;border-bottom:1px solid #E5E7EB;border-radius:0;margin:0;font-size:15px;" />
-          <div id="sdSalesperson_items"></div>
-        </div>
-      </div>
+      <label>Salesperson</label>
+      <div class="rep-readonly" id="repDisplay"></div>
       <input type="hidden" id="salesperson" />
     </div>
 
@@ -268,14 +286,27 @@ var allInstitutions = [];
 var allBooks        = [];
 var dropdownData    = {};
 var lastSubmission  = null;
+var currentRep      = '';
+
+// ── READ REP FROM URL ────────────────────────
+function getRepFromURL() {
+  var params = new URLSearchParams(window.location.search);
+  var rep = params.get('rep');
+  return rep ? decodeURIComponent(rep).trim() : '';
+}
 
 // ── PIN ─────────────────────────────────────
 function checkPin() {
   var entered = document.getElementById('pinInput').value;
   if (entered === PIN) {
     document.getElementById('pinScreen').style.display = 'none';
-    document.getElementById('formScreen').style.display = 'block';
-    loadAllData();
+    var rep = getRepFromURL();
+    if (rep) {
+      currentRep = rep;
+      startForm();
+    } else {
+      document.getElementById('nameScreen').style.display = 'block';
+    }
   } else {
     document.getElementById('pinError').style.display = 'block';
   }
@@ -285,20 +316,40 @@ document.getElementById('pinInput').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') checkPin();
 });
 
-document.getElementById('visitDate').valueAsDate = new Date();
+// ── CONFIRM MANUAL NAME ──────────────────────
+function confirmName() {
+  var name = document.getElementById('manualNameInput').value.trim();
+  if (!name) {
+    document.getElementById('nameError').style.display = 'block';
+    return;
+  }
+  currentRep = name;
+  document.getElementById('nameScreen').style.display = 'none';
+  startForm();
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && document.getElementById('nameScreen').style.display === 'block') {
+    confirmName();
+  }
+});
+
+// ── START FORM ───────────────────────────────
+function startForm() {
+  document.getElementById('salesperson').value = currentRep;
+  document.getElementById('repDisplay').textContent = currentRep;
+
+  var welcomeBanner = document.getElementById('welcomeBanner');
+  document.getElementById('welcomeName').textContent = 'Welcome, ' + currentRep + ' 👋';
+  welcomeBanner.style.display = 'block';
+
+  document.getElementById('formScreen').style.display = 'block';
+  document.getElementById('visitDate').valueAsDate = new Date();
+  loadAllData();
+}
 
 // ── LOAD DATA ───────────────────────────────
 function loadAllData() {
-  loadSheet('Salespersons', function(rows) {
-    var items = [];
-    rows.forEach(function(r) {
-      if (r[0]) items.push({ value: r[0], label: r[0] });
-    });
-    dropdownData['sdSalesperson'] = items;
-    renderItems('sdSalesperson', items);
-    checkDraft();
-  });
-
   loadSheet('Institutions', function(rows) {
     allInstitutions = rows;
     rebuildInstitutionDropdown(null);
@@ -307,6 +358,7 @@ function loadAllData() {
   loadSheet('Contacts', function(rows) {
     allContacts = rows;
     rebuildContactDropdown(null);
+    checkDraft();
   });
 
   loadSheet('Books', function(rows) {
@@ -317,8 +369,6 @@ function loadAllData() {
 // ── DRAFT SAVE ───────────────────────────────
 function saveDraft() {
   var draft = {
-    salesperson:        document.getElementById('salesperson').value,
-    salespersonText:    document.getElementById('sdSalesperson_text').textContent,
     visitDate:          document.getElementById('visitDate').value,
     contact:            document.getElementById('contact').value,
     contactText:        document.getElementById('sdContact_text').textContent,
@@ -338,6 +388,7 @@ function saveDraft() {
     remarks:            document.getElementById('remarks').value,
     newContactName:     document.getElementById('newContactName').value,
     newInstitutionName: document.getElementById('newInstitutionName').value,
+    rep:                currentRep,
   };
   localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
   showMsg('Draft saved. You can close the form and come back later.', true);
@@ -348,616 +399,15 @@ function checkDraft() {
   var saved = localStorage.getItem(DRAFT_KEY);
   if (!saved) return;
   var draft = JSON.parse(saved);
-  if (!draft.salesperson && !draft.contact && !draft.institution) return;
+  if (!draft.rep || draft.rep !== currentRep) return;
+  if (!draft.contact && !draft.institution && !draft.isbn) return;
 
   document.getElementById('draftBanner').style.display = 'block';
 
   if (draft.visitDate) document.getElementById('visitDate').value = draft.visitDate;
 
-  if (draft.salesperson && draft.salespersonText) {
-    document.getElementById('salesperson').value = draft.salesperson;
-    document.getElementById('sdSalesperson_text').textContent = draft.salespersonText;
-    document.getElementById('sdSalesperson_text').style.color = '#111827';
-    document.getElementById('sdSalesperson_display').classList.add('has-value');
-  }
-
   if (draft.contact) {
     document.getElementById('contact').value = draft.contact;
     document.getElementById('sdContact_text').textContent = draft.contactText;
     document.getElementById('sdContact_text').style.color = draft.contact === '__NEW__' ? '#2563EB' : '#111827';
-    document.getElementById('sdContact_display').classList.add('has-value');
-    document.getElementById('sdContact_clear').style.display = 'inline';
-    if (draft.contact === '__NEW__') {
-      document.getElementById('newContactBox').style.display = 'block';
-      document.getElementById('newContactName').value = draft.newContactName || '';
-    }
-  }
-
-  if (draft.institution) {
-    document.getElementById('institution').value = draft.institution;
-    document.getElementById('sdInstitution_text').textContent = draft.institutionText;
-    document.getElementById('sdInstitution_text').style.color = draft.institution === '__NEW__' ? '#2563EB' : '#111827';
-    document.getElementById('sdInstitution_display').classList.add('has-value');
-    document.getElementById('sdInstitution_clear').style.display = 'inline';
-    if (draft.institution === '__NEW__') {
-      document.getElementById('newInstitutionBox').style.display = 'block';
-      document.getElementById('newInstitutionName').value = draft.newInstitutionName || '';
-    }
-  }
-
-  if (draft.city)        document.getElementById('city').value        = draft.city;
-  if (draft.state)       document.getElementById('state').value       = draft.state;
-  if (draft.email)       document.getElementById('email').value       = draft.email;
-  if (draft.mobile)      document.getElementById('mobile').value      = draft.mobile;
-  if (draft.designation) document.getElementById('designation').value = draft.designation;
-  if (draft.department)  document.getElementById('department').value  = draft.department;
-  if (draft.isbn)        document.getElementById('isbn').value        = draft.isbn;
-  if (draft.bookTitle)   document.getElementById('bookTitle').value   = draft.bookTitle;
-  if (draft.author)      document.getElementById('author').value      = draft.author;
-  if (draft.edition)     document.getElementById('edition').value     = draft.edition;
-  if (draft.numBooks)    document.getElementById('numBooks').value    = draft.numBooks;
-  if (draft.remarks)     document.getElementById('remarks').value     = draft.remarks;
-}
-
-// ── REBUILD DROPDOWNS ────────────────────────
-function rebuildInstitutionDropdown(filterBy) {
-  var items = [];
-  allInstitutions.forEach(function(r) {
-    if (!r[0]) return;
-    if (filterBy && r[0] !== filterBy) return;
-    items.push({ value: r[0], label: r[0] });
-  });
-  items.push({ value: '__NEW__', label: '+ Add New Institution', cls: 'add-new' });
-  dropdownData['sdInstitution'] = items;
-  renderItems('sdInstitution', items);
-}
-
-function rebuildContactDropdown(filterBy) {
-  var items = [];
-  allContacts.forEach(function(r) {
-    if (!r[0]) return;
-    if (filterBy && r[1] !== filterBy) return;
-    items.push({ value: r[0], label: r[0] });
-  });
-  items.push({ value: '__NEW__', label: '+ Add New Contact', cls: 'add-new' });
-  dropdownData['sdContact'] = items;
-  renderItems('sdContact', items);
-}
-
-// ── RENDER ITEMS ─────────────────────────────
-function renderItems(id, items, search) {
-  var container = document.getElementById(id + '_items');
-  container.innerHTML = '';
-  var filtered = items;
-  if (search) {
-    var s = search.toLowerCase();
-    filtered = items.filter(function(i) {
-      return i.label.toLowerCase().indexOf(s) !== -1;
-    });
-  }
-  if (filtered.length === 0) {
-    var div = document.createElement('div');
-    div.className = 'dropdown-item no-results';
-    div.textContent = 'No results found';
-    container.appendChild(div);
-    return;
-  }
-  filtered.forEach(function(item) {
-    var div = document.createElement('div');
-    div.className = 'dropdown-item' + (item.cls ? ' ' + item.cls : '');
-    div.textContent = item.label;
-    div.onclick = function() { selectItem(id, item.value, item.label); };
-    container.appendChild(div);
-  });
-}
-
-// ── SELECT ITEM ──────────────────────────────
-function selectItem(id, value, label) {
-  document.getElementById(id + '_list').classList.remove('open');
-  var display = document.getElementById(id + '_display');
-
-  if (value === '__NEW__') {
-    document.getElementById(id + '_text').textContent = label;
-    document.getElementById(id + '_text').style.color = '#2563EB';
-    display.classList.add('has-value');
-    if (id === 'sdInstitution') {
-      document.getElementById('institution').value = '__NEW__';
-      document.getElementById('newInstitutionBox').style.display = 'block';
-      document.getElementById('sdInstitution_clear').style.display = 'inline';
-      clearField('city');
-      clearField('state');
-    }
-    if (id === 'sdContact') {
-      document.getElementById('contact').value = '__NEW__';
-      document.getElementById('newContactBox').style.display = 'block';
-      document.getElementById('sdContact_clear').style.display = 'inline';
-      clearContactAutoFill();
-    }
-    return;
-  }
-
-  document.getElementById(id + '_text').textContent = label;
-  document.getElementById(id + '_text').style.color = '#111827';
-  display.classList.add('has-value');
-
-  if (id === 'sdSalesperson') {
-    document.getElementById('salesperson').value = value;
-  }
-
-  if (id === 'sdInstitution') {
-    document.getElementById('institution').value = value;
-    document.getElementById('sdInstitution_clear').style.display = 'inline';
-    document.getElementById('newInstitutionBox').style.display = 'none';
-    document.getElementById('newInstitutionName').value = '';
-    document.getElementById('dupInstitutionMsg').style.display = 'none';
-    allInstitutions.forEach(function(r) {
-      if (r[0] === value) {
-        document.getElementById('city').value  = r[1] || '';
-        document.getElementById('state').value = r[2] || '';
-      }
-    });
-    rebuildContactDropdown(value);
-    resetContactSelection();
-  }
-
-  if (id === 'sdContact') {
-    document.getElementById('contact').value = value;
-    document.getElementById('sdContact_clear').style.display = 'inline';
-    document.getElementById('newContactBox').style.display = 'none';
-    document.getElementById('newContactName').value = '';
-    document.getElementById('dupContactMsg').style.display = 'none';
-
-    var contactData = null;
-    allContacts.forEach(function(r) {
-      if (r[0] === value && !contactData) contactData = r;
-    });
-
-    if (contactData) {
-      document.getElementById('email').value       = contactData[2] || '';
-      document.getElementById('mobile').value      = contactData[3] || '';
-      document.getElementById('designation').value = contactData[4] || '';
-      document.getElementById('department').value  = contactData[5] || '';
-
-      var contactInst = contactData[1] || '';
-      document.getElementById('institution').value = contactInst;
-      document.getElementById('sdInstitution_text').textContent = contactInst || '-- Select Institution --';
-      document.getElementById('sdInstitution_text').style.color = contactInst ? '#111827' : '#9CA3AF';
-
-      if (contactInst) {
-        document.getElementById('sdInstitution_display').classList.add('has-value');
-        document.getElementById('sdInstitution_clear').style.display = 'inline';
-        document.getElementById('newInstitutionBox').style.display = 'none';
-        allInstitutions.forEach(function(inst) {
-          if (inst[0] === contactInst) {
-            document.getElementById('city').value  = inst[1] || '';
-            document.getElementById('state').value = inst[2] || '';
-          }
-        });
-        rebuildInstitutionDropdown(contactInst);
-      } else {
-        document.getElementById('sdInstitution_display').classList.remove('has-value');
-        document.getElementById('sdInstitution_clear').style.display = 'none';
-        clearField('city');
-        clearField('state');
-        rebuildInstitutionDropdown(null);
-      }
-    }
-  }
-}
-
-// ── TOGGLE DROPDOWN ──────────────────────────
-function toggleDropdown(id) {
-  var list = document.getElementById(id + '_list');
-  var isOpen = list.classList.contains('open');
-  document.querySelectorAll('.dropdown-list').forEach(function(l) {
-    l.classList.remove('open');
-  });
-  if (!isOpen) {
-    list.classList.add('open');
-    var searchInput = list.querySelector('input[type="text"]');
-    if (searchInput) {
-      searchInput.value = '';
-      renderItems(id, dropdownData[id] || []);
-      setTimeout(function() { searchInput.focus(); }, 50);
-    }
-  }
-}
-
-function filterList(id) {
-  var searchInput = document.getElementById(id + '_list').querySelector('input[type="text"]');
-  renderItems(id, dropdownData[id] || [], searchInput.value);
-}
-
-document.addEventListener('click', function(e) {
-  if (!e.target.closest('.search-dropdown')) {
-    document.querySelectorAll('.dropdown-list').forEach(function(l) {
-      l.classList.remove('open');
-    });
-  }
-});
-
-// ── CLEAR BUTTONS ────────────────────────────
-function clearContact() {
-  document.getElementById('contact').value = '';
-  document.getElementById('sdContact_text').textContent = '-- Select Contact --';
-  document.getElementById('sdContact_text').style.color = '#9CA3AF';
-  document.getElementById('sdContact_display').classList.remove('has-value');
-  document.getElementById('sdContact_clear').style.display = 'none';
-  document.getElementById('newContactBox').style.display = 'none';
-  document.getElementById('newContactName').value = '';
-  document.getElementById('dupContactMsg').style.display = 'none';
-  clearContactAutoFill();
-  rebuildContactDropdown(null);
-  rebuildInstitutionDropdown(null);
-  document.getElementById('institution').value = '';
-  document.getElementById('sdInstitution_text').textContent = '-- Select Institution --';
-  document.getElementById('sdInstitution_text').style.color = '#9CA3AF';
-  document.getElementById('sdInstitution_display').classList.remove('has-value');
-  document.getElementById('sdInstitution_clear').style.display = 'none';
-  document.getElementById('newInstitutionBox').style.display = 'none';
-  document.getElementById('dupInstitutionMsg').style.display = 'none';
-  clearField('city');
-  clearField('state');
-}
-
-function clearInstitution() {
-  document.getElementById('institution').value = '';
-  document.getElementById('sdInstitution_text').textContent = '-- Select Institution --';
-  document.getElementById('sdInstitution_text').style.color = '#9CA3AF';
-  document.getElementById('sdInstitution_display').classList.remove('has-value');
-  document.getElementById('sdInstitution_clear').style.display = 'none';
-  document.getElementById('newInstitutionBox').style.display = 'none';
-  document.getElementById('newInstitutionName').value = '';
-  document.getElementById('dupInstitutionMsg').style.display = 'none';
-  clearField('city');
-  clearField('state');
-  rebuildInstitutionDropdown(null);
-  rebuildContactDropdown(null);
-  resetContactSelection();
-}
-
-// ── DUPLICATE CHECKS ─────────────────────────
-function checkDuplicateInstitution() {
-  var typed = document.getElementById('newInstitutionName').value.trim().toLowerCase();
-  var msg   = document.getElementById('dupInstitutionMsg');
-
-  if (!typed) { msg.style.display = 'none'; return; }
-
-  var exact = allInstitutions.find(function(r) {
-    return r[0] && r[0].trim().toLowerCase() === typed;
-  });
-
-  if (exact) {
-    msg.textContent = '⚠️ "' + exact[0] + '" already exists. Please select it from the dropdown instead.';
-    msg.className = 'warn-msg warn-red';
-    msg.style.display = 'block';
-    return;
-  }
-
-  if (typed.length > 4) {
-    var similar = allInstitutions.find(function(r) {
-      return r[0] && r[0].trim().toLowerCase().indexOf(typed) !== -1;
-    });
-    if (similar) {
-      msg.textContent = '⚠️ Similar entry found: "' + similar[0] + '". Is this the same institution?';
-      msg.className = 'warn-msg warn-amber';
-      msg.style.display = 'block';
-      return;
-    }
-  }
-
-  msg.style.display = 'none';
-}
-
-function checkDuplicateContact() {
-  var typed = document.getElementById('newContactName').value.trim().toLowerCase();
-  var msg   = document.getElementById('dupContactMsg');
-
-  if (!typed) { msg.style.display = 'none'; return; }
-
-  var exact = allContacts.find(function(r) {
-    return r[0] && r[0].trim().toLowerCase() === typed;
-  });
-
-  if (exact) {
-    msg.textContent = '⚠️ "' + exact[0] + '" already exists at ' + exact[1] + '. Please select from the dropdown instead.';
-    msg.className = 'warn-msg warn-red';
-    msg.style.display = 'block';
-    return;
-  }
-
-  if (typed.length > 4) {
-    var similar = allContacts.find(function(r) {
-      return r[0] && r[0].trim().toLowerCase().indexOf(typed) !== -1;
-    });
-    if (similar) {
-      msg.textContent = '⚠️ Similar contact found: "' + similar[0] + '" at ' + similar[1] + '. Is this the same person?';
-      msg.className = 'warn-msg warn-amber';
-      msg.style.display = 'block';
-      return;
-    }
-  }
-
-  msg.style.display = 'none';
-}
-
-// ── ISBN LOOKUP ─────────────────────────────
-function lookupISBN() {
-  var isbn = document.getElementById('isbn').value.trim();
-  var notFound = document.getElementById('isbnNotFound');
-  clearField('bookTitle');
-  clearField('author');
-  clearField('edition');
-  notFound.style.display = 'none';
-
-  if (!isbn) {
-    notFound.textContent = 'Please enter an ISBN.';
-    notFound.style.display = 'block';
-    return;
-  }
-
-  var isbnClean = isbn.replace(/\D/g, '');
-  var found = null;
-  allBooks.forEach(function(r) {
-    if (found) return;
-    var sheetISBN = String(r[0] || '').replace(/\D/g, '');
-    if (sheetISBN === isbnClean) found = r;
-  });
-
-  if (found) {
-    document.getElementById('bookTitle').value = found[1] || '';
-    document.getElementById('author').value    = found[2] || '';
-    document.getElementById('edition').value   = found[3] || '';
-  } else {
-    notFound.textContent = 'Book not found. Please check the ISBN.';
-    notFound.style.display = 'block';
-  }
-}
-
-document.getElementById('isbn').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') lookupISBN();
-});
-
-// ── SUBMIT ───────────────────────────────────
-function submitForm() {
-  var salesperson = document.getElementById('salesperson').value;
-  var visitDate   = document.getElementById('visitDate').value;
-  var numBooks    = document.getElementById('numBooks').value;
-  var bookTitle   = document.getElementById('bookTitle').value;
-  var isbn        = document.getElementById('isbn').value.trim();
-  var instVal     = document.getElementById('institution').value;
-  var contactVal  = document.getElementById('contact').value;
-
-  var institution = instVal === '__NEW__'
-    ? document.getElementById('newInstitutionName').value.trim()
-    : instVal;
-
-  var contact = contactVal === '__NEW__'
-    ? document.getElementById('newContactName').value.trim()
-    : contactVal;
-
-  if (!salesperson || !visitDate || !institution || !contact || !bookTitle || !numBooks) {
-    showMsg('Please fill all required fields marked with *', false);
-    return;
-  }
-
-  // Block exact duplicate institution
-  if (instVal === '__NEW__') {
-    var newInstLower = institution.toLowerCase();
-    var dupInst = allInstitutions.find(function(r) {
-      return r[0] && r[0].trim().toLowerCase() === newInstLower;
-    });
-    if (dupInst) {
-      showMsg('Institution already exists. Please select it from the dropdown.', false);
-      return;
-    }
-  }
-
-  // Block exact duplicate contact
-  if (contactVal === '__NEW__') {
-    var newContLower = contact.toLowerCase();
-    var dupCont = allContacts.find(function(r) {
-      return r[0] && r[0].trim().toLowerCase() === newContLower;
-    });
-    if (dupCont) {
-      showMsg('Contact already exists. Please select from the dropdown.', false);
-      return;
-    }
-  }
-
-  var row = [
-    visitDate, salesperson, institution,
-    document.getElementById('city').value,
-    document.getElementById('state').value,
-    contact,
-    document.getElementById('email').value,
-    document.getElementById('mobile').value,
-    document.getElementById('designation').value,
-    document.getElementById('department').value,
-    bookTitle, isbn,
-    document.getElementById('author').value,
-    document.getElementById('edition').value,
-    numBooks,
-    document.getElementById('remarks').value,
-  ];
-
-  lastSubmission = {
-    date:        visitDate,
-    salesperson: salesperson,
-    institution: institution,
-    city:        document.getElementById('city').value,
-    state:       document.getElementById('state').value,
-    contact:     contact,
-    email:       document.getElementById('email').value,
-    mobile:      document.getElementById('mobile').value,
-    designation: document.getElementById('designation').value,
-    department:  document.getElementById('department').value,
-    bookTitle:   bookTitle,
-    isbn:        isbn,
-    author:      document.getElementById('author').value,
-    edition:     document.getElementById('edition').value,
-    numBooks:    numBooks,
-    remarks:     document.getElementById('remarks').value,
-  };
-
-  var SUBMIT_URL = 'YOUR_DEVELOPER_ENDPOINT_HERE';
-
-  fetch(SUBMIT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ values: row })
-  })
-  .then(function(res) { return res.json(); })
-  .then(function() {
-    localStorage.removeItem(DRAFT_KEY);
-    showMsg('Submitted successfully!', true);
-    showReceipt();
-    clearForm();
-  })
-  .catch(function() {
-    localStorage.removeItem(DRAFT_KEY);
-    showMsg('Submitted successfully!', true);
-    showReceipt();
-    clearForm();
-  });
-}
-
-// ── RECEIPT ──────────────────────────────────
-function showReceipt() {
-  if (!lastSubmission) return;
-  var s = lastSubmission;
-  document.getElementById('r_date').textContent        = s.date;
-  document.getElementById('r_salesperson').textContent = s.salesperson;
-  document.getElementById('r_institution').textContent = s.institution;
-  document.getElementById('r_city').textContent        = s.city;
-  document.getElementById('r_state').textContent       = s.state;
-  document.getElementById('r_contact').textContent     = s.contact;
-  document.getElementById('r_email').textContent       = s.email;
-  document.getElementById('r_mobile').textContent      = s.mobile;
-  document.getElementById('r_designation').textContent = s.designation;
-  document.getElementById('r_department').textContent  = s.department;
-  document.getElementById('r_bookTitle').textContent   = s.bookTitle;
-  document.getElementById('r_isbn').textContent        = s.isbn;
-  document.getElementById('r_author').textContent      = s.author;
-  document.getElementById('r_edition').textContent     = s.edition;
-  document.getElementById('r_numBooks').textContent    = s.numBooks;
-  document.getElementById('r_remarks').textContent     = s.remarks || '—';
-  document.getElementById('receipt').style.display     = 'block';
-}
-
-// ── PDF DOWNLOAD ─────────────────────────────
-function downloadPDF() {
-  if (!lastSubmission) return;
-  var s = lastSubmission;
-  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">';
-  html += '<title>Distribution Receipt</title>';
-  html += '<style>';
-  html += 'body{font-family:Arial,sans-serif;padding:40px;color:#111827;}';
-  html += 'h1{color:#1B3A6B;text-align:center;font-size:22px;margin-bottom:6px;}';
-  html += 'p.sub{text-align:center;color:#6B7280;font-size:13px;margin-bottom:30px;}';
-  html += 'table{width:100%;border-collapse:collapse;}';
-  html += 'td{padding:10px 14px;border-bottom:1px solid #E5E7EB;font-size:14px;}';
-  html += 'td:first-child{color:#6B7280;font-weight:bold;width:40%;}';
-  html += 'td:last-child{color:#111827;}';
-  html += '.footer{margin-top:30px;text-align:center;font-size:12px;color:#9CA3AF;}';
-  html += '</style></head><body>';
-  html += '<h1>📚 ' + COMPANY + '</h1>';
-  html += '<p class="sub">Complementary Book Distribution Receipt</p>';
-  html += '<table>';
-  html += '<tr><td>Date of Visit</td><td>' + s.date + '</td></tr>';
-  html += '<tr><td>Salesperson</td><td>' + s.salesperson + '</td></tr>';
-  html += '<tr><td>Institution</td><td>' + s.institution + '</td></tr>';
-  html += '<tr><td>City</td><td>' + s.city + '</td></tr>';
-  html += '<tr><td>State</td><td>' + s.state + '</td></tr>';
-  html += '<tr><td>Contact Person</td><td>' + s.contact + '</td></tr>';
-  html += '<tr><td>Email</td><td>' + s.email + '</td></tr>';
-  html += '<tr><td>Mobile</td><td>' + s.mobile + '</td></tr>';
-  html += '<tr><td>Designation</td><td>' + s.designation + '</td></tr>';
-  html += '<tr><td>Department</td><td>' + s.department + '</td></tr>';
-  html += '<tr><td>Book Title</td><td>' + s.bookTitle + '</td></tr>';
-  html += '<tr><td>ISBN</td><td>' + s.isbn + '</td></tr>';
-  html += '<tr><td>Author</td><td>' + s.author + '</td></tr>';
-  html += '<tr><td>Edition</td><td>' + s.edition + '</td></tr>';
-  html += '<tr><td>Number of Books</td><td>' + s.numBooks + '</td></tr>';
-  html += '<tr><td>Remarks</td><td>' + (s.remarks || '—') + '</td></tr>';
-  html += '</table>';
-  html += '<p class="footer">Generated on ' + new Date().toLocaleString() + ' &nbsp;|&nbsp; ' + COMPANY + '</p>';
-  html += '</body></html>';
-
-  var blob = new Blob([html], { type: 'text/html' });
-  var url  = URL.createObjectURL(blob);
-  var win  = window.open(url, '_blank');
-  if (win) {
-    win.onload = function() { win.print(); };
-  }
-}
-
-// ── HELPERS ─────────────────────────────────
-function loadSheet(sheetName, callback) {
-  fetch(API + encodeURIComponent(sheetName))
-  .then(function(r) { return r.text(); })
-  .then(function(text) {
-    var json = JSON.parse(text.substring(47).slice(0,-2));
-    var rows = json.table.rows.map(function(r) {
-      return r.c.map(function(c) { return c ? c.v : ''; });
-    });
-    callback(rows.slice(1));
-  })
-  .catch(function(e) { console.error('Error loading ' + sheetName, e); });
-}
-
-function clearField(id) {
-  document.getElementById(id).value = '';
-}
-
-function clearContactAutoFill() {
-  ['email','mobile','designation','department'].forEach(clearField);
-}
-
-function resetContactSelection() {
-  document.getElementById('contact').value = '';
-  document.getElementById('sdContact_text').textContent = '-- Select Contact --';
-  document.getElementById('sdContact_text').style.color = '#9CA3AF';
-  document.getElementById('sdContact_display').classList.remove('has-value');
-  document.getElementById('sdContact_clear').style.display = 'none';
-  clearContactAutoFill();
-  document.getElementById('newContactBox').style.display = 'none';
-  document.getElementById('dupContactMsg').style.display = 'none';
-}
-
-function clearForm() {
-  document.getElementById('salesperson').value = '';
-  document.getElementById('sdSalesperson_text').textContent = '-- Select Salesperson --';
-  document.getElementById('sdSalesperson_text').style.color = '#9CA3AF';
-  document.getElementById('sdSalesperson_display').classList.remove('has-value');
-  document.getElementById('institution').value = '';
-  document.getElementById('sdInstitution_text').textContent = '-- Select Institution --';
-  document.getElementById('sdInstitution_text').style.color = '#9CA3AF';
-  document.getElementById('sdInstitution_display').classList.remove('has-value');
-  document.getElementById('sdInstitution_clear').style.display = 'none';
-  document.getElementById('newInstitutionBox').style.display = 'none';
-  document.getElementById('newInstitutionName').value = '';
-  document.getElementById('dupInstitutionMsg').style.display = 'none';
-  rebuildInstitutionDropdown(null);
-  resetContactSelection();
-  document.getElementById('newContactName').value = '';
-  rebuildContactDropdown(null);
-  ['city','state','isbn','bookTitle','author',
-   'edition','numBooks','remarks'].forEach(clearField);
-  document.getElementById('visitDate').valueAsDate = new Date();
-  document.getElementById('isbnNotFound').style.display = 'none';
-  document.getElementById('draftBanner').style.display = 'none';
-  document.getElementById('receipt').style.display = 'none';
-}
-
-function showMsg(text, success) {
-  var el = document.getElementById('formMsg');
-  el.textContent = text;
-  el.className = 'msg ' + (success ? 'success' : 'error');
-  el.style.display = 'block';
-  setTimeout(function() { el.style.display = 'none'; }, 4000);
-}
-
-</script>
-</body>
-</html>
+    document.getElementById('sdContact_display').cla
