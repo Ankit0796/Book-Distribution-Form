@@ -11,8 +11,8 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; padding: 20px; }
 h2 { text-align: center; color: #1B3A6B; margin-bottom: 24px; font-size: 22px; }
 .field { margin-bottom: 16px; }
 label { display: block; font-size: 14px; font-weight: bold; color: #374151; margin-bottom: 6px; }
-input, select, textarea { width: 100%; padding: 10px 14px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 15px; color: #111827; background: #fff; }
-input:focus, select:focus, textarea:focus { outline: none; border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+input, textarea { width: 100%; padding: 10px 14px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 15px; color: #111827; background: #fff; }
+input:focus, textarea:focus { outline: none; border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
 input[readonly] { background: #F3F4F6; color: #6B7280; }
 .btn { width: 100%; padding: 14px; background: #1B3A6B; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
 .btn:hover { background: #2563EB; }
@@ -30,6 +30,21 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
 .isbn-row button { padding: 10px 16px; background: #2563EB; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; white-space: nowrap; }
 .isbn-row button:hover { background: #1B3A6B; }
 .not-found { color: #B91C1C; font-size: 13px; margin-top: 6px; display: none; }
+
+/* SEARCHABLE DROPDOWN */
+.search-dropdown { position: relative; }
+.search-dropdown input.search-input { border-radius: 8px; cursor: text; }
+.dropdown-list { display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #2563EB; border-radius: 0 0 8px 8px; max-height: 220px; overflow-y: auto; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.dropdown-list.open { display: block; }
+.dropdown-item { padding: 10px 14px; cursor: pointer; font-size: 15px; color: #111827; border-bottom: 1px solid #F3F4F6; }
+.dropdown-item:hover { background: #EFF6FF; color: #2563EB; }
+.dropdown-item.add-new { color: #2563EB; font-weight: bold; background: #F0FDF4; }
+.dropdown-item.add-new:hover { background: #DCFCE7; }
+.dropdown-item.no-results { color: #9CA3AF; font-style: italic; cursor: default; }
+.selected-display { padding: 10px 14px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 15px; color: #111827; background: white; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+.selected-display:hover { border-color: #2563EB; }
+.selected-display .arrow { color: #6B7280; font-size: 12px; }
+.selected-display.has-value { border-color: #2563EB; background: #EFF6FF; }
 </style>
 </head>
 <body>
@@ -54,9 +69,17 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
     <!-- SALESPERSON -->
     <div class="field">
       <label>Salesperson Name *</label>
-      <select id="salesperson">
-        <option value="">-- Select Salesperson --</option>
-      </select>
+      <div class="search-dropdown" id="sdSalesperson">
+        <div class="selected-display" onclick="toggleDropdown('sdSalesperson')" id="sdSalesperson_display">
+          <span id="sdSalesperson_text" style="color:#9CA3AF;">-- Select Salesperson --</span>
+          <span class="arrow">▼</span>
+        </div>
+        <div class="dropdown-list" id="sdSalesperson_list">
+          <input type="text" class="search-input" placeholder="Search salesperson..." oninput="filterList('sdSalesperson')" onclick="event.stopPropagation()" style="border:none;border-bottom:1px solid #E5E7EB;border-radius:0;margin:0;" />
+          <div id="sdSalesperson_items"></div>
+        </div>
+      </div>
+      <input type="hidden" id="salesperson" />
     </div>
 
     <!-- DATE -->
@@ -68,13 +91,20 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
     <!-- CONTACT PERSON -->
     <div class="field">
       <label>Contact Person *</label>
-      <select id="contact" onchange="onContactChange()">
-        <option value="">-- Select Contact --</option>
-        <option value="__NEW__">+ Add New Contact</option>
-      </select>
+      <div class="search-dropdown" id="sdContact">
+        <div class="selected-display" onclick="toggleDropdown('sdContact')" id="sdContact_display">
+          <span id="sdContact_text" style="color:#9CA3AF;">-- Select Contact --</span>
+          <span class="arrow">▼</span>
+        </div>
+        <div class="dropdown-list" id="sdContact_list">
+          <input type="text" class="search-input" placeholder="Search contact..." oninput="filterList('sdContact')" onclick="event.stopPropagation()" style="border:none;border-bottom:1px solid #E5E7EB;border-radius:0;margin:0;" />
+          <div id="sdContact_items"></div>
+        </div>
+      </div>
+      <input type="hidden" id="contact" />
     </div>
 
-    <!-- NEW CONTACT FIELDS -->
+    <!-- NEW CONTACT -->
     <div id="newContactBox" class="new-entry" style="display:none;">
       <div class="field">
         <label>New Contact Name *</label>
@@ -82,7 +112,7 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
       </div>
     </div>
 
-    <!-- CONTACT AUTO-FILL FIELDS -->
+    <!-- CONTACT AUTO-FILL -->
     <div class="field">
       <label>Email</label>
       <input type="text" id="email" readonly placeholder="Auto-filled" />
@@ -100,17 +130,23 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
       <input type="text" id="department" readonly placeholder="Auto-filled" />
     </div>
 
-
     <!-- INSTITUTION -->
     <div class="field">
       <label>Institution *</label>
-      <select id="institution" onchange="onInstitutionChange()">
-        <option value="">-- Select Institution --</option>
-        <option value="__NEW__">+ Add New Institution</option>
-      </select>
+      <div class="search-dropdown" id="sdInstitution">
+        <div class="selected-display" onclick="toggleDropdown('sdInstitution')" id="sdInstitution_display">
+          <span id="sdInstitution_text" style="color:#9CA3AF;">-- Select Institution --</span>
+          <span class="arrow">▼</span>
+        </div>
+        <div class="dropdown-list" id="sdInstitution_list">
+          <input type="text" class="search-input" placeholder="Search institution..." oninput="filterList('sdInstitution')" onclick="event.stopPropagation()" style="border:none;border-bottom:1px solid #E5E7EB;border-radius:0;margin:0;" />
+          <div id="sdInstitution_items"></div>
+        </div>
+      </div>
+      <input type="hidden" id="institution" />
     </div>
 
-    <!-- NEW INSTITUTION FIELDS -->
+    <!-- NEW INSTITUTION -->
     <div id="newInstitutionBox" class="new-entry" style="display:none;">
       <div class="field">
         <label>New Institution Name *</label>
@@ -128,18 +164,17 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
       <input type="text" id="state" readonly placeholder="Auto-filled" />
     </div>
 
-    
-    <!-- BOOK ISBN -->
+    <!-- ISBN -->
     <div class="field">
       <label>ISBN *</label>
       <div class="isbn-row">
         <input type="text" id="isbn" maxlength="13" placeholder="Type 13 digit ISBN" />
         <button onclick="lookupISBN()">Search</button>
       </div>
-      <p id="isbnNotFound" class="not-found">Book not found. Please check the ISBN.</p>
+      <p id="isbnNotFound" class="not-found"></p>
     </div>
 
-    <!-- BOOK AUTO-FILL FIELDS -->
+    <!-- BOOK AUTO-FILL -->
     <div class="field">
       <label>Book Title</label>
       <input type="text" id="bookTitle" readonly placeholder="Auto-filled" />
@@ -183,12 +218,16 @@ const COMPANY  = 'CBS Publishers & Distributors';
 
 const API = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:json&sheet=';
 
-let allContacts = [];
-let allBooks    = [];
+let allContacts    = [];
+let allInstitutions = [];
+let allBooks       = [];
 
-// ── PIN CHECK ───────────────────────────────
+// dropdown state
+var dropdownData = {};
+
+// ── PIN ─────────────────────────────────────
 function checkPin() {
-  const entered = document.getElementById('pinInput').value;
+  var entered = document.getElementById('pinInput').value;
   if (entered === PIN) {
     document.getElementById('pinScreen').style.display = 'none';
     document.getElementById('formScreen').style.display = 'block';
@@ -197,37 +236,29 @@ function checkPin() {
     document.getElementById('pinError').style.display = 'block';
   }
 }
-
 document.getElementById('pinInput').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') checkPin();
 });
 
-// ── SET TODAY DATE ──────────────────────────
 document.getElementById('visitDate').valueAsDate = new Date();
 
-// ── LOAD ALL DATA ───────────────────────────
+// ── LOAD DATA ───────────────────────────────
 function loadAllData() {
   loadSheet('Salespersons', function(rows) {
-    const sel = document.getElementById('salesperson');
-    rows.forEach(function(r) {
-      if (r[0]) addOption(sel, r[0], r[0]);
-    });
+    var items = [];
+    rows.forEach(function(r) { if (r[0]) items.push({ value: r[0], label: r[0] }); });
+    dropdownData['sdSalesperson'] = items;
+    renderItems('sdSalesperson', items);
   });
 
   loadSheet('Institutions', function(rows) {
-    const sel = document.getElementById('institution');
-    rows.forEach(function(r) {
-      if (r[0]) {
-        const opt = document.createElement('option');
-        opt.value = r[0];
-        opt.textContent = r[0];
-        sel.insertBefore(opt, sel.lastElementChild);
-      }
-    });
+    allInstitutions = rows;
+    rebuildInstitutionDropdown(null);
   });
 
   loadSheet('Contacts', function(rows) {
     allContacts = rows;
+    rebuildContactDropdown(null);
   });
 
   loadSheet('Books', function(rows) {
@@ -235,78 +266,204 @@ function loadAllData() {
   });
 }
 
-// ── INSTITUTION CHANGE ──────────────────────
-function onInstitutionChange() {
-  const val = document.getElementById('institution').value;
-  const newBox = document.getElementById('newInstitutionBox');
+// ── BUILD INSTITUTION DROPDOWN ───────────────
+function rebuildInstitutionDropdown(filterByContact) {
+  var items = [];
+  allInstitutions.forEach(function(r) {
+    if (!r[0]) return;
+    if (filterByContact) {
+      if (r[0] === filterByContact) items.push({ value: r[0], label: r[0] });
+    } else {
+      items.push({ value: r[0], label: r[0] });
+    }
+  });
+  items.push({ value: '__NEW__', label: '+ Add New Institution', cls: 'add-new' });
+  dropdownData['sdInstitution'] = items;
+  renderItems('sdInstitution', items);
+}
 
-  clearField('city');
-  clearField('state');
-  clearContactFields();
-  resetContactDropdown();
+// ── BUILD CONTACT DROPDOWN ───────────────────
+function rebuildContactDropdown(filterByInstitution) {
+  var items = [];
+  allContacts.forEach(function(r) {
+    if (!r[0]) return;
+    if (filterByInstitution) {
+      if (r[1] === filterByInstitution) items.push({ value: r[0], label: r[0] });
+    } else {
+      items.push({ value: r[0], label: r[0] });
+    }
+  });
+  items.push({ value: '__NEW__', label: '+ Add New Contact', cls: 'add-new' });
+  dropdownData['sdContact'] = items;
+  renderItems('sdContact', items);
+}
 
-  if (val === '__NEW__') {
-    newBox.style.display = 'block';
+// ── RENDER ITEMS ─────────────────────────────
+function renderItems(id, items, search) {
+  var container = document.getElementById(id + '_items');
+  container.innerHTML = '';
+  var filtered = items;
+  if (search) {
+    search = search.toLowerCase();
+    filtered = items.filter(function(i) {
+      return i.label.toLowerCase().indexOf(search) !== -1;
+    });
+  }
+  if (filtered.length === 0) {
+    var div = document.createElement('div');
+    div.className = 'dropdown-item no-results';
+    div.textContent = 'No results found';
+    container.appendChild(div);
+    return;
+  }
+  filtered.forEach(function(item) {
+    var div = document.createElement('div');
+    div.className = 'dropdown-item' + (item.cls ? ' ' + item.cls : '');
+    div.textContent = item.label;
+    div.onclick = function() { selectItem(id, item.value, item.label); };
+    container.appendChild(div);
+  });
+}
+
+// ── SELECT ITEM ──────────────────────────────
+function selectItem(id, value, label) {
+  document.getElementById(id + '_list').classList.remove('open');
+  var display = document.getElementById(id + '_display');
+
+  if (value === '__NEW__') {
+    if (id === 'sdInstitution') {
+      document.getElementById(id + '_text').textContent = '+ Add New Institution';
+      document.getElementById(id + '_text').style.color = '#2563EB';
+      display.classList.add('has-value');
+      document.getElementById('institution').value = '__NEW__';
+      document.getElementById('newInstitutionBox').style.display = 'block';
+      clearField('city'); clearField('state');
+      rebuildContactDropdown(null);
+    } else if (id === 'sdContact') {
+      document.getElementById(id + '_text').textContent = '+ Add New Contact';
+      document.getElementById(id + '_text').style.color = '#2563EB';
+      display.classList.add('has-value');
+      document.getElementById('contact').value = '__NEW__';
+      document.getElementById('newContactBox').style.display = 'block';
+      clearContactAutoFill();
+    }
     return;
   }
 
-  newBox.style.display = 'none';
+  document.getElementById(id + '_text').textContent = label;
+  document.getElementById(id + '_text').style.color = '#111827';
+  display.classList.add('has-value');
 
-  if (!val) return;
+  if (id === 'sdSalesperson') {
+    document.getElementById('salesperson').value = value;
+  }
 
-  // Auto-fill City and State
-  loadSheet('Institutions', function(rows) {
-    rows.forEach(function(r) {
-      if (r[0] === val) {
+  if (id === 'sdInstitution') {
+    document.getElementById('institution').value = value;
+    document.getElementById('newInstitutionBox').style.display = 'none';
+    document.getElementById('newInstitutionName').value = '';
+
+    // Auto-fill city and state
+    allInstitutions.forEach(function(r) {
+      if (r[0] === value) {
         document.getElementById('city').value  = r[1] || '';
         document.getElementById('state').value = r[2] || '';
       }
     });
-  });
 
-  // Filter contacts by institution
-  const contSel = document.getElementById('contact');
-  allContacts.forEach(function(r) {
-    if (r[1] === val && r[0]) {
-      const opt = document.createElement('option');
-      opt.value = r[0];
-      opt.textContent = r[0];
-      contSel.insertBefore(opt, contSel.lastElementChild);
-    }
-  });
-}
+    // Filter contact dropdown by this institution
+    rebuildContactDropdown(value);
 
-// ── CONTACT CHANGE ──────────────────────────
-function onContactChange() {
-  const val = document.getElementById('contact').value;
-  const newBox = document.getElementById('newContactBox');
-
-  clearContactFields();
-
-  if (val === '__NEW__') {
-    newBox.style.display = 'block';
-    return;
+    // Clear contact selection
+    resetContactSelection();
   }
 
-  newBox.style.display = 'none';
+  if (id === 'sdContact') {
+    document.getElementById('contact').value = value;
+    document.getElementById('newContactBox').style.display = 'none';
+    document.getElementById('newContactName').value = '';
 
-  if (!val) return;
+    // Auto-fill contact fields
+    var instVal = document.getElementById('institution').value;
+    var matched = false;
 
-  const inst = document.getElementById('institution').value;
-  allContacts.forEach(function(r) {
-    if (r[0] === val && r[1] === inst) {
-      document.getElementById('email').value       = r[2] || '';
-      document.getElementById('mobile').value      = r[3] || '';
-      document.getElementById('designation').value = r[4] || '';
-      document.getElementById('department').value  = r[5] || '';
-    }
-  });
+    allContacts.forEach(function(r) {
+      if (r[0] === value) {
+        // If institution already selected, match both
+        // If institution not selected, use first match and filter institution
+        if (!instVal || instVal === r[1]) {
+          document.getElementById('email').value       = r[2] || '';
+          document.getElementById('mobile').value      = r[3] || '';
+          document.getElementById('designation').value = r[4] || '';
+          document.getElementById('department').value  = r[5] || '';
+
+          // If institution not yet selected, auto-select it
+          if (!instVal || instVal !== r[1]) {
+            document.getElementById('institution').value = r[1];
+            document.getElementById('sdInstitution_text').textContent = r[1];
+            document.getElementById('sdInstitution_text').style.color = '#111827';
+            document.getElementById('sdInstitution_display').classList.add('has-value');
+
+            // Auto-fill city state from institution
+            allInstitutions.forEach(function(inst) {
+              if (inst[0] === r[1]) {
+                document.getElementById('city').value  = inst[1] || '';
+                document.getElementById('state').value = inst[2] || '';
+              }
+            });
+
+            // Filter institution dropdown to this contact's institution
+            rebuildInstitutionDropdown(r[1]);
+          }
+          matched = true;
+        }
+      }
+    });
+  }
 }
+
+// ── TOGGLE DROPDOWN ──────────────────────────
+function toggleDropdown(id) {
+  var list = document.getElementById(id + '_list');
+  var isOpen = list.classList.contains('open');
+
+  // Close all dropdowns first
+  document.querySelectorAll('.dropdown-list').forEach(function(l) {
+    l.classList.remove('open');
+  });
+
+  if (!isOpen) {
+    list.classList.add('open');
+    // Reset search
+    var searchInput = list.querySelector('.search-input');
+    if (searchInput) {
+      searchInput.value = '';
+      renderItems(id, dropdownData[id] || []);
+      setTimeout(function() { searchInput.focus(); }, 50);
+    }
+  }
+}
+
+// ── FILTER LIST ──────────────────────────────
+function filterList(id) {
+  var searchInput = document.getElementById(id + '_list').querySelector('.search-input');
+  var search = searchInput.value;
+  renderItems(id, dropdownData[id] || [], search);
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.search-dropdown')) {
+    document.querySelectorAll('.dropdown-list').forEach(function(l) {
+      l.classList.remove('open');
+    });
+  }
+});
 
 // ── ISBN LOOKUP ─────────────────────────────
 function lookupISBN() {
-  const isbn = document.getElementById('isbn').value.trim();
-  const notFound = document.getElementById('isbnNotFound');
+  var isbn = document.getElementById('isbn').value.trim();
+  var notFound = document.getElementById('isbnNotFound');
 
   clearField('bookTitle');
   clearField('author');
@@ -319,7 +476,7 @@ function lookupISBN() {
     return;
   }
 
-  const found = allBooks.find(function(r) {
+  var found = allBooks.find(function(r) {
     return String(r[3]).replace(/\D/g,'') === isbn;
   });
 
@@ -334,27 +491,25 @@ function lookupISBN() {
   }
 }
 
-// Allow Enter key on ISBN field
 document.getElementById('isbn').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') lookupISBN();
 });
 
-// ── SUBMIT FORM ─────────────────────────────
+// ── SUBMIT ───────────────────────────────────
 function submitForm() {
-  const salesperson = document.getElementById('salesperson').value;
-  const visitDate   = document.getElementById('visitDate').value;
-  const numBooks    = document.getElementById('numBooks').value;
-  const bookTitle   = document.getElementById('bookTitle').value;
-  const isbn        = document.getElementById('isbn').value.trim();
+  var salesperson = document.getElementById('salesperson').value;
+  var visitDate   = document.getElementById('visitDate').value;
+  var numBooks    = document.getElementById('numBooks').value;
+  var bookTitle   = document.getElementById('bookTitle').value;
+  var isbn        = document.getElementById('isbn').value.trim();
+  var instVal     = document.getElementById('institution').value;
+  var contactVal  = document.getElementById('contact').value;
 
-  const instVal     = document.getElementById('institution').value;
-  const contactVal  = document.getElementById('contact').value;
-
-  const institution = instVal === '__NEW__'
+  var institution = instVal === '__NEW__'
     ? document.getElementById('newInstitutionName').value.trim()
     : instVal;
 
-  const contact = contactVal === '__NEW__'
+  var contact = contactVal === '__NEW__'
     ? document.getElementById('newContactName').value.trim()
     : contactVal;
 
@@ -363,7 +518,7 @@ function submitForm() {
     return;
   }
 
-  const row = [
+  var row = [
     visitDate,
     salesperson,
     institution,
@@ -382,8 +537,7 @@ function submitForm() {
     document.getElementById('remarks').value,
   ];
 
-  // YOUR DEVELOPER WILL REPLACE THIS URL
-  const SUBMIT_URL = 'YOUR_DEVELOPER_ENDPOINT_HERE';
+  var SUBMIT_URL = 'YOUR_DEVELOPER_ENDPOINT_HERE';
 
   fetch(SUBMIT_URL, {
     method: 'POST',
@@ -405,8 +559,8 @@ function loadSheet(sheetName, callback) {
   fetch(API + encodeURIComponent(sheetName))
   .then(function(r) { return r.text(); })
   .then(function(text) {
-    const json = JSON.parse(text.substring(47).slice(0,-2));
-    const rows = json.table.rows.map(function(r) {
+    var json = JSON.parse(text.substring(47).slice(0,-2));
+    var rows = json.table.rows.map(function(r) {
       return r.c.map(function(c) { return c ? c.v : ''; });
     });
     callback(rows.slice(1));
@@ -414,43 +568,52 @@ function loadSheet(sheetName, callback) {
   .catch(function(e) { console.error('Error loading ' + sheetName, e); });
 }
 
-function addOption(sel, value, label) {
-  const opt = document.createElement('option');
-  opt.value = value;
-  opt.textContent = label;
-  sel.appendChild(opt);
-}
-
 function clearField(id) {
   document.getElementById(id).value = '';
 }
 
-function clearContactFields() {
+function clearContactAutoFill() {
   ['email','mobile','designation','department'].forEach(clearField);
-  document.getElementById('newContactBox').style.display = 'none';
 }
 
-function resetContactDropdown() {
-  const contSel = document.getElementById('contact');
-  contSel.innerHTML = '<option value="">-- Select Contact --</option><option value="__NEW__">+ Add New Contact</option>';
+function resetContactSelection() {
+  document.getElementById('contact').value = '';
+  document.getElementById('sdContact_text').textContent = '-- Select Contact --';
+  document.getElementById('sdContact_text').style.color = '#9CA3AF';
+  document.getElementById('sdContact_display').classList.remove('has-value');
+  clearContactAutoFill();
+  document.getElementById('newContactBox').style.display = 'none';
 }
 
 function clearForm() {
-  document.getElementById('salesperson').selectedIndex = 0;
-  document.getElementById('institution').selectedIndex = 0;
-  resetContactDropdown();
+  // Reset salesperson
+  document.getElementById('salesperson').value = '';
+  document.getElementById('sdSalesperson_text').textContent = '-- Select Salesperson --';
+  document.getElementById('sdSalesperson_text').style.color = '#9CA3AF';
+  document.getElementById('sdSalesperson_display').classList.remove('has-value');
+
+  // Reset institution
+  document.getElementById('institution').value = '';
+  document.getElementById('sdInstitution_text').textContent = '-- Select Institution --';
+  document.getElementById('sdInstitution_text').style.color = '#9CA3AF';
+  document.getElementById('sdInstitution_display').classList.remove('has-value');
   document.getElementById('newInstitutionBox').style.display = 'none';
-  document.getElementById('newContactBox').style.display = 'none';
   document.getElementById('newInstitutionName').value = '';
+  rebuildInstitutionDropdown(null);
+
+  // Reset contact
+  resetContactSelection();
   document.getElementById('newContactName').value = '';
-  ['city','state','email','mobile','designation','department',
-   'isbn','bookTitle','author','edition','numBooks','remarks'].forEach(clearField);
+  rebuildContactDropdown(null);
+
+  // Reset all fields
+  ['city','state','isbn','bookTitle','author','edition','numBooks','remarks'].forEach(clearField);
   document.getElementById('visitDate').valueAsDate = new Date();
   document.getElementById('isbnNotFound').style.display = 'none';
 }
 
 function showMsg(text, success) {
-  const el = document.getElementById('formMsg');
+  var el = document.getElementById('formMsg');
   el.textContent = text;
   el.className = 'msg ' + (success ? 'success' : 'error');
   el.style.display = 'block';
