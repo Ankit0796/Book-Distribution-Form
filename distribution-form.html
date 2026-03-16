@@ -505,18 +505,32 @@ function selectItem(id, value, label) {
     document.getElementById(id + '_text').textContent = label;
     document.getElementById(id + '_text').style.color = '#2563EB';
     display.classList.add('has-value');
-    if (id === 'sdInstitution') {
+   if (id === 'sdInstitution') {
       document.getElementById('institution').value = '__NEW__';
       document.getElementById('newInstitutionBox').style.display = 'block';
       document.getElementById('sdInstitution_clear').style.display = 'inline';
       clearField('city');
       clearField('state');
+      // Also reset contact when adding new institution
+      resetContactSelection();
+      rebuildContactDropdown(null);
     }
-    if (id === 'sdContact') {
+   if (id === 'sdContact') {
       document.getElementById('contact').value = '__NEW__';
       document.getElementById('newContactBox').style.display = 'block';
       document.getElementById('sdContact_clear').style.display = 'inline';
       clearContactAutoFill();
+      // Also clear institution when adding new contact
+      document.getElementById('institution').value = '';
+      document.getElementById('sdInstitution_text').textContent = '-- Select Institution --';
+      document.getElementById('sdInstitution_text').style.color = '#9CA3AF';
+      document.getElementById('sdInstitution_display').classList.remove('has-value');
+      document.getElementById('sdInstitution_clear').style.display = 'none';
+      document.getElementById('newInstitutionBox').style.display = 'none';
+      document.getElementById('dupInstitutionMsg').style.display = 'none';
+      clearField('city');
+      clearField('state');
+      rebuildInstitutionDropdown(null);
     }
     return;
   }
