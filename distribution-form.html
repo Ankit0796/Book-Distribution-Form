@@ -1195,4 +1195,19 @@ function clearForm() {
   document.getElementById('country').value = 'India';
   ['isbn','bookTitle','author','edition','numBooks','remarks'].forEach(clearField);
   document.getElementById('visitDate').valueAsDate = new Date();
-  document.getElementById('isb
+  document.getElementById('isbnNotFound').style.display = 'none';
+  document.getElementById('draftBanner').style.display = 'none';
+  document.getElementById('receipt').style.display = 'none';
+}
+
+function showMsg(text, success) {
+  var el = document.getElementById('formMsg');
+  el.textContent = text;
+  el.className = 'msg ' + (success ? 'success' : 'error');
+  el.style.display = 'block';
+  setTimeout(function() { el.style.display = 'none'; }, 4000);
+}
+
+</script>
+</body>
+</html>
