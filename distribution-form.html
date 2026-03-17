@@ -772,12 +772,12 @@ function selectItem(id, value, label) {
 
     if (contactData) {
       makeContactFieldsReadonly();
-      document.getElementById('email').value       = contactData[2] || '';
-      document.getElementById('mobile').value      = contactData[3] || '';
-      document.getElementById('altMobile').value   = contactData[4] || '';
-      document.getElementById('landline').value    = contactData[5] || '';
-      document.getElementById('designation').value = contactData[6] || '';
-      document.getElementById('department').value  = contactData[7] || '';
+      document.getElementById('designation').value = contactData[2] || '';
+      document.getElementById('department').value  = contactData[3] || '';
+      document.getElementById('email').value       = contactData[4] || '';
+      document.getElementById('mobile').value      = contactData[5] || '';
+      document.getElementById('altMobile').value   = contactData[6] || '';
+      document.getElementById('landline').value    = contactData[7] || '';
 
       var contactInst = contactData[1] || '';
       document.getElementById('institution').value = contactInst;
