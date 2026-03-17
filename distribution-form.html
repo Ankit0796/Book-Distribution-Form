@@ -11,8 +11,8 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; padding: 20px; }
 h2 { text-align: center; color: #1B3A6B; margin-bottom: 24px; font-size: 22px; }
 .field { margin-bottom: 16px; }
 label { display: block; font-size: 14px; font-weight: bold; color: #374151; margin-bottom: 6px; }
-input, textarea { width: 100%; padding: 10px 14px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 15px; color: #111827; background: #fff; }
-input:focus, textarea:focus { outline: none; border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+input, textarea, select { width: 100%; padding: 10px 14px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 15px; color: #111827; background: #fff; }
+input:focus, textarea:focus, select:focus { outline: none; border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
 input[readonly] { background: #F3F4F6; color: #6B7280; }
 input.input-error { border-color: #B91C1C; }
 input.input-ok { border-color: #15803D; }
@@ -77,6 +77,7 @@ input.input-ok { border-color: #15803D; }
 .receipt-row:last-child { border-bottom: none; }
 .receipt-label { color: #6B7280; font-weight: bold; flex: 1; }
 .receipt-value { color: #111827; flex: 2; text-align: right; }
+.optional { color: #9CA3AF; font-weight: normal; }
 </style>
 </head>
 <body>
@@ -159,7 +160,7 @@ input.input-ok { border-color: #15803D; }
 
     <!-- EMAIL -->
     <div class="field">
-      <label>Email</label>
+      <label>Email *</label>
       <input type="text" id="email" readonly placeholder="Auto-filled or type if new" oninput="validateEmail()" />
       <p id="emailNote" class="field-note" style="display:none;">📧 Verification email will be sent to this address.</p>
       <p id="emailError" class="field-error"></p>
@@ -168,9 +169,9 @@ input.input-ok { border-color: #15803D; }
 
     <!-- MOBILE -->
     <div class="field">
-      <label>Mobile Number</label>
+      <label>Mobile Number *</label>
       <div class="phone-row">
-        <div class="country-code" id="mobileCode">+91</div>
+        <div class="country-code">+91</div>
         <input type="text" id="mobile" readonly placeholder="Auto-filled or type if new" maxlength="10" oninput="validateMobile()" />
       </div>
       <p id="mobileError" class="field-error"></p>
@@ -179,7 +180,7 @@ input.input-ok { border-color: #15803D; }
 
     <!-- ALT MOBILE -->
     <div class="field">
-      <label>Alternative Mobile <span style="color:#9CA3AF;font-weight:normal;">(Optional)</span></label>
+      <label>Alternative Mobile <span class="optional">(Optional)</span></label>
       <div class="phone-row">
         <div class="country-code">+91</div>
         <input type="text" id="altMobile" readonly placeholder="Auto-filled or type if new" maxlength="10" oninput="validateAltMobile()" />
@@ -190,20 +191,20 @@ input.input-ok { border-color: #15803D; }
 
     <!-- LANDLINE -->
     <div class="field">
-      <label>Landline <span style="color:#9CA3AF;font-weight:normal;">(Optional)</span></label>
+      <label>Landline <span class="optional">(Optional)</span></label>
       <input type="text" id="landline" readonly placeholder="Auto-filled or type if new" maxlength="12" oninput="validateLandline()" />
       <p id="landlineError" class="field-error"></p>
     </div>
 
     <!-- DESIGNATION -->
     <div class="field">
-      <label>Designation</label>
+      <label>Designation *</label>
       <input type="text" id="designation" readonly placeholder="Auto-filled or type if new" />
     </div>
 
     <!-- DEPARTMENT -->
     <div class="field">
-      <label>Department</label>
+      <label>Department *</label>
       <input type="text" id="department" readonly placeholder="Auto-filled or type if new" />
     </div>
 
@@ -233,14 +234,22 @@ input.input-ok { border-color: #15803D; }
       </div>
     </div>
 
-    <!-- CITY STATE -->
+    <!-- CITY -->
     <div class="field">
-      <label>City</label>
+      <label>City *</label>
       <input type="text" id="city" readonly placeholder="Auto-filled or type if new" />
     </div>
+
+    <!-- STATE -->
     <div class="field">
-      <label>State</label>
+      <label>State *</label>
       <input type="text" id="state" readonly placeholder="Auto-filled or type if new" />
+    </div>
+
+    <!-- COUNTRY -->
+    <div class="field">
+      <label>Country *</label>
+      <input type="text" id="country" readonly placeholder="Auto-filled" value="India" />
     </div>
 
     <!-- ISBN -->
@@ -275,7 +284,7 @@ input.input-ok { border-color: #15803D; }
 
     <!-- REMARKS -->
     <div class="field">
-      <label>Remarks</label>
+      <label>Remarks <span class="optional">(Optional)</span></label>
       <textarea id="remarks" rows="3" placeholder="Optional"></textarea>
     </div>
 
@@ -294,6 +303,7 @@ input.input-ok { border-color: #15803D; }
       <div class="receipt-row"><span class="receipt-label">Institution</span><span class="receipt-value" id="r_institution"></span></div>
       <div class="receipt-row"><span class="receipt-label">City</span><span class="receipt-value" id="r_city"></span></div>
       <div class="receipt-row"><span class="receipt-label">State</span><span class="receipt-value" id="r_state"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Country</span><span class="receipt-value" id="r_country"></span></div>
       <div class="receipt-row"><span class="receipt-label">Contact</span><span class="receipt-value" id="r_contact"></span></div>
       <div class="receipt-row"><span class="receipt-label">Email</span><span class="receipt-value" id="r_email"></span></div>
       <div class="receipt-row"><span class="receipt-label">Mobile</span><span class="receipt-value" id="r_mobile"></span></div>
@@ -379,6 +389,7 @@ function startForm() {
   document.getElementById('welcomeBanner').style.display = 'block';
   document.getElementById('formScreen').style.display = 'block';
   document.getElementById('visitDate').valueAsDate = new Date();
+  document.getElementById('country').value = 'India';
   loadAllData();
 }
 
@@ -402,87 +413,54 @@ function loadAllData() {
 function validateEmail() {
   if (!isNewContact) return true;
   var val   = document.getElementById('email').value.trim();
-  var err   = document.getElementById('emailError');
-  var ok    = document.getElementById('emailOk');
-  var note  = document.getElementById('emailNote');
   var input = document.getElementById('email');
-
-  err.style.display  = 'none';
-  ok.style.display   = 'none';
-  note.style.display = 'none';
+  document.getElementById('emailError').style.display  = 'none';
+  document.getElementById('emailOk').style.display     = 'none';
+  document.getElementById('emailNote').style.display   = 'none';
   input.classList.remove('input-error', 'input-ok');
 
   if (!val) return true;
 
-  if (/^[^a-zA-Z0-9]/.test(val)) {
-    return showFieldError('email', 'Email cannot start with a special character.');
-  }
-  if (/^www\.?/i.test(val)) {
-    return showFieldError('email', 'Email should not start with www.');
-  }
-  if ((val.match(/@/g) || []).length > 1) {
-    return showFieldError('email', 'Email cannot contain more than one @ symbol.');
-  }
-  if (!val.includes('@')) {
-    return showFieldError('email', 'Email must contain an @ symbol.');
-  }
-  var emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
-  if (!emailRegex.test(val)) {
+  if (/^[^a-zA-Z0-9]/.test(val)) return showFieldError('email', 'Email cannot start with a special character.');
+  if (/^www\.?/i.test(val))       return showFieldError('email', 'Email should not start with www.');
+  if ((val.match(/@/g) || []).length > 1) return showFieldError('email', 'Email cannot contain more than one @ symbol.');
+  if (!val.includes('@'))         return showFieldError('email', 'Email must contain an @ symbol.');
+  if (!/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(val))
     return showFieldError('email', 'Email must be in a valid format like name@domain.com');
-  }
 
   input.classList.add('input-ok');
-  ok.style.display   = 'block';
-  note.style.display = 'block';
+  document.getElementById('emailOk').style.display   = 'block';
+  document.getElementById('emailNote').style.display = 'block';
   return true;
 }
 
 function validateMobile() {
   if (!isNewContact) return true;
-  var val   = document.getElementById('mobile').value.trim();
-  var err   = document.getElementById('mobileError');
-  var ok    = document.getElementById('mobileOk');
-  var input = document.getElementById('mobile');
-  err.style.display = 'none';
-  ok.style.display  = 'none';
-  input.classList.remove('input-error', 'input-ok');
+  var val = document.getElementById('mobile').value.trim();
+  document.getElementById('mobileError').style.display = 'none';
+  document.getElementById('mobileOk').style.display    = 'none';
+  document.getElementById('mobile').classList.remove('input-error', 'input-ok');
   if (!val) return true;
   return runMobileValidation('mobile', val);
 }
 
 function validateAltMobile() {
   if (!isNewContact) return true;
-  var val   = document.getElementById('altMobile').value.trim();
-  var err   = document.getElementById('altMobileError');
-  var ok    = document.getElementById('altMobileOk');
-  var input = document.getElementById('altMobile');
-  err.style.display = 'none';
-  ok.style.display  = 'none';
-  input.classList.remove('input-error', 'input-ok');
+  var val = document.getElementById('altMobile').value.trim();
+  document.getElementById('altMobileError').style.display = 'none';
+  document.getElementById('altMobileOk').style.display    = 'none';
+  document.getElementById('altMobile').classList.remove('input-error', 'input-ok');
   if (!val) return true;
   return runMobileValidation('altMobile', val);
 }
 
 function runMobileValidation(fieldId, val) {
-  // No special characters or letters
-  if (/[^0-9]/.test(val)) {
-    return showFieldError(fieldId, 'Mobile number cannot contain special characters or letters.');
-  }
-  // Must start with 6, 7, 8 or 9
-  if (!/^[6-9]/.test(val)) {
-    return showFieldError(fieldId, 'Mobile number must start with 6, 7, 8, or 9.');
-  }
-  // Still typing — wait for 10 digits before further checks
+  if (/[^0-9]/.test(val))  return showFieldError(fieldId, 'Mobile number cannot contain special characters or letters.');
+  if (!/^[6-9]/.test(val)) return showFieldError(fieldId, 'Mobile number must start with 6, 7, 8, or 9.');
   if (val.length < 10) return true;
   if (val.length === 10) {
-    // Block 5 or more consecutive same digits
-    if (/(.)\1{4,}/.test(val)) {
-      return showFieldError(fieldId, 'Mobile number cannot have the same digit repeated 5 or more times consecutively.');
-    }
-    // Block sequential patterns like 1234567890 or 9876543210
-    if (isSequentialNumber(val)) {
-      return showFieldError(fieldId, 'Mobile number cannot be a sequential pattern like 1234567890.');
-    }
+    if (/(.)\1{4,}/.test(val)) return showFieldError(fieldId, 'Mobile number cannot have the same digit repeated 5 or more times consecutively.');
+    if (isSequentialNumber(val)) return showFieldError(fieldId, 'Mobile number cannot be a sequential pattern like 1234567890.');
     document.getElementById(fieldId).classList.add('input-ok');
     document.getElementById(fieldId + 'Ok').style.display = 'block';
     return true;
@@ -492,18 +470,12 @@ function runMobileValidation(fieldId, val) {
 
 function validateLandline() {
   if (!isNewContact) return true;
-  var val   = document.getElementById('landline').value.trim();
-  var err   = document.getElementById('landlineError');
-  var input = document.getElementById('landline');
-  err.style.display = 'none';
-  input.classList.remove('input-error', 'input-ok');
+  var val = document.getElementById('landline').value.trim();
+  document.getElementById('landlineError').style.display = 'none';
+  document.getElementById('landline').classList.remove('input-error');
   if (!val) return true;
-  if (/[^0-9]/.test(val)) {
-    return showFieldError('landline', 'Landline cannot contain special characters or letters.');
-  }
-  if (val.length >= 7 && (val.length < 7 || val.length > 12)) {
-    return showFieldError('landline', 'Landline must be between 7 and 12 digits.');
-  }
+  if (/[^0-9]/.test(val)) return showFieldError('landline', 'Landline cannot contain special characters or letters.');
+  if (val.length >= 7 && val.length > 12) return showFieldError('landline', 'Landline must be between 7 and 12 digits.');
   return true;
 }
 
@@ -517,10 +489,7 @@ function showFieldError(fieldId, message) {
   var input = document.getElementById(fieldId);
   var err   = document.getElementById(fieldId + 'Error');
   if (input) input.classList.add('input-error');
-  if (err) {
-    err.textContent   = '⚠️ ' + message;
-    err.style.display = 'block';
-  }
+  if (err) { err.textContent = '⚠️ ' + message; err.style.display = 'block'; }
   return false;
 }
 
@@ -534,15 +503,7 @@ function makeContactFieldsEditable() {
     el.style.background = '#fff';
     el.style.color = '#111827';
   });
-  ['emailNote','emailError','emailOk',
-   'mobileError','mobileOk',
-   'altMobileError','altMobileOk',
-   'landlineError'].forEach(function(id) {
-    document.getElementById(id).style.display = 'none';
-  });
-  ['email','mobile','altMobile','landline'].forEach(function(id) {
-    document.getElementById(id).classList.remove('input-error','input-ok');
-  });
+  clearValidationUI();
 }
 
 function makeContactFieldsReadonly() {
@@ -554,10 +515,12 @@ function makeContactFieldsReadonly() {
     el.style.background = '#F3F4F6';
     el.style.color = '#6B7280';
   });
-  ['emailNote','emailError','emailOk',
-   'mobileError','mobileOk',
-   'altMobileError','altMobileOk',
-   'landlineError'].forEach(function(id) {
+  clearValidationUI();
+}
+
+function clearValidationUI() {
+  ['emailNote','emailError','emailOk','mobileError','mobileOk',
+   'altMobileError','altMobileOk','landlineError'].forEach(function(id) {
     document.getElementById(id).style.display = 'none';
   });
   ['email','mobile','altMobile','landline'].forEach(function(id) {
@@ -565,7 +528,7 @@ function makeContactFieldsReadonly() {
   });
 }
 
-function makeCityStateEditable() {
+function makeCityStateCountryEditable() {
   ['city','state'].forEach(function(id) {
     var el = document.getElementById(id);
     el.value = '';
@@ -573,15 +536,18 @@ function makeCityStateEditable() {
     el.style.background = '#fff';
     el.style.color = '#111827';
   });
+  // Country stays readonly but gets default value India
+  document.getElementById('country').value = 'India';
 }
 
-function makeCityStateReadonly() {
+function makeCityStateCountryReadonly() {
   ['city','state'].forEach(function(id) {
     var el = document.getElementById(id);
     el.setAttribute('readonly', true);
     el.style.background = '#F3F4F6';
     el.style.color = '#6B7280';
   });
+  document.getElementById('country').value = 'India';
 }
 
 // ── DRAFT SAVE ───────────────────────────────
@@ -595,6 +561,7 @@ function saveDraft() {
     institutionText:    document.getElementById('sdInstitution_text').textContent,
     city:               document.getElementById('city').value,
     state:              document.getElementById('state').value,
+    country:            document.getElementById('country').value,
     email:              document.getElementById('email').value,
     mobile:             document.getElementById('mobile').value,
     altMobile:          document.getElementById('altMobile').value,
@@ -625,7 +592,6 @@ function checkDraft() {
   if (!draft.contact && !draft.institution && !draft.isbn) return;
 
   document.getElementById('draftBanner').style.display = 'block';
-
   if (draft.visitDate) document.getElementById('visitDate').value = draft.visitDate;
 
   if (draft.contact) {
@@ -650,12 +616,13 @@ function checkDraft() {
     if (draft.institutionIsNew) {
       document.getElementById('newInstitutionBox').style.display = 'block';
       document.getElementById('newInstitutionName').value = draft.newInstitutionName || '';
-      makeCityStateEditable();
+      makeCityStateCountryEditable();
     }
   }
 
   if (draft.city)        document.getElementById('city').value        = draft.city;
   if (draft.state)       document.getElementById('state').value       = draft.state;
+  if (draft.country)     document.getElementById('country').value     = draft.country;
   if (draft.email)       document.getElementById('email').value       = draft.email;
   if (draft.mobile)      document.getElementById('mobile').value      = draft.mobile;
   if (draft.altMobile)   document.getElementById('altMobile').value   = draft.altMobile;
@@ -702,9 +669,7 @@ function renderItems(id, items, search) {
   var filtered = items;
   if (search) {
     var s = search.toLowerCase();
-    filtered = items.filter(function(i) {
-      return i.label.toLowerCase().indexOf(s) !== -1;
-    });
+    filtered = items.filter(function(i) { return i.label.toLowerCase().indexOf(s) !== -1; });
   }
   if (filtered.length === 0) {
     var div = document.createElement('div');
@@ -738,9 +703,7 @@ function selectItem(id, value, label) {
       document.getElementById('sdContact_clear').style.display = 'inline';
       makeContactFieldsEditable();
       var instVal = document.getElementById('institution').value;
-      if (!instVal || instVal === '__NEW__') {
-        makeCityStateEditable();
-      }
+      if (!instVal || instVal === '__NEW__') makeCityStateCountryEditable();
       if (!instVal) {
         document.getElementById('sdInstitution_text').textContent = '-- Select Institution --';
         document.getElementById('sdInstitution_text').style.color = '#9CA3AF';
@@ -754,7 +717,7 @@ function selectItem(id, value, label) {
       document.getElementById('institution').value = '__NEW__';
       document.getElementById('newInstitutionBox').style.display = 'block';
       document.getElementById('sdInstitution_clear').style.display = 'inline';
-      makeCityStateEditable();
+      makeCityStateCountryEditable();
       var contactVal = document.getElementById('contact').value;
       if (contactVal !== '__NEW__') {
         resetContactSelection();
@@ -774,11 +737,12 @@ function selectItem(id, value, label) {
     document.getElementById('newInstitutionBox').style.display = 'none';
     document.getElementById('newInstitutionName').value = '';
     document.getElementById('dupInstitutionMsg').style.display = 'none';
-    makeCityStateReadonly();
+    makeCityStateCountryReadonly();
     allInstitutions.forEach(function(r) {
       if (r[0] === value) {
         document.getElementById('city').value  = r[1] || '';
         document.getElementById('state').value = r[2] || '';
+        document.getElementById('country').value = r[3] || 'India';
       }
     });
     var contactVal = document.getElementById('contact').value;
@@ -820,18 +784,19 @@ function selectItem(id, value, label) {
         document.getElementById('sdInstitution_display').classList.add('has-value');
         document.getElementById('sdInstitution_clear').style.display = 'inline';
         document.getElementById('newInstitutionBox').style.display = 'none';
-        makeCityStateReadonly();
+        makeCityStateCountryReadonly();
         allInstitutions.forEach(function(inst) {
           if (inst[0] === contactInst) {
-            document.getElementById('city').value  = inst[1] || '';
-            document.getElementById('state').value = inst[2] || '';
+            document.getElementById('city').value    = inst[1] || '';
+            document.getElementById('state').value   = inst[2] || '';
+            document.getElementById('country').value = inst[3] || 'India';
           }
         });
         rebuildInstitutionDropdown(contactInst);
       } else {
         document.getElementById('sdInstitution_display').classList.remove('has-value');
         document.getElementById('sdInstitution_clear').style.display = 'none';
-        makeCityStateReadonly();
+        makeCityStateCountryReadonly();
         rebuildInstitutionDropdown(null);
       }
     }
@@ -842,9 +807,7 @@ function selectItem(id, value, label) {
 function toggleDropdown(id) {
   var list = document.getElementById(id + '_list');
   var isOpen = list.classList.contains('open');
-  document.querySelectorAll('.dropdown-list').forEach(function(l) {
-    l.classList.remove('open');
-  });
+  document.querySelectorAll('.dropdown-list').forEach(function(l) { l.classList.remove('open'); });
   if (!isOpen) {
     list.classList.add('open');
     var searchInput = list.querySelector('input[type="text"]');
@@ -863,18 +826,17 @@ function filterList(id) {
 
 document.addEventListener('click', function(e) {
   if (!e.target.closest('.search-dropdown')) {
-    document.querySelectorAll('.dropdown-list').forEach(function(l) {
-      l.classList.remove('open');
-    });
+    document.querySelectorAll('.dropdown-list').forEach(function(l) { l.classList.remove('open'); });
   }
 });
 
 // ── CLEAR BUTTONS ────────────────────────────
 function clearContact() {
   makeContactFieldsReadonly();
-  makeCityStateReadonly();
-  document.getElementById('city').value  = '';
-  document.getElementById('state').value = '';
+  makeCityStateCountryReadonly();
+  document.getElementById('city').value    = '';
+  document.getElementById('state').value   = '';
+  document.getElementById('country').value = 'India';
   document.getElementById('contact').value = '';
   document.getElementById('sdContact_text').textContent = '-- Select Contact --';
   document.getElementById('sdContact_text').style.color = '#9CA3AF';
@@ -895,9 +857,10 @@ function clearContact() {
 }
 
 function clearInstitution() {
-  makeCityStateReadonly();
-  document.getElementById('city').value  = '';
-  document.getElementById('state').value = '';
+  makeCityStateCountryReadonly();
+  document.getElementById('city').value    = '';
+  document.getElementById('state').value   = '';
+  document.getElementById('country').value = 'India';
   document.getElementById('institution').value = '';
   document.getElementById('sdInstitution_text').textContent = '-- Select Institution --';
   document.getElementById('sdInstitution_text').style.color = '#9CA3AF';
@@ -916,24 +879,16 @@ function checkDuplicateInstitution() {
   var typed = document.getElementById('newInstitutionName').value.trim().toLowerCase();
   var msg   = document.getElementById('dupInstitutionMsg');
   if (!typed) { msg.style.display = 'none'; return; }
-  var exact = allInstitutions.find(function(r) {
-    return r[0] && r[0].trim().toLowerCase() === typed;
-  });
+  var exact = allInstitutions.find(function(r) { return r[0] && r[0].trim().toLowerCase() === typed; });
   if (exact) {
     msg.textContent = '⚠️ "' + exact[0] + '" already exists. Please select it from the dropdown instead.';
-    msg.className = 'warn-msg warn-red';
-    msg.style.display = 'block';
-    return;
+    msg.className = 'warn-msg warn-red'; msg.style.display = 'block'; return;
   }
   if (typed.length > 4) {
-    var similar = allInstitutions.find(function(r) {
-      return r[0] && r[0].trim().toLowerCase().indexOf(typed) !== -1;
-    });
+    var similar = allInstitutions.find(function(r) { return r[0] && r[0].trim().toLowerCase().indexOf(typed) !== -1; });
     if (similar) {
       msg.textContent = '⚠️ Similar entry found: "' + similar[0] + '". Is this the same institution?';
-      msg.className = 'warn-msg warn-amber';
-      msg.style.display = 'block';
-      return;
+      msg.className = 'warn-msg warn-amber'; msg.style.display = 'block'; return;
     }
   }
   msg.style.display = 'none';
@@ -943,24 +898,16 @@ function checkDuplicateContact() {
   var typed = document.getElementById('newContactName').value.trim().toLowerCase();
   var msg   = document.getElementById('dupContactMsg');
   if (!typed) { msg.style.display = 'none'; return; }
-  var exact = allContacts.find(function(r) {
-    return r[0] && r[0].trim().toLowerCase() === typed;
-  });
+  var exact = allContacts.find(function(r) { return r[0] && r[0].trim().toLowerCase() === typed; });
   if (exact) {
     msg.textContent = '⚠️ "' + exact[0] + '" already exists at ' + exact[1] + '. Please select from the dropdown instead.';
-    msg.className = 'warn-msg warn-red';
-    msg.style.display = 'block';
-    return;
+    msg.className = 'warn-msg warn-red'; msg.style.display = 'block'; return;
   }
   if (typed.length > 4) {
-    var similar = allContacts.find(function(r) {
-      return r[0] && r[0].trim().toLowerCase().indexOf(typed) !== -1;
-    });
+    var similar = allContacts.find(function(r) { return r[0] && r[0].trim().toLowerCase().indexOf(typed) !== -1; });
     if (similar) {
       msg.textContent = '⚠️ Similar contact found: "' + similar[0] + '" at ' + similar[1] + '. Is this the same person?';
-      msg.className = 'warn-msg warn-amber';
-      msg.style.display = 'block';
-      return;
+      msg.className = 'warn-msg warn-amber'; msg.style.display = 'block'; return;
     }
   }
   msg.style.display = 'none';
@@ -974,21 +921,13 @@ function lookupISBN() {
   document.getElementById('author').value    = '';
   document.getElementById('edition').value   = '';
   notFound.style.display = 'none';
-
-  if (!isbn) {
-    notFound.textContent = 'Please enter an ISBN.';
-    notFound.style.display = 'block';
-    return;
-  }
-
+  if (!isbn) { notFound.textContent = 'Please enter an ISBN.'; notFound.style.display = 'block'; return; }
   var isbnClean = isbn.replace(/\D/g, '');
   var found = null;
   allBooks.forEach(function(r) {
     if (found) return;
-    var sheetISBN = String(r[0] || '').replace(/\D/g, '');
-    if (sheetISBN === isbnClean) found = r;
+    if (String(r[0] || '').replace(/\D/g, '') === isbnClean) found = r;
   });
-
   if (found) {
     document.getElementById('bookTitle').value = found[1] || '';
     document.getElementById('author').value    = found[2] || '';
@@ -1012,6 +951,13 @@ function submitForm() {
   var isbn        = document.getElementById('isbn').value.trim();
   var instVal     = document.getElementById('institution').value;
   var contactVal  = document.getElementById('contact').value;
+  var email       = document.getElementById('email').value.trim();
+  var mobile      = document.getElementById('mobile').value.trim();
+  var designation = document.getElementById('designation').value.trim();
+  var department  = document.getElementById('department').value.trim();
+  var city        = document.getElementById('city').value.trim();
+  var state       = document.getElementById('state').value.trim();
+  var country     = document.getElementById('country').value.trim();
 
   var institution = instVal === '__NEW__'
     ? document.getElementById('newInstitutionName').value.trim()
@@ -1021,32 +967,44 @@ function submitForm() {
     ? document.getElementById('newContactName').value.trim()
     : contactVal;
 
+  // Required field checks
   if (!salesperson || !visitDate || !institution || !contact || !bookTitle || !numBooks) {
-    showMsg('Please fill all required fields marked with *', false);
-    return;
+    showMsg('Please fill all required fields marked with *', false); return;
+  }
+  if (!email) {
+    showMsg('Email is required.', false); return;
+  }
+  if (!mobile) {
+    showMsg('Mobile number is required.', false); return;
+  }
+  if (!designation) {
+    showMsg('Designation is required.', false); return;
+  }
+  if (!department) {
+    showMsg('Department is required.', false); return;
+  }
+  if (!city) {
+    showMsg('City is required.', false); return;
+  }
+  if (!state) {
+    showMsg('State is required.', false); return;
   }
 
+  // Validation checks for new contacts
   if (isNewContact) {
-    var emailVal = document.getElementById('email').value.trim();
-    var mobVal   = document.getElementById('mobile').value.trim();
-    var altVal   = document.getElementById('altMobile').value.trim();
-    var landVal  = document.getElementById('landline').value.trim();
-
-    if (emailVal && !validateEmail()) {
-      showMsg('Please fix the email address before submitting.', false);
-      return;
+    if (!validateEmail()) {
+      showMsg('Please fix the email address before submitting.', false); return;
     }
-    if (mobVal && !validateMobile()) {
-      showMsg('Please fix the mobile number before submitting.', false);
-      return;
+    if (!validateMobile()) {
+      showMsg('Please fix the mobile number before submitting.', false); return;
     }
+    var altVal = document.getElementById('altMobile').value.trim();
     if (altVal && !validateAltMobile()) {
-      showMsg('Please fix the alternative mobile number before submitting.', false);
-      return;
+      showMsg('Please fix the alternative mobile number before submitting.', false); return;
     }
+    var landVal = document.getElementById('landline').value.trim();
     if (landVal && !validateLandline()) {
-      showMsg('Please fix the landline number before submitting.', false);
-      return;
+      showMsg('Please fix the landline number before submitting.', false); return;
     }
   }
 
@@ -1054,20 +1012,14 @@ function submitForm() {
     var dupInst = allInstitutions.find(function(r) {
       return r[0] && r[0].trim().toLowerCase() === institution.toLowerCase();
     });
-    if (dupInst) {
-      showMsg('Institution already exists. Please select it from the dropdown.', false);
-      return;
-    }
+    if (dupInst) { showMsg('Institution already exists. Please select it from the dropdown.', false); return; }
   }
 
   if (contactVal === '__NEW__') {
     var dupCont = allContacts.find(function(r) {
       return r[0] && r[0].trim().toLowerCase() === contact.toLowerCase();
     });
-    if (dupCont) {
-      showMsg('Contact already exists. Please select from the dropdown.', false);
-      return;
-    }
+    if (dupCont) { showMsg('Contact already exists. Please select from the dropdown.', false); return; }
   }
 
   var mobileRaw    = document.getElementById('mobile').value.trim();
@@ -1075,15 +1027,12 @@ function submitForm() {
 
   var row = [
     visitDate, salesperson, institution,
-    document.getElementById('city').value,
-    document.getElementById('state').value,
-    contact,
-    document.getElementById('email').value,
+    city, state, country,
+    contact, email,
     mobileRaw    ? '+91 ' + mobileRaw    : '',
     altMobileRaw ? '+91 ' + altMobileRaw : '',
     document.getElementById('landline').value,
-    document.getElementById('designation').value,
-    document.getElementById('department').value,
+    designation, department,
     bookTitle, isbn,
     document.getElementById('author').value,
     document.getElementById('edition').value,
@@ -1092,24 +1041,18 @@ function submitForm() {
   ];
 
   lastSubmission = {
-    date:        visitDate,
-    salesperson: salesperson,
-    institution: institution,
-    city:        document.getElementById('city').value,
-    state:       document.getElementById('state').value,
-    contact:     contact,
-    email:       document.getElementById('email').value,
-    mobile:      mobileRaw    ? '+91 ' + mobileRaw    : '',
-    altMobile:   altMobileRaw ? '+91 ' + altMobileRaw : '',
-    landline:    document.getElementById('landline').value,
-    designation: document.getElementById('designation').value,
-    department:  document.getElementById('department').value,
-    bookTitle:   bookTitle,
-    isbn:        isbn,
-    author:      document.getElementById('author').value,
-    edition:     document.getElementById('edition').value,
-    numBooks:    numBooks,
-    remarks:     document.getElementById('remarks').value,
+    date: visitDate, salesperson: salesperson,
+    institution: institution, city: city, state: state, country: country,
+    contact: contact, email: email,
+    mobile:    mobileRaw    ? '+91 ' + mobileRaw    : '',
+    altMobile: altMobileRaw ? '+91 ' + altMobileRaw : '',
+    landline:  document.getElementById('landline').value,
+    designation: designation, department: department,
+    bookTitle: bookTitle, isbn: isbn,
+    author:  document.getElementById('author').value,
+    edition: document.getElementById('edition').value,
+    numBooks: numBooks,
+    remarks: document.getElementById('remarks').value,
   };
 
   var SUBMIT_URL = 'YOUR_DEVELOPER_ENDPOINT_HERE';
@@ -1143,6 +1086,7 @@ function showReceipt() {
   document.getElementById('r_institution').textContent = s.institution;
   document.getElementById('r_city').textContent        = s.city;
   document.getElementById('r_state').textContent       = s.state;
+  document.getElementById('r_country').textContent     = s.country;
   document.getElementById('r_contact').textContent     = s.contact;
   document.getElementById('r_email').textContent       = s.email;
   document.getElementById('r_mobile').textContent      = s.mobile    || '—';
@@ -1155,7 +1099,7 @@ function showReceipt() {
   document.getElementById('r_author').textContent      = s.author;
   document.getElementById('r_edition').textContent     = s.edition;
   document.getElementById('r_numBooks').textContent    = s.numBooks;
-  document.getElementById('r_remarks').textContent     = s.remarks   || '—';
+  document.getElementById('r_remarks').textContent     = s.remarks || '—';
   document.getElementById('receipt').style.display     = 'block';
 }
 
@@ -1163,25 +1107,23 @@ function showReceipt() {
 function downloadPDF() {
   if (!lastSubmission) return;
   var s = lastSubmission;
-  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">';
-  html += '<title>Distribution Receipt</title>';
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Distribution Receipt</title>';
   html += '<style>body{font-family:Arial,sans-serif;padding:40px;color:#111827;}';
   html += 'h1{color:#1B3A6B;text-align:center;font-size:22px;margin-bottom:6px;}';
   html += 'p.sub{text-align:center;color:#6B7280;font-size:13px;margin-bottom:30px;}';
   html += 'table{width:100%;border-collapse:collapse;}';
   html += 'td{padding:10px 14px;border-bottom:1px solid #E5E7EB;font-size:14px;}';
   html += 'td:first-child{color:#6B7280;font-weight:bold;width:40%;}';
-  html += 'td:last-child{color:#111827;}';
   html += '.footer{margin-top:30px;text-align:center;font-size:12px;color:#9CA3AF;}';
   html += '</style></head><body>';
   html += '<h1>📚 ' + COMPANY + '</h1>';
-  html += '<p class="sub">Complementary Book Distribution Receipt</p>';
-  html += '<table>';
+  html += '<p class="sub">Complementary Book Distribution Receipt</p><table>';
   html += '<tr><td>Date of Visit</td><td>' + s.date + '</td></tr>';
   html += '<tr><td>Salesperson</td><td>' + s.salesperson + '</td></tr>';
   html += '<tr><td>Institution</td><td>' + s.institution + '</td></tr>';
   html += '<tr><td>City</td><td>' + s.city + '</td></tr>';
   html += '<tr><td>State</td><td>' + s.state + '</td></tr>';
+  html += '<tr><td>Country</td><td>' + s.country + '</td></tr>';
   html += '<tr><td>Contact Person</td><td>' + s.contact + '</td></tr>';
   html += '<tr><td>Email</td><td>' + s.email + '</td></tr>';
   html += '<tr><td>Mobile</td><td>' + (s.mobile    || '—') + '</td></tr>';
@@ -1195,8 +1137,7 @@ function downloadPDF() {
   html += '<tr><td>Edition</td><td>' + s.edition + '</td></tr>';
   html += '<tr><td>Number of Books</td><td>' + s.numBooks + '</td></tr>';
   html += '<tr><td>Remarks</td><td>' + (s.remarks || '—') + '</td></tr>';
-  html += '</table>';
-  html += '<p class="footer">Generated on ' + new Date().toLocaleString() + ' &nbsp;|&nbsp; ' + COMPANY + '</p>';
+  html += '</table><p class="footer">Generated on ' + new Date().toLocaleString() + ' &nbsp;|&nbsp; ' + COMPANY + '</p>';
   html += '</body></html>';
 
   var blob = new Blob([html], { type: 'text/html' });
@@ -1248,24 +1189,10 @@ function clearForm() {
   resetContactSelection();
   document.getElementById('newContactName').value = '';
   rebuildContactDropdown(null);
-  makeCityStateReadonly();
-  document.getElementById('city').value  = '';
-  document.getElementById('state').value = '';
+  makeCityStateCountryReadonly();
+  document.getElementById('city').value    = '';
+  document.getElementById('state').value   = '';
+  document.getElementById('country').value = 'India';
   ['isbn','bookTitle','author','edition','numBooks','remarks'].forEach(clearField);
   document.getElementById('visitDate').valueAsDate = new Date();
-  document.getElementById('isbnNotFound').style.display = 'none';
-  document.getElementById('draftBanner').style.display = 'none';
-  document.getElementById('receipt').style.display = 'none';
-}
-
-function showMsg(text, success) {
-  var el = document.getElementById('formMsg');
-  el.textContent = text;
-  el.className = 'msg ' + (success ? 'success' : 'error');
-  el.style.display = 'block';
-  setTimeout(function() { el.style.display = 'none'; }, 4000);
-}
-
-</script>
-</body>
-</html>
+  document.getElementById('isb
