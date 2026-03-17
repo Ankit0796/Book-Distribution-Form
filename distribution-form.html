@@ -14,6 +14,14 @@ label { display: block; font-size: 14px; font-weight: bold; color: #374151; marg
 input, textarea { width: 100%; padding: 10px 14px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 15px; color: #111827; background: #fff; }
 input:focus, textarea:focus { outline: none; border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
 input[readonly] { background: #F3F4F6; color: #6B7280; }
+input.input-error { border-color: #B91C1C; }
+input.input-ok { border-color: #15803D; }
+.field-note { font-size: 12px; color: #6B7280; margin-top: 4px; }
+.field-error { font-size: 12px; color: #B91C1C; margin-top: 4px; display: none; }
+.field-ok { font-size: 12px; color: #15803D; margin-top: 4px; display: none; }
+.phone-row { display: flex; gap: 8px; }
+.country-code { width: 80px; flex-shrink: 0; background: #F3F4F6; color: #374151; font-weight: bold; text-align: center; border: 1px solid #D1D5DB; border-radius: 8px; padding: 10px 8px; font-size: 15px; }
+.phone-row input { flex: 1; }
 .btn { width: 100%; padding: 14px; background: #1B3A6B; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
 .btn:hover { background: #2563EB; }
 .btn-secondary { width: 100%; padding: 14px; background: white; color: #1B3A6B; border: 2px solid #1B3A6B; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
@@ -149,19 +157,51 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
       </div>
     </div>
 
-    <!-- CONTACT FIELDS -->
+    <!-- EMAIL -->
     <div class="field">
       <label>Email</label>
-      <input type="text" id="email" readonly placeholder="Auto-filled or type if new" />
+      <input type="text" id="email" readonly placeholder="Auto-filled or type if new" oninput="validateEmail()" />
+      <p id="emailNote" class="field-note" style="display:none;">📧 Verification email will be sent to this address.</p>
+      <p id="emailError" class="field-error"></p>
+      <p id="emailOk" class="field-ok">✓ Valid email address</p>
     </div>
+
+    <!-- MOBILE -->
     <div class="field">
-      <label>Mobile</label>
-      <input type="text" id="mobile" readonly placeholder="Auto-filled or type if new" />
+      <label>Mobile Number</label>
+      <div class="phone-row">
+        <div class="country-code" id="mobileCode">+91</div>
+        <input type="text" id="mobile" readonly placeholder="Auto-filled or type if new" maxlength="10" oninput="validateMobile()" />
+      </div>
+      <p id="mobileError" class="field-error"></p>
+      <p id="mobileOk" class="field-ok">✓ Valid mobile number</p>
     </div>
+
+    <!-- ALT MOBILE -->
+    <div class="field">
+      <label>Alternative Mobile <span style="color:#9CA3AF;font-weight:normal;">(Optional)</span></label>
+      <div class="phone-row">
+        <div class="country-code">+91</div>
+        <input type="text" id="altMobile" readonly placeholder="Auto-filled or type if new" maxlength="10" oninput="validateAltMobile()" />
+      </div>
+      <p id="altMobileError" class="field-error"></p>
+      <p id="altMobileOk" class="field-ok">✓ Valid mobile number</p>
+    </div>
+
+    <!-- LANDLINE -->
+    <div class="field">
+      <label>Landline <span style="color:#9CA3AF;font-weight:normal;">(Optional)</span></label>
+      <input type="text" id="landline" readonly placeholder="Auto-filled or type if new" maxlength="12" oninput="validateLandline()" />
+      <p id="landlineError" class="field-error"></p>
+    </div>
+
+    <!-- DESIGNATION -->
     <div class="field">
       <label>Designation</label>
       <input type="text" id="designation" readonly placeholder="Auto-filled or type if new" />
     </div>
+
+    <!-- DEPARTMENT -->
     <div class="field">
       <label>Department</label>
       <input type="text" id="department" readonly placeholder="Auto-filled or type if new" />
@@ -257,6 +297,8 @@ input[readonly] { background: #F3F4F6; color: #6B7280; }
       <div class="receipt-row"><span class="receipt-label">Contact</span><span class="receipt-value" id="r_contact"></span></div>
       <div class="receipt-row"><span class="receipt-label">Email</span><span class="receipt-value" id="r_email"></span></div>
       <div class="receipt-row"><span class="receipt-label">Mobile</span><span class="receipt-value" id="r_mobile"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Alt Mobile</span><span class="receipt-value" id="r_altMobile"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Landline</span><span class="receipt-value" id="r_landline"></span></div>
       <div class="receipt-row"><span class="receipt-label">Designation</span><span class="receipt-value" id="r_designation"></span></div>
       <div class="receipt-row"><span class="receipt-label">Department</span><span class="receipt-value" id="r_department"></span></div>
       <div class="receipt-row"><span class="receipt-label">Book Title</span><span class="receipt-value" id="r_bookTitle"></span></div>
@@ -285,6 +327,7 @@ var allBooks        = [];
 var dropdownData    = {};
 var lastSubmission  = null;
 var currentRep      = '';
+var isNewContact    = false;
 
 // ── URL REP ──────────────────────────────────
 function getRepFromURL() {
@@ -314,7 +357,6 @@ document.getElementById('pinInput').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') checkPin();
 });
 
-// ── CONFIRM NAME ─────────────────────────────
 function confirmName() {
   var name = document.getElementById('manualNameInput').value.trim();
   if (!name) {
@@ -330,7 +372,6 @@ document.getElementById('manualNameInput').addEventListener('keydown', function(
   if (e.key === 'Enter') confirmName();
 });
 
-// ── START FORM ───────────────────────────────
 function startForm() {
   document.getElementById('salesperson').value = currentRep;
   document.getElementById('repDisplay').textContent = currentRep;
@@ -347,36 +388,180 @@ function loadAllData() {
     allInstitutions = rows;
     rebuildInstitutionDropdown(null);
   });
-
   loadSheet('Contacts', function(rows) {
     allContacts = rows;
     rebuildContactDropdown(null);
     checkDraft();
   });
-
   loadSheet('Books', function(rows) {
     allBooks = rows;
   });
 }
 
+// ── VALIDATION ───────────────────────────────
+function validateEmail() {
+  if (!isNewContact) return true;
+  var val   = document.getElementById('email').value.trim();
+  var err   = document.getElementById('emailError');
+  var ok    = document.getElementById('emailOk');
+  var note  = document.getElementById('emailNote');
+  var input = document.getElementById('email');
+
+  err.style.display  = 'none';
+  ok.style.display   = 'none';
+  note.style.display = 'none';
+  input.classList.remove('input-error', 'input-ok');
+
+  if (!val) return true;
+
+  if (/^[^a-zA-Z0-9]/.test(val)) {
+    return showFieldError('email', 'Email cannot start with a special character.');
+  }
+  if (/^www\.?/i.test(val)) {
+    return showFieldError('email', 'Email should not start with www.');
+  }
+  if ((val.match(/@/g) || []).length > 1) {
+    return showFieldError('email', 'Email cannot contain more than one @ symbol.');
+  }
+  if (!val.includes('@')) {
+    return showFieldError('email', 'Email must contain an @ symbol.');
+  }
+  var emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+  if (!emailRegex.test(val)) {
+    return showFieldError('email', 'Email must be in a valid format like name@domain.com');
+  }
+
+  input.classList.add('input-ok');
+  ok.style.display   = 'block';
+  note.style.display = 'block';
+  return true;
+}
+
+function validateMobile() {
+  if (!isNewContact) return true;
+  var val   = document.getElementById('mobile').value.trim();
+  var err   = document.getElementById('mobileError');
+  var ok    = document.getElementById('mobileOk');
+  var input = document.getElementById('mobile');
+  err.style.display = 'none';
+  ok.style.display  = 'none';
+  input.classList.remove('input-error', 'input-ok');
+  if (!val) return true;
+  return runMobileValidation('mobile', val);
+}
+
+function validateAltMobile() {
+  if (!isNewContact) return true;
+  var val   = document.getElementById('altMobile').value.trim();
+  var err   = document.getElementById('altMobileError');
+  var ok    = document.getElementById('altMobileOk');
+  var input = document.getElementById('altMobile');
+  err.style.display = 'none';
+  ok.style.display  = 'none';
+  input.classList.remove('input-error', 'input-ok');
+  if (!val) return true;
+  return runMobileValidation('altMobile', val);
+}
+
+function runMobileValidation(fieldId, val) {
+  // No special characters or letters
+  if (/[^0-9]/.test(val)) {
+    return showFieldError(fieldId, 'Mobile number cannot contain special characters or letters.');
+  }
+  // Must start with 6, 7, 8 or 9
+  if (!/^[6-9]/.test(val)) {
+    return showFieldError(fieldId, 'Mobile number must start with 6, 7, 8, or 9.');
+  }
+  // Still typing — wait for 10 digits before further checks
+  if (val.length < 10) return true;
+  if (val.length === 10) {
+    // Block 5 or more consecutive same digits
+    if (/(.)\1{4,}/.test(val)) {
+      return showFieldError(fieldId, 'Mobile number cannot have the same digit repeated 5 or more times consecutively.');
+    }
+    // Block sequential patterns like 1234567890 or 9876543210
+    if (isSequentialNumber(val)) {
+      return showFieldError(fieldId, 'Mobile number cannot be a sequential pattern like 1234567890.');
+    }
+    document.getElementById(fieldId).classList.add('input-ok');
+    document.getElementById(fieldId + 'Ok').style.display = 'block';
+    return true;
+  }
+  return true;
+}
+
+function validateLandline() {
+  if (!isNewContact) return true;
+  var val   = document.getElementById('landline').value.trim();
+  var err   = document.getElementById('landlineError');
+  var input = document.getElementById('landline');
+  err.style.display = 'none';
+  input.classList.remove('input-error', 'input-ok');
+  if (!val) return true;
+  if (/[^0-9]/.test(val)) {
+    return showFieldError('landline', 'Landline cannot contain special characters or letters.');
+  }
+  if (val.length >= 7 && (val.length < 7 || val.length > 12)) {
+    return showFieldError('landline', 'Landline must be between 7 and 12 digits.');
+  }
+  return true;
+}
+
+function isSequentialNumber(val) {
+  var asc  = '01234567890123456789';
+  var desc = '98765432109876543210';
+  return asc.indexOf(val) !== -1 || desc.indexOf(val) !== -1;
+}
+
+function showFieldError(fieldId, message) {
+  var input = document.getElementById(fieldId);
+  var err   = document.getElementById(fieldId + 'Error');
+  if (input) input.classList.add('input-error');
+  if (err) {
+    err.textContent   = '⚠️ ' + message;
+    err.style.display = 'block';
+  }
+  return false;
+}
+
 // ── FIELD STATE HELPERS ───────────────────────
 function makeContactFieldsEditable() {
-  ['email','mobile','designation','department'].forEach(function(id) {
+  isNewContact = true;
+  ['email','mobile','altMobile','landline','designation','department'].forEach(function(id) {
     var el = document.getElementById(id);
     el.value = '';
     el.removeAttribute('readonly');
     el.style.background = '#fff';
     el.style.color = '#111827';
   });
+  ['emailNote','emailError','emailOk',
+   'mobileError','mobileOk',
+   'altMobileError','altMobileOk',
+   'landlineError'].forEach(function(id) {
+    document.getElementById(id).style.display = 'none';
+  });
+  ['email','mobile','altMobile','landline'].forEach(function(id) {
+    document.getElementById(id).classList.remove('input-error','input-ok');
+  });
 }
 
 function makeContactFieldsReadonly() {
-  ['email','mobile','designation','department'].forEach(function(id) {
+  isNewContact = false;
+  ['email','mobile','altMobile','landline','designation','department'].forEach(function(id) {
     var el = document.getElementById(id);
     el.value = '';
     el.setAttribute('readonly', true);
     el.style.background = '#F3F4F6';
     el.style.color = '#6B7280';
+  });
+  ['emailNote','emailError','emailOk',
+   'mobileError','mobileOk',
+   'altMobileError','altMobileOk',
+   'landlineError'].forEach(function(id) {
+    document.getElementById(id).style.display = 'none';
+  });
+  ['email','mobile','altMobile','landline'].forEach(function(id) {
+    document.getElementById(id).classList.remove('input-error','input-ok');
   });
 }
 
@@ -393,7 +578,6 @@ function makeCityStateEditable() {
 function makeCityStateReadonly() {
   ['city','state'].forEach(function(id) {
     var el = document.getElementById(id);
-    el.value = '';
     el.setAttribute('readonly', true);
     el.style.background = '#F3F4F6';
     el.style.color = '#6B7280';
@@ -413,6 +597,8 @@ function saveDraft() {
     state:              document.getElementById('state').value,
     email:              document.getElementById('email').value,
     mobile:             document.getElementById('mobile').value,
+    altMobile:          document.getElementById('altMobile').value,
+    landline:           document.getElementById('landline').value,
     designation:        document.getElementById('designation').value,
     department:         document.getElementById('department').value,
     isbn:               document.getElementById('isbn').value,
@@ -472,6 +658,8 @@ function checkDraft() {
   if (draft.state)       document.getElementById('state').value       = draft.state;
   if (draft.email)       document.getElementById('email').value       = draft.email;
   if (draft.mobile)      document.getElementById('mobile').value      = draft.mobile;
+  if (draft.altMobile)   document.getElementById('altMobile').value   = draft.altMobile;
+  if (draft.landline)    document.getElementById('landline').value    = draft.landline;
   if (draft.designation) document.getElementById('designation').value = draft.designation;
   if (draft.department)  document.getElementById('department').value  = draft.department;
   if (draft.isbn)        document.getElementById('isbn').value        = draft.isbn;
@@ -539,40 +727,43 @@ function selectItem(id, value, label) {
   document.getElementById(id + '_list').classList.remove('open');
   var display = document.getElementById(id + '_display');
 
-  // ── ADD NEW ──
   if (value === '__NEW__') {
     document.getElementById(id + '_text').textContent = label;
     document.getElementById(id + '_text').style.color = '#2563EB';
     display.classList.add('has-value');
-
-    if (id === 'sdInstitution') {
-      document.getElementById('institution').value = '__NEW__';
-      document.getElementById('newInstitutionBox').style.display = 'block';
-      document.getElementById('sdInstitution_clear').style.display = 'inline';
-      makeCityStateEditable();
-      resetContactSelection();
-      rebuildContactDropdown(null);
-    }
 
     if (id === 'sdContact') {
       document.getElementById('contact').value = '__NEW__';
       document.getElementById('newContactBox').style.display = 'block';
       document.getElementById('sdContact_clear').style.display = 'inline';
       makeContactFieldsEditable();
+      var instVal = document.getElementById('institution').value;
+      if (!instVal || instVal === '__NEW__') {
+        makeCityStateEditable();
+      }
+      if (!instVal) {
+        document.getElementById('sdInstitution_text').textContent = '-- Select Institution --';
+        document.getElementById('sdInstitution_text').style.color = '#9CA3AF';
+        document.getElementById('sdInstitution_display').classList.remove('has-value');
+        document.getElementById('sdInstitution_clear').style.display = 'none';
+        rebuildInstitutionDropdown(null);
+      }
+    }
+
+    if (id === 'sdInstitution') {
+      document.getElementById('institution').value = '__NEW__';
+      document.getElementById('newInstitutionBox').style.display = 'block';
+      document.getElementById('sdInstitution_clear').style.display = 'inline';
       makeCityStateEditable();
-      document.getElementById('institution').value = '';
-      document.getElementById('sdInstitution_text').textContent = '-- Select Institution --';
-      document.getElementById('sdInstitution_text').style.color = '#9CA3AF';
-      document.getElementById('sdInstitution_display').classList.remove('has-value');
-      document.getElementById('sdInstitution_clear').style.display = 'none';
-      document.getElementById('newInstitutionBox').style.display = 'none';
-      document.getElementById('dupInstitutionMsg').style.display = 'none';
-      rebuildInstitutionDropdown(null);
+      var contactVal = document.getElementById('contact').value;
+      if (contactVal !== '__NEW__') {
+        resetContactSelection();
+        rebuildContactDropdown(null);
+      }
     }
     return;
   }
 
-  // ── EXISTING SELECTION ──
   document.getElementById(id + '_text').textContent = label;
   document.getElementById(id + '_text').style.color = '#111827';
   display.classList.add('has-value');
@@ -590,8 +781,13 @@ function selectItem(id, value, label) {
         document.getElementById('state').value = r[2] || '';
       }
     });
-    rebuildContactDropdown(value);
-    resetContactSelection();
+    var contactVal = document.getElementById('contact').value;
+    if (contactVal !== '__NEW__') {
+      rebuildContactDropdown(value);
+      resetContactSelection();
+    } else {
+      rebuildContactDropdown(value);
+    }
   }
 
   if (id === 'sdContact') {
@@ -610,8 +806,10 @@ function selectItem(id, value, label) {
       makeContactFieldsReadonly();
       document.getElementById('email').value       = contactData[2] || '';
       document.getElementById('mobile').value      = contactData[3] || '';
-      document.getElementById('designation').value = contactData[4] || '';
-      document.getElementById('department').value  = contactData[5] || '';
+      document.getElementById('altMobile').value   = contactData[4] || '';
+      document.getElementById('landline').value    = contactData[5] || '';
+      document.getElementById('designation').value = contactData[6] || '';
+      document.getElementById('department').value  = contactData[7] || '';
 
       var contactInst = contactData[1] || '';
       document.getElementById('institution').value = contactInst;
@@ -675,6 +873,8 @@ document.addEventListener('click', function(e) {
 function clearContact() {
   makeContactFieldsReadonly();
   makeCityStateReadonly();
+  document.getElementById('city').value  = '';
+  document.getElementById('state').value = '';
   document.getElementById('contact').value = '';
   document.getElementById('sdContact_text').textContent = '-- Select Contact --';
   document.getElementById('sdContact_text').style.color = '#9CA3AF';
@@ -696,6 +896,8 @@ function clearContact() {
 
 function clearInstitution() {
   makeCityStateReadonly();
+  document.getElementById('city').value  = '';
+  document.getElementById('state').value = '';
   document.getElementById('institution').value = '';
   document.getElementById('sdInstitution_text').textContent = '-- Select Institution --';
   document.getElementById('sdInstitution_text').style.color = '#9CA3AF';
@@ -714,7 +916,6 @@ function checkDuplicateInstitution() {
   var typed = document.getElementById('newInstitutionName').value.trim().toLowerCase();
   var msg   = document.getElementById('dupInstitutionMsg');
   if (!typed) { msg.style.display = 'none'; return; }
-
   var exact = allInstitutions.find(function(r) {
     return r[0] && r[0].trim().toLowerCase() === typed;
   });
@@ -724,7 +925,6 @@ function checkDuplicateInstitution() {
     msg.style.display = 'block';
     return;
   }
-
   if (typed.length > 4) {
     var similar = allInstitutions.find(function(r) {
       return r[0] && r[0].trim().toLowerCase().indexOf(typed) !== -1;
@@ -743,7 +943,6 @@ function checkDuplicateContact() {
   var typed = document.getElementById('newContactName').value.trim().toLowerCase();
   var msg   = document.getElementById('dupContactMsg');
   if (!typed) { msg.style.display = 'none'; return; }
-
   var exact = allContacts.find(function(r) {
     return r[0] && r[0].trim().toLowerCase() === typed;
   });
@@ -753,7 +952,6 @@ function checkDuplicateContact() {
     msg.style.display = 'block';
     return;
   }
-
   if (typed.length > 4) {
     var similar = allContacts.find(function(r) {
       return r[0] && r[0].trim().toLowerCase().indexOf(typed) !== -1;
@@ -772,9 +970,9 @@ function checkDuplicateContact() {
 function lookupISBN() {
   var isbn = document.getElementById('isbn').value.trim();
   var notFound = document.getElementById('isbnNotFound');
-  clearField('bookTitle');
-  clearField('author');
-  clearField('edition');
+  document.getElementById('bookTitle').value = '';
+  document.getElementById('author').value    = '';
+  document.getElementById('edition').value   = '';
   notFound.style.display = 'none';
 
   if (!isbn) {
@@ -828,6 +1026,30 @@ function submitForm() {
     return;
   }
 
+  if (isNewContact) {
+    var emailVal = document.getElementById('email').value.trim();
+    var mobVal   = document.getElementById('mobile').value.trim();
+    var altVal   = document.getElementById('altMobile').value.trim();
+    var landVal  = document.getElementById('landline').value.trim();
+
+    if (emailVal && !validateEmail()) {
+      showMsg('Please fix the email address before submitting.', false);
+      return;
+    }
+    if (mobVal && !validateMobile()) {
+      showMsg('Please fix the mobile number before submitting.', false);
+      return;
+    }
+    if (altVal && !validateAltMobile()) {
+      showMsg('Please fix the alternative mobile number before submitting.', false);
+      return;
+    }
+    if (landVal && !validateLandline()) {
+      showMsg('Please fix the landline number before submitting.', false);
+      return;
+    }
+  }
+
   if (instVal === '__NEW__') {
     var dupInst = allInstitutions.find(function(r) {
       return r[0] && r[0].trim().toLowerCase() === institution.toLowerCase();
@@ -848,13 +1070,18 @@ function submitForm() {
     }
   }
 
+  var mobileRaw    = document.getElementById('mobile').value.trim();
+  var altMobileRaw = document.getElementById('altMobile').value.trim();
+
   var row = [
     visitDate, salesperson, institution,
     document.getElementById('city').value,
     document.getElementById('state').value,
     contact,
     document.getElementById('email').value,
-    document.getElementById('mobile').value,
+    mobileRaw    ? '+91 ' + mobileRaw    : '',
+    altMobileRaw ? '+91 ' + altMobileRaw : '',
+    document.getElementById('landline').value,
     document.getElementById('designation').value,
     document.getElementById('department').value,
     bookTitle, isbn,
@@ -872,7 +1099,9 @@ function submitForm() {
     state:       document.getElementById('state').value,
     contact:     contact,
     email:       document.getElementById('email').value,
-    mobile:      document.getElementById('mobile').value,
+    mobile:      mobileRaw    ? '+91 ' + mobileRaw    : '',
+    altMobile:   altMobileRaw ? '+91 ' + altMobileRaw : '',
+    landline:    document.getElementById('landline').value,
     designation: document.getElementById('designation').value,
     department:  document.getElementById('department').value,
     bookTitle:   bookTitle,
@@ -916,7 +1145,9 @@ function showReceipt() {
   document.getElementById('r_state').textContent       = s.state;
   document.getElementById('r_contact').textContent     = s.contact;
   document.getElementById('r_email').textContent       = s.email;
-  document.getElementById('r_mobile').textContent      = s.mobile;
+  document.getElementById('r_mobile').textContent      = s.mobile    || '—';
+  document.getElementById('r_altMobile').textContent   = s.altMobile || '—';
+  document.getElementById('r_landline').textContent    = s.landline  || '—';
   document.getElementById('r_designation').textContent = s.designation;
   document.getElementById('r_department').textContent  = s.department;
   document.getElementById('r_bookTitle').textContent   = s.bookTitle;
@@ -924,7 +1155,7 @@ function showReceipt() {
   document.getElementById('r_author').textContent      = s.author;
   document.getElementById('r_edition').textContent     = s.edition;
   document.getElementById('r_numBooks').textContent    = s.numBooks;
-  document.getElementById('r_remarks').textContent     = s.remarks || '—';
+  document.getElementById('r_remarks').textContent     = s.remarks   || '—';
   document.getElementById('receipt').style.display     = 'block';
 }
 
@@ -934,8 +1165,7 @@ function downloadPDF() {
   var s = lastSubmission;
   var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">';
   html += '<title>Distribution Receipt</title>';
-  html += '<style>';
-  html += 'body{font-family:Arial,sans-serif;padding:40px;color:#111827;}';
+  html += '<style>body{font-family:Arial,sans-serif;padding:40px;color:#111827;}';
   html += 'h1{color:#1B3A6B;text-align:center;font-size:22px;margin-bottom:6px;}';
   html += 'p.sub{text-align:center;color:#6B7280;font-size:13px;margin-bottom:30px;}';
   html += 'table{width:100%;border-collapse:collapse;}';
@@ -954,7 +1184,9 @@ function downloadPDF() {
   html += '<tr><td>State</td><td>' + s.state + '</td></tr>';
   html += '<tr><td>Contact Person</td><td>' + s.contact + '</td></tr>';
   html += '<tr><td>Email</td><td>' + s.email + '</td></tr>';
-  html += '<tr><td>Mobile</td><td>' + s.mobile + '</td></tr>';
+  html += '<tr><td>Mobile</td><td>' + (s.mobile    || '—') + '</td></tr>';
+  html += '<tr><td>Alt Mobile</td><td>' + (s.altMobile || '—') + '</td></tr>';
+  html += '<tr><td>Landline</td><td>' + (s.landline  || '—') + '</td></tr>';
   html += '<tr><td>Designation</td><td>' + s.designation + '</td></tr>';
   html += '<tr><td>Department</td><td>' + s.department + '</td></tr>';
   html += '<tr><td>Book Title</td><td>' + s.bookTitle + '</td></tr>';
@@ -970,9 +1202,7 @@ function downloadPDF() {
   var blob = new Blob([html], { type: 'text/html' });
   var url  = URL.createObjectURL(blob);
   var win  = window.open(url, '_blank');
-  if (win) {
-    win.onload = function() { win.print(); };
-  }
+  if (win) { win.onload = function() { win.print(); }; }
 }
 
 // ── HELPERS ─────────────────────────────────
@@ -1019,6 +1249,8 @@ function clearForm() {
   document.getElementById('newContactName').value = '';
   rebuildContactDropdown(null);
   makeCityStateReadonly();
+  document.getElementById('city').value  = '';
+  document.getElementById('state').value = '';
   ['isbn','bookTitle','author','edition','numBooks','remarks'].forEach(clearField);
   document.getElementById('visitDate').valueAsDate = new Date();
   document.getElementById('isbnNotFound').style.display = 'none';
