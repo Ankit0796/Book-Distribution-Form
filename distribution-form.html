@@ -11,8 +11,8 @@ body { font-family: Arial, sans-serif; background: #f0f4f8; padding: 20px; }
 h2 { text-align: center; color: #1B3A6B; margin-bottom: 24px; font-size: 22px; }
 .field { margin-bottom: 16px; }
 label { display: block; font-size: 14px; font-weight: bold; color: #374151; margin-bottom: 6px; }
-input, textarea, select { width: 100%; padding: 10px 14px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 15px; color: #111827; background: #fff; }
-input:focus, textarea:focus, select:focus { outline: none; border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+input, textarea { width: 100%; padding: 10px 14px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 15px; color: #111827; background: #fff; }
+input:focus, textarea:focus { outline: none; border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
 input[readonly] { background: #F3F4F6; color: #6B7280; }
 input.input-error { border-color: #B91C1C; }
 input.input-ok { border-color: #15803D; }
@@ -158,91 +158,42 @@ input.input-ok { border-color: #15803D; }
       </div>
     </div>
 
-
-
     <!-- DESIGNATION -->
     <div class="field">
       <label>Designation *</label>
       <input type="text" id="designation" readonly placeholder="Auto-filled or type if new" style="display:block;" />
       <div id="designationSelectWrapper" style="display:none;">
-        <input type="text" id="designationSearch" placeholder="Search designation..." oninput="filterSelect('designationSearch','designationSelect')" style="margin-bottom:4px;" />
-        <select id="designationSelect" size="5" style="height:auto;" onchange="document.getElementById('designation').value=this.value;document.getElementById('designationSearch').value='';">
-          <option value="">-- Select Designation --</option>
-        <option>Chairman / CEO / Secretary / Coordinator</option>
-        <option>Dean</option>
-        <option>Principal</option>
-        <option>Vice-Principal</option>
-        <option>Director</option>
-        <option>Registrar</option>
-        <option>Faculty</option>
-        <option>Professor</option>
-        <option>HOD</option>
-        <option>Tutor</option>
-        <option>Lecturer</option>
-        <option>Assistant Professor</option>
-        <option>Associate Professor</option>
-        <option>Student PG 1st Year</option>
-        <option>Student PG 2nd Year</option>
-        <option>Student UG 1st Year</option>
-        <option>Student UG 2nd Year</option>
-        <option>Student UG 3rd Year</option>
-        <option>Student UG 4th Year</option>
-        <option>Student UG 5th Year</option>
-        <option>Resident</option>
-        <option>Medical Officer</option>
-        <option>Library</option>
-        <option>Book Seller</option>
-        <option>Vendor</option>
-        <option>Technician</option>
-        <option>Statistician</option>
-        <option>Chairman</option>
-        <option>CEO</option>
-        <option>Secretary</option>
-        <option>Coordinator</option>
-      </select>
-    </div>
+        <div class="search-dropdown" id="sdDesignation">
+          <div class="selected-display" id="sdDesignation_display" onclick="toggleDropdown('sdDesignation')">
+            <span id="sdDesignation_text" style="color:#9CA3AF;flex:1;">-- Select Designation --</span>
+            <span class="arrow">▼</span>
+          </div>
+          <div class="dropdown-list" id="sdDesignation_list">
+            <input type="text" placeholder="Search designation..." oninput="filterList('sdDesignation')" onclick="event.stopPropagation()" style="width:100%;padding:10px 14px;border:none;border-bottom:1px solid #E5E7EB;border-radius:0;margin:0;font-size:15px;" />
+            <div id="sdDesignation_items"></div>
+          </div>
+        </div>
       </div>
+    </div>
 
     <!-- DEPARTMENT -->
     <div class="field">
       <label>Department *</label>
       <input type="text" id="department" readonly placeholder="Auto-filled or type if new" style="display:block;" />
-     <div id="departmentSelectWrapper" style="display:none;">
-        <input type="text" id="departmentSearch" placeholder="Search department..." oninput="filterSelect('departmentSearch','departmentSelect')" style="margin-bottom:4px;" />
-        <select id="departmentSelect" size="5" style="height:auto;" onchange="document.getElementById('department').value=this.value;document.getElementById('departmentSearch').value='';">
-          <option value="">-- Select Department --</option>
-        <option>Physiotherapy / Sports Medicine</option>
-        <option>Nursing</option>
-        <option>Surgery / Plastic Surgery</option>
-        <option>Radiology / Nuclear Medicine</option>
-        <option>Preventive &amp; Social Medicine / Public Health</option>
-        <option>Pediatric</option>
-        <option>Orthopaedics / Rheumatology &amp; Geriatric</option>
-        <option>Opthalmology</option>
-        <option>Oncology</option>
-        <option>Obst. &amp; Gynecology</option>
-        <option>Psychiatry / Neurology &amp; Neurosurgery</option>
-        <option>Microbiology / Immunology / Parasitology</option>
-        <option>Forensic Science &amp; Investigation / Toxicology</option>
-        <option>ENT / Otolaryngology</option>
-        <option>Gastroenterology / Endocrinology / Nephrology / Urology</option>
-        <option>Allergy &amp; Infectious Diseases / Dermatology &amp; Skin Diseases</option>
-        <option>Cardiology</option>
-        <option>Anatomy</option>
-        <option>Biochemistry</option>
-        <option>Physiology</option>
-        <option>Embryology</option>
-        <option>Histology</option>
-        <option>Genetics</option>
-        <option>Anaesthesia</option>
-        <option>Family Medicine</option>
-        <option>Engineering</option>
-        <option>Architecture &amp; Interior Design</option>
-        <option>Pathology</option>
-        <option>Pharmacy</option>
-      </select>
+      <div id="departmentSelectWrapper" style="display:none;">
+        <div class="search-dropdown" id="sdDepartment">
+          <div class="selected-display" id="sdDepartment_display" onclick="toggleDropdown('sdDepartment')">
+            <span id="sdDepartment_text" style="color:#9CA3AF;flex:1;">-- Select Department --</span>
+            <span class="arrow">▼</span>
+          </div>
+          <div class="dropdown-list" id="sdDepartment_list">
+            <input type="text" placeholder="Search department..." oninput="filterList('sdDepartment')" onclick="event.stopPropagation()" style="width:100%;padding:10px 14px;border:none;border-bottom:1px solid #E5E7EB;border-radius:0;margin:0;font-size:15px;" />
+            <div id="sdDepartment_items"></div>
+          </div>
+        </div>
+      </div>
     </div>
-    </div>
+
     <!-- EMAIL -->
     <div class="field">
       <label>Email *</label>
@@ -280,8 +231,6 @@ input.input-ok { border-color: #15803D; }
       <input type="text" id="landline" readonly placeholder="Auto-filled or type if new" maxlength="12" oninput="validateLandline()" />
       <p id="landlineError" class="field-error"></p>
     </div>
-
-    
 
     <!-- INSTITUTION -->
     <div class="field">
@@ -321,7 +270,7 @@ input.input-ok { border-color: #15803D; }
       <input type="text" id="state" readonly placeholder="Auto-filled or type if new" />
     </div>
 
-  <!-- COUNTRY -->
+    <!-- COUNTRY -->
     <div class="field">
       <label>Country *</label>
       <input type="text" id="country" readonly placeholder="Auto-filled or type if new" />
@@ -380,12 +329,12 @@ input.input-ok { border-color: #15803D; }
       <div class="receipt-row"><span class="receipt-label">State</span><span class="receipt-value" id="r_state"></span></div>
       <div class="receipt-row"><span class="receipt-label">Country</span><span class="receipt-value" id="r_country"></span></div>
       <div class="receipt-row"><span class="receipt-label">Contact</span><span class="receipt-value" id="r_contact"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Designation</span><span class="receipt-value" id="r_designation"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Department</span><span class="receipt-value" id="r_department"></span></div>
       <div class="receipt-row"><span class="receipt-label">Email</span><span class="receipt-value" id="r_email"></span></div>
       <div class="receipt-row"><span class="receipt-label">Mobile</span><span class="receipt-value" id="r_mobile"></span></div>
       <div class="receipt-row"><span class="receipt-label">Alt Mobile</span><span class="receipt-value" id="r_altMobile"></span></div>
       <div class="receipt-row"><span class="receipt-label">Landline</span><span class="receipt-value" id="r_landline"></span></div>
-      <div class="receipt-row"><span class="receipt-label">Designation</span><span class="receipt-value" id="r_designation"></span></div>
-      <div class="receipt-row"><span class="receipt-label">Department</span><span class="receipt-value" id="r_department"></span></div>
       <div class="receipt-row"><span class="receipt-label">Book Title</span><span class="receipt-value" id="r_bookTitle"></span></div>
       <div class="receipt-row"><span class="receipt-label">ISBN</span><span class="receipt-value" id="r_isbn"></span></div>
       <div class="receipt-row"><span class="receipt-label">Author</span><span class="receipt-value" id="r_author"></span></div>
@@ -413,6 +362,28 @@ var dropdownData    = {};
 var lastSubmission  = null;
 var currentRep      = '';
 var isNewContact    = false;
+
+var DESIGNATIONS = [
+  'Chairman / CEO / Secretary / Coordinator','Dean','Principal','Vice-Principal',
+  'Director','Registrar','Faculty','Professor','HOD','Tutor','Lecturer',
+  'Assistant Professor','Associate Professor','Student PG 1st Year','Student PG 2nd Year',
+  'Student UG 1st Year','Student UG 2nd Year','Student UG 3rd Year','Student UG 4th Year',
+  'Student UG 5th Year','Resident','Medical Officer','Library','Book Seller','Vendor',
+  'Technician','Statistician','Chairman','CEO','Secretary','Coordinator'
+];
+
+var DEPARTMENTS = [
+  'Physiotherapy / Sports Medicine','Nursing','Surgery / Plastic Surgery',
+  'Radiology / Nuclear Medicine','Preventive & Social Medicine / Public Health',
+  'Pediatric','Orthopaedics / Rheumatology & Geriatric','Opthalmology','Oncology',
+  'Obst. & Gynecology','Psychiatry / Neurology & Neurosurgery',
+  'Microbiology / Immunology / Parasitology','Forensic Science & Investigation / Toxicology',
+  'ENT / Otolaryngology','Gastroenterology / Endocrinology / Nephrology / Urology',
+  'Allergy & Infectious Diseases / Dermatology & Skin Diseases','Cardiology',
+  'Anatomy','Biochemistry','Physiology','Embryology','Histology','Genetics',
+  'Anaesthesia','Family Medicine','Engineering','Architecture & Interior Design',
+  'Pathology','Pharmacy'
+];
 
 // ── URL REP ──────────────────────────────────
 function getRepFromURL() {
@@ -464,7 +435,6 @@ function startForm() {
   document.getElementById('welcomeBanner').style.display = 'block';
   document.getElementById('formScreen').style.display = 'block';
   document.getElementById('visitDate').valueAsDate = new Date();
-  document.getElementById('country').value = 'India';
   loadAllData();
 }
 
@@ -482,6 +452,16 @@ function loadAllData() {
   loadSheet('Books', function(rows) {
     allBooks = rows;
   });
+
+  dropdownData['sdDesignation'] = DESIGNATIONS.map(function(d) {
+    return { value: d, label: d };
+  });
+  renderItems('sdDesignation', dropdownData['sdDesignation']);
+
+  dropdownData['sdDepartment'] = DEPARTMENTS.map(function(d) {
+    return { value: d, label: d };
+  });
+  renderItems('sdDepartment', dropdownData['sdDepartment']);
 }
 
 // ── VALIDATION ───────────────────────────────
@@ -493,16 +473,13 @@ function validateEmail() {
   document.getElementById('emailOk').style.display     = 'none';
   document.getElementById('emailNote').style.display   = 'none';
   input.classList.remove('input-error', 'input-ok');
-
   if (!val) return true;
-
   if (/^[^a-zA-Z0-9]/.test(val)) return showFieldError('email', 'Email cannot start with a special character.');
   if (/^www\.?/i.test(val))       return showFieldError('email', 'Email should not start with www.');
   if ((val.match(/@/g) || []).length > 1) return showFieldError('email', 'Email cannot contain more than one @ symbol.');
   if (!val.includes('@'))         return showFieldError('email', 'Email must contain an @ symbol.');
   if (!/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(val))
     return showFieldError('email', 'Email must be in a valid format like name@domain.com');
-
   input.classList.add('input-ok');
   document.getElementById('emailOk').style.display   = 'block';
   document.getElementById('emailNote').style.display = 'block';
@@ -578,20 +555,22 @@ function makeContactFieldsEditable() {
     el.style.background = '#fff';
     el.style.color = '#111827';
   });
-  // Show designation dropdown, hide text input
+  // Designation — hide text, show custom dropdown
   document.getElementById('designation').style.display = 'none';
   document.getElementById('designation').value = '';
   document.getElementById('designationSelectWrapper').style.display = 'block';
-  document.getElementById('designationSelect').value = '';
-  document.getElementById('designationSearch').value = '';
-  filterSelect('designationSearch','designationSelect');
-  // Show department dropdown, hide text input
+  document.getElementById('sdDesignation_text').textContent = '-- Select Designation --';
+  document.getElementById('sdDesignation_text').style.color = '#9CA3AF';
+  document.getElementById('sdDesignation_display').classList.remove('has-value');
+  renderItems('sdDesignation', dropdownData['sdDesignation'] || []);
+  // Department — hide text, show custom dropdown
   document.getElementById('department').style.display = 'none';
   document.getElementById('department').value = '';
   document.getElementById('departmentSelectWrapper').style.display = 'block';
-  document.getElementById('departmentSelect').value = '';
-  document.getElementById('departmentSearch').value = '';
-  filterSelect('departmentSearch','departmentSelect');
+  document.getElementById('sdDepartment_text').textContent = '-- Select Department --';
+  document.getElementById('sdDepartment_text').style.color = '#9CA3AF';
+  document.getElementById('sdDepartment_display').classList.remove('has-value');
+  renderItems('sdDepartment', dropdownData['sdDepartment'] || []);
   clearValidationUI();
 }
 
@@ -604,14 +583,12 @@ function makeContactFieldsReadonly() {
     el.style.background = '#F3F4F6';
     el.style.color = '#6B7280';
   });
-  // Show designation text input readonly, hide dropdown
- document.getElementById('designation').style.display = 'block';
+  // Designation — show text readonly, hide dropdown
+  document.getElementById('designation').style.display = 'block';
   document.getElementById('designationSelectWrapper').style.display = 'none';
-  document.getElementById('designationSelect').value = '';
-  // Show department text input readonly, hide dropdown
+  // Department — show text readonly, hide dropdown
   document.getElementById('department').style.display = 'block';
   document.getElementById('departmentSelectWrapper').style.display = 'none';
-  document.getElementById('departmentSelect').value = '';
   clearValidationUI();
 }
 
@@ -715,35 +692,36 @@ function checkDraft() {
     }
   }
 
-  if (draft.city)        document.getElementById('city').value        = draft.city;
-  if (draft.state)       document.getElementById('state').value       = draft.state;
-  if (draft.country)     document.getElementById('country').value     = draft.country;
-  if (draft.email)       document.getElementById('email').value       = draft.email;
-  if (draft.mobile)      document.getElementById('mobile').value      = draft.mobile;
-  if (draft.altMobile)   document.getElementById('altMobile').value   = draft.altMobile;
-  if (draft.landline)    document.getElementById('landline').value    = draft.landline;
- if (draft.designation) {
+  if (draft.city)    document.getElementById('city').value    = draft.city;
+  if (draft.state)   document.getElementById('state').value   = draft.state;
+  if (draft.country) document.getElementById('country').value = draft.country;
+  if (draft.email)   document.getElementById('email').value   = draft.email;
+  if (draft.mobile)  document.getElementById('mobile').value  = draft.mobile;
+  if (draft.altMobile)  document.getElementById('altMobile').value  = draft.altMobile;
+  if (draft.landline)   document.getElementById('landline').value   = draft.landline;
+  if (draft.isbn)       document.getElementById('isbn').value       = draft.isbn;
+  if (draft.bookTitle)  document.getElementById('bookTitle').value  = draft.bookTitle;
+  if (draft.author)     document.getElementById('author').value     = draft.author;
+  if (draft.edition)    document.getElementById('edition').value    = draft.edition;
+  if (draft.numBooks)   document.getElementById('numBooks').value   = draft.numBooks;
+  if (draft.remarks)    document.getElementById('remarks').value    = draft.remarks;
+
+  if (draft.designation) {
     document.getElementById('designation').value = draft.designation;
     if (draft.contactIsNew) {
-      document.getElementById('designationSelect').value = draft.designation;
-      document.getElementById('designationSearch').value = '';
-      filterSelect('designationSearch','designationSelect');
+      document.getElementById('sdDesignation_text').textContent = draft.designation;
+      document.getElementById('sdDesignation_text').style.color = '#111827';
+      document.getElementById('sdDesignation_display').classList.add('has-value');
     }
   }
   if (draft.department) {
     document.getElementById('department').value = draft.department;
     if (draft.contactIsNew) {
-      document.getElementById('departmentSelect').value = draft.department;
-      document.getElementById('departmentSearch').value = '';
-      filterSelect('departmentSearch','departmentSelect');
+      document.getElementById('sdDepartment_text').textContent = draft.department;
+      document.getElementById('sdDepartment_text').style.color = '#111827';
+      document.getElementById('sdDepartment_display').classList.add('has-value');
     }
   }
-  if (draft.isbn)        document.getElementById('isbn').value        = draft.isbn;
-  if (draft.bookTitle)   document.getElementById('bookTitle').value   = draft.bookTitle;
-  if (draft.author)      document.getElementById('author').value      = draft.author;
-  if (draft.edition)     document.getElementById('edition').value     = draft.edition;
-  if (draft.numBooks)    document.getElementById('numBooks').value    = draft.numBooks;
-  if (draft.remarks)     document.getElementById('remarks').value     = draft.remarks;
 }
 
 // ── REBUILD DROPDOWNS ────────────────────────
@@ -774,6 +752,7 @@ function rebuildContactDropdown(filterBy) {
 // ── RENDER ITEMS ─────────────────────────────
 function renderItems(id, items, search) {
   var container = document.getElementById(id + '_items');
+  if (!container) return;
   container.innerHTML = '';
   var filtered = items;
   if (search) {
@@ -805,7 +784,6 @@ function selectItem(id, value, label) {
     document.getElementById(id + '_text').textContent = label;
     document.getElementById(id + '_text').style.color = '#2563EB';
     display.classList.add('has-value');
-
     if (id === 'sdContact') {
       document.getElementById('contact').value = '__NEW__';
       document.getElementById('newContactBox').style.display = 'block';
@@ -821,7 +799,6 @@ function selectItem(id, value, label) {
         rebuildInstitutionDropdown(null);
       }
     }
-
     if (id === 'sdInstitution') {
       document.getElementById('institution').value = '__NEW__';
       document.getElementById('newInstitutionBox').style.display = 'block';
@@ -840,6 +817,14 @@ function selectItem(id, value, label) {
   document.getElementById(id + '_text').style.color = '#111827';
   display.classList.add('has-value');
 
+  if (id === 'sdDesignation') {
+    document.getElementById('designation').value = value;
+  }
+
+  if (id === 'sdDepartment') {
+    document.getElementById('department').value = value;
+  }
+
   if (id === 'sdInstitution') {
     document.getElementById('institution').value = value;
     document.getElementById('sdInstitution_clear').style.display = 'inline';
@@ -849,8 +834,8 @@ function selectItem(id, value, label) {
     makeCityStateCountryReadonly();
     allInstitutions.forEach(function(r) {
       if (r[0] === value) {
-        document.getElementById('city').value  = r[1] || '';
-        document.getElementById('state').value = r[2] || '';
+        document.getElementById('city').value    = r[1] || '';
+        document.getElementById('state').value   = r[2] || '';
         document.getElementById('country').value = r[3] || 'India';
       }
     });
@@ -979,16 +964,12 @@ function clearInstitution() {
   document.getElementById('newInstitutionName').value = '';
   document.getElementById('dupInstitutionMsg').style.display = 'none';
   rebuildInstitutionDropdown(null);
-
-  // Only reset contact if contact is NOT being added as new
   var contactVal = document.getElementById('contact').value;
   if (contactVal !== '__NEW__') {
     rebuildContactDropdown(null);
     resetContactSelection();
   } else {
-    // Contact is new — just rebuild full contact list but keep all new contact fields intact
     rebuildContactDropdown(null);
-    // Also make city and state editable again since institution was cleared
     makeCityStateCountryEditable();
   }
 }
@@ -1086,45 +1067,23 @@ function submitForm() {
     ? document.getElementById('newContactName').value.trim()
     : contactVal;
 
-  // Required field checks
   if (!salesperson || !visitDate || !institution || !contact || !bookTitle || !numBooks) {
     showMsg('Please fill all required fields marked with *', false); return;
   }
-  if (!email) {
-    showMsg('Email is required.', false); return;
-  }
-  if (!mobile) {
-    showMsg('Mobile number is required.', false); return;
-  }
-  if (!designation) {
-    showMsg('Designation is required.', false); return;
-  }
-  if (!department) {
-    showMsg('Department is required.', false); return;
-  }
-  if (!city) {
-    showMsg('City is required.', false); return;
-  }
-  if (!state) {
-    showMsg('State is required.', false); return;
-  }
+  if (!email)       { showMsg('Email is required.', false); return; }
+  if (!mobile)      { showMsg('Mobile number is required.', false); return; }
+  if (!designation) { showMsg('Designation is required.', false); return; }
+  if (!department)  { showMsg('Department is required.', false); return; }
+  if (!city)        { showMsg('City is required.', false); return; }
+  if (!state)       { showMsg('State is required.', false); return; }
 
-  // Validation checks for new contacts
   if (isNewContact) {
-    if (!validateEmail()) {
-      showMsg('Please fix the email address before submitting.', false); return;
-    }
-    if (!validateMobile()) {
-      showMsg('Please fix the mobile number before submitting.', false); return;
-    }
-    var altVal = document.getElementById('altMobile').value.trim();
-    if (altVal && !validateAltMobile()) {
-      showMsg('Please fix the alternative mobile number before submitting.', false); return;
-    }
+    if (!validateEmail())     { showMsg('Please fix the email address before submitting.', false); return; }
+    if (!validateMobile())    { showMsg('Please fix the mobile number before submitting.', false); return; }
+    var altVal  = document.getElementById('altMobile').value.trim();
     var landVal = document.getElementById('landline').value.trim();
-    if (landVal && !validateLandline()) {
-      showMsg('Please fix the landline number before submitting.', false); return;
-    }
+    if (altVal  && !validateAltMobile())  { showMsg('Please fix the alternative mobile number before submitting.', false); return; }
+    if (landVal && !validateLandline())   { showMsg('Please fix the landline number before submitting.', false); return; }
   }
 
   if (instVal === '__NEW__') {
@@ -1147,11 +1106,10 @@ function submitForm() {
   var row = [
     visitDate, salesperson, institution,
     city, state, country,
-    contact, email,
+    contact, designation, department, email,
     mobileRaw    ? '+91 ' + mobileRaw    : '',
     altMobileRaw ? '+91 ' + altMobileRaw : '',
     document.getElementById('landline').value,
-    designation, department,
     bookTitle, isbn,
     document.getElementById('author').value,
     document.getElementById('edition').value,
@@ -1162,11 +1120,10 @@ function submitForm() {
   lastSubmission = {
     date: visitDate, salesperson: salesperson,
     institution: institution, city: city, state: state, country: country,
-    contact: contact, email: email,
+    contact: contact, designation: designation, department: department, email: email,
     mobile:    mobileRaw    ? '+91 ' + mobileRaw    : '',
     altMobile: altMobileRaw ? '+91 ' + altMobileRaw : '',
     landline:  document.getElementById('landline').value,
-    designation: designation, department: department,
     bookTitle: bookTitle, isbn: isbn,
     author:  document.getElementById('author').value,
     edition: document.getElementById('edition').value,
@@ -1207,18 +1164,18 @@ function showReceipt() {
   document.getElementById('r_state').textContent       = s.state;
   document.getElementById('r_country').textContent     = s.country;
   document.getElementById('r_contact').textContent     = s.contact;
+  document.getElementById('r_designation').textContent = s.designation;
+  document.getElementById('r_department').textContent  = s.department;
   document.getElementById('r_email').textContent       = s.email;
   document.getElementById('r_mobile').textContent      = s.mobile    || '—';
   document.getElementById('r_altMobile').textContent   = s.altMobile || '—';
   document.getElementById('r_landline').textContent    = s.landline  || '—';
-  document.getElementById('r_designation').textContent = s.designation;
-  document.getElementById('r_department').textContent  = s.department;
   document.getElementById('r_bookTitle').textContent   = s.bookTitle;
   document.getElementById('r_isbn').textContent        = s.isbn;
   document.getElementById('r_author').textContent      = s.author;
   document.getElementById('r_edition').textContent     = s.edition;
   document.getElementById('r_numBooks').textContent    = s.numBooks;
-  document.getElementById('r_remarks').textContent     = s.remarks || '—';
+  document.getElementById('r_remarks').textContent     = s.remarks   || '—';
   document.getElementById('receipt').style.display     = 'block';
 }
 
@@ -1244,12 +1201,12 @@ function downloadPDF() {
   html += '<tr><td>State</td><td>' + s.state + '</td></tr>';
   html += '<tr><td>Country</td><td>' + s.country + '</td></tr>';
   html += '<tr><td>Contact Person</td><td>' + s.contact + '</td></tr>';
+  html += '<tr><td>Designation</td><td>' + s.designation + '</td></tr>';
+  html += '<tr><td>Department</td><td>' + s.department + '</td></tr>';
   html += '<tr><td>Email</td><td>' + s.email + '</td></tr>';
   html += '<tr><td>Mobile</td><td>' + (s.mobile    || '—') + '</td></tr>';
   html += '<tr><td>Alt Mobile</td><td>' + (s.altMobile || '—') + '</td></tr>';
   html += '<tr><td>Landline</td><td>' + (s.landline  || '—') + '</td></tr>';
-  html += '<tr><td>Designation</td><td>' + s.designation + '</td></tr>';
-  html += '<tr><td>Department</td><td>' + s.department + '</td></tr>';
   html += '<tr><td>Book Title</td><td>' + s.bookTitle + '</td></tr>';
   html += '<tr><td>ISBN</td><td>' + s.isbn + '</td></tr>';
   html += '<tr><td>Author</td><td>' + s.author + '</td></tr>';
@@ -1258,7 +1215,6 @@ function downloadPDF() {
   html += '<tr><td>Remarks</td><td>' + (s.remarks || '—') + '</td></tr>';
   html += '</table><p class="footer">Generated on ' + new Date().toLocaleString() + ' &nbsp;|&nbsp; ' + COMPANY + '</p>';
   html += '</body></html>';
-
   var blob = new Blob([html], { type: 'text/html' });
   var url  = URL.createObjectURL(blob);
   var win  = window.open(url, '_blank');
@@ -1279,14 +1235,8 @@ function loadSheet(sheetName, callback) {
   .catch(function(e) { console.error('Error loading ' + sheetName, e); });
 }
 
-function filterSelect(searchId, selectId) {
-  var search = document.getElementById(searchId).value.toLowerCase();
-  var select = document.getElementById(selectId);
-  var options = select.querySelectorAll('option');
-  options.forEach(function(opt) {
-    if (!opt.value) return; // keep the placeholder
-    opt.style.display = opt.textContent.toLowerCase().indexOf(search) !== -1 ? '' : 'none';
-  });
+function clearField(id) {
+  document.getElementById(id).value = '';
 }
 
 function resetContactSelection() {
