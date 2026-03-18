@@ -203,7 +203,39 @@ input.input-ok { border-color: #15803D; }
     <!-- DEPARTMENT -->
     <div class="field">
       <label>Department *</label>
-      <input type="text" id="department" readonly placeholder="Auto-filled or type if new" />
+      <input type="text" id="department" readonly placeholder="Auto-filled or type if new" style="display:block;" />
+      <select id="departmentSelect" style="display:none;" onchange="document.getElementById('department').value=this.value;">
+        <option value="">-- Select Department --</option>
+        <option>Physiotherapy / Sports Medicine</option>
+        <option>Nursing</option>
+        <option>Surgery / Plastic Surgery</option>
+        <option>Radiology / Nuclear Medicine</option>
+        <option>Preventive &amp; Social Medicine / Public Health</option>
+        <option>Pediatric</option>
+        <option>Orthopaedics / Rheumatology &amp; Geriatric</option>
+        <option>Opthalmology</option>
+        <option>Oncology</option>
+        <option>Obst. &amp; Gynecology</option>
+        <option>Psychiatry / Neurology &amp; Neurosurgery</option>
+        <option>Microbiology / Immunology / Parasitology</option>
+        <option>Forensic Science &amp; Investigation / Toxicology</option>
+        <option>ENT / Otolaryngology</option>
+        <option>Gastroenterology / Endocrinology / Nephrology / Urology</option>
+        <option>Allergy &amp; Infectious Diseases / Dermatology &amp; Skin Diseases</option>
+        <option>Cardiology</option>
+        <option>Anatomy</option>
+        <option>Biochemistry</option>
+        <option>Physiology</option>
+        <option>Embryology</option>
+        <option>Histology</option>
+        <option>Genetics</option>
+        <option>Anaesthesia</option>
+        <option>Family Medicine</option>
+        <option>Engineering</option>
+        <option>Architecture &amp; Interior Design</option>
+        <option>Pathology</option>
+        <option>Pharmacy</option>
+      </select>
     </div>
     
     <!-- EMAIL -->
@@ -534,7 +566,7 @@ function showFieldError(fieldId, message) {
 // ── FIELD STATE HELPERS ───────────────────────
 function makeContactFieldsEditable() {
   isNewContact = true;
-  ['email','mobile','altMobile','landline','department'].forEach(function(id) {
+  ['email','mobile','altMobile','landline'].forEach(function(id) {
     var el = document.getElementById(id);
     el.value = '';
     el.removeAttribute('readonly');
@@ -546,6 +578,11 @@ function makeContactFieldsEditable() {
   document.getElementById('designation').value = '';
   document.getElementById('designationSelect').style.display = 'block';
   document.getElementById('designationSelect').value = '';
+  // Show department dropdown, hide text input
+  document.getElementById('department').style.display = 'none';
+  document.getElementById('department').value = '';
+  document.getElementById('departmentSelect').style.display = 'block';
+  document.getElementById('departmentSelect').value = '';
   clearValidationUI();
 }
 
@@ -562,6 +599,10 @@ function makeContactFieldsReadonly() {
   document.getElementById('designation').style.display = 'block';
   document.getElementById('designationSelect').style.display = 'none';
   document.getElementById('designationSelect').value = '';
+  // Show department text input readonly, hide dropdown
+  document.getElementById('department').style.display = 'block';
+  document.getElementById('departmentSelect').style.display = 'none';
+  document.getElementById('departmentSelect').value = '';
   clearValidationUI();
 }
 
@@ -672,13 +713,18 @@ function checkDraft() {
   if (draft.mobile)      document.getElementById('mobile').value      = draft.mobile;
   if (draft.altMobile)   document.getElementById('altMobile').value   = draft.altMobile;
   if (draft.landline)    document.getElementById('landline').value    = draft.landline;
-  if (draft.designation) {
+ if (draft.designation) {
     document.getElementById('designation').value = draft.designation;
     if (draft.contactIsNew) {
       document.getElementById('designationSelect').value = draft.designation;
     }
   }
-  if (draft.department)  document.getElementById('department').value  = draft.department;
+  if (draft.department) {
+    document.getElementById('department').value = draft.department;
+    if (draft.contactIsNew) {
+      document.getElementById('departmentSelect').value = draft.department;
+    }
+  }
   if (draft.isbn)        document.getElementById('isbn').value        = draft.isbn;
   if (draft.bookTitle)   document.getElementById('bookTitle').value   = draft.bookTitle;
   if (draft.author)      document.getElementById('author').value      = draft.author;
