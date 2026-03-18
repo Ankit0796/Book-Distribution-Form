@@ -56,7 +56,9 @@ input.input-ok { border-color: #15803D; }
 .isbn-row input { flex: 1; }
 .isbn-row button { padding: 10px 16px; background: #2563EB; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; white-space: nowrap; }
 .isbn-row button:hover { background: #1B3A6B; }
-.not-found { color: #B91C1C; font-size: 13px; margin-top: 6px; display: none; }
+.not-found { font-size: 13px; margin-top: 6px; display: none; }
+.not-found.is-error { color: #B91C1C; }
+.not-found.is-ok { color: #15803D; }
 .search-dropdown { position: relative; }
 .dropdown-list { display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #2563EB; border-radius: 0 0 8px 8px; max-height: 220px; overflow-y: auto; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 .dropdown-list.open { display: block; }
@@ -280,7 +282,7 @@ input.input-ok { border-color: #15803D; }
     <div class="field">
       <label>ISBN *</label>
       <div class="isbn-row">
-        <input type="text" id="isbn" maxlength="13" placeholder="Type 13 digit ISBN" />
+        <input type="text" id="isbn" maxlength="13" placeholder="Type 13 digit ISBN" oninput="validateISBNInput()" />
         <button onclick="lookupISBN()">Search</button>
       </div>
       <p id="isbnNotFound" class="not-found"></p>
@@ -398,12 +400,8 @@ function checkPin() {
   if (entered === PIN) {
     document.getElementById('pinScreen').style.display = 'none';
     var rep = getRepFromURL();
-    if (rep) {
-      currentRep = rep;
-      startForm();
-    } else {
-      document.getElementById('nameScreen').style.display = 'block';
-    }
+    if (rep) { currentRep = rep; startForm(); }
+    else { document.getElementById('nameScreen').style.display = 'block'; }
   } else {
     document.getElementById('pinError').style.display = 'block';
   }
@@ -415,10 +413,7 @@ document.getElementById('pinInput').addEventListener('keydown', function(e) {
 
 function confirmName() {
   var name = document.getElementById('manualNameInput').value.trim();
-  if (!name) {
-    document.getElementById('nameError').style.display = 'block';
-    return;
-  }
+  if (!name) { document.getElementById('nameError').style.display = 'block'; return; }
   currentRep = name;
   document.getElementById('nameScreen').style.display = 'none';
   startForm();
@@ -453,18 +448,97 @@ function loadAllData() {
     allBooks = rows;
   });
 
-  dropdownData['sdDesignation'] = DESIGNATIONS.map(function(d) {
-    return { value: d, label: d };
-  });
+  dropdownData['sdDesignation'] = DESIGNATIONS.map(function(d) { return { value: d, label: d }; });
   renderItems('sdDesignation', dropdownData['sdDesignation']);
 
-  dropdownData['sdDepartment'] = DEPARTMENTS.map(function(d) {
-    return { value: d, label: d };
-  });
+  dropdownData['sdDepartment'] = DEPARTMENTS.map(function(d) { return { value: d, label: d }; });
   renderItems('sdDepartment', dropdownData['sdDepartment']);
 }
 
-// ── VALIDATION ───────────────────────────────
+// ── ISBN VALIDATION ───────────────────────────
+function validateISBNInput() {
+  var isbnInput = document.getElementById('isbn');
+  var val       = isbnInput.value;
+  var notFound  = document.getElementById('isbnNotFound');
+
+  var cleaned = val.replace(/[^0-9]/g, '');
+  if (cleaned !== val) {
+    isbnInput.value = cleaned;
+    notFound.textContent = '⚠️ ISBN can only contain numbers.';
+    notFound.className = 'not-found is-error';
+    notFound.style.display = 'block';
+    isbnInput.classList.add('input-error');
+    isbnInput.classList.remove('input-ok');
+    return;
+  }
+
+  isbnInput.classList.remove('input-error', 'input-ok');
+  notFound.style.display = 'none';
+  document.getElementById('bookTitle').value = '';
+  document.getElementById('author').value    = '';
+  document.getElementById('edition').value   = '';
+}
+
+function lookupISBN() {
+  var isbnInput = document.getElementById('isbn');
+  var isbn      = isbnInput.value.trim();
+  var notFound  = document.getElementById('isbnNotFound');
+
+  document.getElementById('bookTitle').value = '';
+  document.getElementById('author').value    = '';
+  document.getElementById('edition').value   = '';
+  notFound.style.display = 'none';
+  isbnInput.classList.remove('input-error', 'input-ok');
+
+  if (!isbn) {
+    notFound.textContent = '⚠️ Please enter an ISBN.';
+    notFound.className = 'not-found is-error';
+    notFound.style.display = 'block';
+    isbnInput.classList.add('input-error');
+    return;
+  }
+
+  if (/[^0-9]/.test(isbn)) {
+    notFound.textContent = '⚠️ ISBN can only contain numbers.';
+    notFound.className = 'not-found is-error';
+    notFound.style.display = 'block';
+    isbnInput.classList.add('input-error');
+    return;
+  }
+
+  if (isbn.length !== 13) {
+    notFound.textContent = '⚠️ ISBN must be exactly 13 digits. You entered ' + isbn.length + ' digit' + (isbn.length === 1 ? '' : 's') + '.';
+    notFound.className = 'not-found is-error';
+    notFound.style.display = 'block';
+    isbnInput.classList.add('input-error');
+    return;
+  }
+
+  var found = null;
+  allBooks.forEach(function(r) {
+    if (found) return;
+    if (String(r[0] || '').replace(/\D/g, '') === isbn) found = r;
+  });
+
+  if (found) {
+    document.getElementById('bookTitle').value = found[1] || '';
+    document.getElementById('author').value    = found[2] || '';
+    document.getElementById('edition').value   = found[3] || '';
+    isbnInput.classList.add('input-ok');
+    notFound.style.display = 'none';
+  } else {
+    notFound.textContent = '⚠️ Book not found. Please check the ISBN.';
+    notFound.className = 'not-found is-error';
+    notFound.style.display = 'block';
+    isbnInput.classList.add('input-error');
+  }
+}
+
+document.getElementById('isbn').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') lookupISBN();
+});
+
+// ── CONTACT VALIDATION ────────────────────────
 function validateEmail() {
   if (!isNewContact) return true;
   var val   = document.getElementById('email').value.trim();
@@ -555,7 +629,6 @@ function makeContactFieldsEditable() {
     el.style.background = '#fff';
     el.style.color = '#111827';
   });
-  // Designation — hide text, show custom dropdown
   document.getElementById('designation').style.display = 'none';
   document.getElementById('designation').value = '';
   document.getElementById('designationSelectWrapper').style.display = 'block';
@@ -563,7 +636,6 @@ function makeContactFieldsEditable() {
   document.getElementById('sdDesignation_text').style.color = '#9CA3AF';
   document.getElementById('sdDesignation_display').classList.remove('has-value');
   renderItems('sdDesignation', dropdownData['sdDesignation'] || []);
-  // Department — hide text, show custom dropdown
   document.getElementById('department').style.display = 'none';
   document.getElementById('department').value = '';
   document.getElementById('departmentSelectWrapper').style.display = 'block';
@@ -583,10 +655,8 @@ function makeContactFieldsReadonly() {
     el.style.background = '#F3F4F6';
     el.style.color = '#6B7280';
   });
-  // Designation — show text readonly, hide dropdown
   document.getElementById('designation').style.display = 'block';
   document.getElementById('designationSelectWrapper').style.display = 'none';
-  // Department — show text readonly, hide dropdown
   document.getElementById('department').style.display = 'block';
   document.getElementById('departmentSelectWrapper').style.display = 'none';
   clearValidationUI();
@@ -692,19 +762,19 @@ function checkDraft() {
     }
   }
 
-  if (draft.city)    document.getElementById('city').value    = draft.city;
-  if (draft.state)   document.getElementById('state').value   = draft.state;
-  if (draft.country) document.getElementById('country').value = draft.country;
-  if (draft.email)   document.getElementById('email').value   = draft.email;
-  if (draft.mobile)  document.getElementById('mobile').value  = draft.mobile;
-  if (draft.altMobile)  document.getElementById('altMobile').value  = draft.altMobile;
-  if (draft.landline)   document.getElementById('landline').value   = draft.landline;
-  if (draft.isbn)       document.getElementById('isbn').value       = draft.isbn;
-  if (draft.bookTitle)  document.getElementById('bookTitle').value  = draft.bookTitle;
-  if (draft.author)     document.getElementById('author').value     = draft.author;
-  if (draft.edition)    document.getElementById('edition').value    = draft.edition;
-  if (draft.numBooks)   document.getElementById('numBooks').value   = draft.numBooks;
-  if (draft.remarks)    document.getElementById('remarks').value    = draft.remarks;
+  if (draft.city)      document.getElementById('city').value      = draft.city;
+  if (draft.state)     document.getElementById('state').value     = draft.state;
+  if (draft.country)   document.getElementById('country').value   = draft.country;
+  if (draft.email)     document.getElementById('email').value     = draft.email;
+  if (draft.mobile)    document.getElementById('mobile').value    = draft.mobile;
+  if (draft.altMobile) document.getElementById('altMobile').value = draft.altMobile;
+  if (draft.landline)  document.getElementById('landline').value  = draft.landline;
+  if (draft.isbn)      document.getElementById('isbn').value      = draft.isbn;
+  if (draft.bookTitle) document.getElementById('bookTitle').value = draft.bookTitle;
+  if (draft.author)    document.getElementById('author').value    = draft.author;
+  if (draft.edition)   document.getElementById('edition').value   = draft.edition;
+  if (draft.numBooks)  document.getElementById('numBooks').value  = draft.numBooks;
+  if (draft.remarks)   document.getElementById('remarks').value   = draft.remarks;
 
   if (draft.designation) {
     document.getElementById('designation').value = draft.designation;
@@ -805,10 +875,7 @@ function selectItem(id, value, label) {
       document.getElementById('sdInstitution_clear').style.display = 'inline';
       makeCityStateCountryEditable();
       var contactVal = document.getElementById('contact').value;
-      if (contactVal !== '__NEW__') {
-        resetContactSelection();
-        rebuildContactDropdown(null);
-      }
+      if (contactVal !== '__NEW__') { resetContactSelection(); rebuildContactDropdown(null); }
     }
     return;
   }
@@ -840,12 +907,8 @@ function selectItem(id, value, label) {
       }
     });
     var contactVal = document.getElementById('contact').value;
-    if (contactVal !== '__NEW__') {
-      rebuildContactDropdown(value);
-      resetContactSelection();
-    } else {
-      rebuildContactDropdown(value);
-    }
+    if (contactVal !== '__NEW__') { rebuildContactDropdown(value); resetContactSelection(); }
+    else { rebuildContactDropdown(value); }
   }
 
   if (id === 'sdContact') {
@@ -856,9 +919,7 @@ function selectItem(id, value, label) {
     document.getElementById('dupContactMsg').style.display = 'none';
 
     var contactData = null;
-    allContacts.forEach(function(r) {
-      if (r[0] === value && !contactData) contactData = r;
-    });
+    allContacts.forEach(function(r) { if (r[0] === value && !contactData) contactData = r; });
 
     if (contactData) {
       makeContactFieldsReadonly();
@@ -965,13 +1026,8 @@ function clearInstitution() {
   document.getElementById('dupInstitutionMsg').style.display = 'none';
   rebuildInstitutionDropdown(null);
   var contactVal = document.getElementById('contact').value;
-  if (contactVal !== '__NEW__') {
-    rebuildContactDropdown(null);
-    resetContactSelection();
-  } else {
-    rebuildContactDropdown(null);
-    makeCityStateCountryEditable();
-  }
+  if (contactVal !== '__NEW__') { rebuildContactDropdown(null); resetContactSelection(); }
+  else { rebuildContactDropdown(null); makeCityStateCountryEditable(); }
 }
 
 // ── DUPLICATE CHECKS ─────────────────────────
@@ -1013,35 +1069,6 @@ function checkDuplicateContact() {
   msg.style.display = 'none';
 }
 
-// ── ISBN LOOKUP ─────────────────────────────
-function lookupISBN() {
-  var isbn = document.getElementById('isbn').value.trim();
-  var notFound = document.getElementById('isbnNotFound');
-  document.getElementById('bookTitle').value = '';
-  document.getElementById('author').value    = '';
-  document.getElementById('edition').value   = '';
-  notFound.style.display = 'none';
-  if (!isbn) { notFound.textContent = 'Please enter an ISBN.'; notFound.style.display = 'block'; return; }
-  var isbnClean = isbn.replace(/\D/g, '');
-  var found = null;
-  allBooks.forEach(function(r) {
-    if (found) return;
-    if (String(r[0] || '').replace(/\D/g, '') === isbnClean) found = r;
-  });
-  if (found) {
-    document.getElementById('bookTitle').value = found[1] || '';
-    document.getElementById('author').value    = found[2] || '';
-    document.getElementById('edition').value   = found[3] || '';
-  } else {
-    notFound.textContent = 'Book not found. Please check the ISBN.';
-    notFound.style.display = 'block';
-  }
-}
-
-document.getElementById('isbn').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') lookupISBN();
-});
-
 // ── SUBMIT ───────────────────────────────────
 function submitForm() {
   var salesperson = document.getElementById('salesperson').value;
@@ -1060,15 +1087,18 @@ function submitForm() {
   var country     = document.getElementById('country').value.trim();
 
   var institution = instVal === '__NEW__'
-    ? document.getElementById('newInstitutionName').value.trim()
-    : instVal;
-
+    ? document.getElementById('newInstitutionName').value.trim() : instVal;
   var contact = contactVal === '__NEW__'
-    ? document.getElementById('newContactName').value.trim()
-    : contactVal;
+    ? document.getElementById('newContactName').value.trim() : contactVal;
 
   if (!salesperson || !visitDate || !institution || !contact || !bookTitle || !numBooks) {
     showMsg('Please fill all required fields marked with *', false); return;
+  }
+  if (!isbn) {
+    showMsg('ISBN is required.', false); return;
+  }
+  if (isbn.length !== 13 || /[^0-9]/.test(isbn)) {
+    showMsg('ISBN must be exactly 13 digits with no letters or special characters.', false); return;
   }
   if (!email)       { showMsg('Email is required.', false); return; }
   if (!mobile)      { showMsg('Mobile number is required.', false); return; }
@@ -1078,26 +1108,26 @@ function submitForm() {
   if (!state)       { showMsg('State is required.', false); return; }
 
   if (isNewContact) {
-    if (!validateEmail())     { showMsg('Please fix the email address before submitting.', false); return; }
-    if (!validateMobile())    { showMsg('Please fix the mobile number before submitting.', false); return; }
+    if (!validateEmail())  { showMsg('Please fix the email address before submitting.', false); return; }
+    if (!validateMobile()) { showMsg('Please fix the mobile number before submitting.', false); return; }
     var altVal  = document.getElementById('altMobile').value.trim();
     var landVal = document.getElementById('landline').value.trim();
-    if (altVal  && !validateAltMobile())  { showMsg('Please fix the alternative mobile number before submitting.', false); return; }
-    if (landVal && !validateLandline())   { showMsg('Please fix the landline number before submitting.', false); return; }
+    if (altVal  && !validateAltMobile())  { showMsg('Please fix the alternative mobile number.', false); return; }
+    if (landVal && !validateLandline())   { showMsg('Please fix the landline number.', false); return; }
   }
 
   if (instVal === '__NEW__') {
     var dupInst = allInstitutions.find(function(r) {
       return r[0] && r[0].trim().toLowerCase() === institution.toLowerCase();
     });
-    if (dupInst) { showMsg('Institution already exists. Please select it from the dropdown.', false); return; }
+    if (dupInst) { showMsg('Institution already exists. Please select from dropdown.', false); return; }
   }
 
   if (contactVal === '__NEW__') {
     var dupCont = allContacts.find(function(r) {
       return r[0] && r[0].trim().toLowerCase() === contact.toLowerCase();
     });
-    if (dupCont) { showMsg('Contact already exists. Please select from the dropdown.', false); return; }
+    if (dupCont) { showMsg('Contact already exists. Please select from dropdown.', false); return; }
   }
 
   var mobileRaw    = document.getElementById('mobile').value.trim();
@@ -1268,9 +1298,11 @@ function clearForm() {
   document.getElementById('city').value    = '';
   document.getElementById('state').value   = '';
   document.getElementById('country').value = '';
-  ['isbn','bookTitle','author','edition','numBooks','remarks'].forEach(clearField);
-  document.getElementById('visitDate').valueAsDate = new Date();
+  document.getElementById('isbn').value = '';
+  document.getElementById('isbn').classList.remove('input-error','input-ok');
   document.getElementById('isbnNotFound').style.display = 'none';
+  ['bookTitle','author','edition','numBooks','remarks'].forEach(clearField);
+  document.getElementById('visitDate').valueAsDate = new Date();
   document.getElementById('draftBanner').style.display = 'none';
   document.getElementById('receipt').style.display = 'none';
 }
