@@ -163,7 +163,41 @@ input.input-ok { border-color: #15803D; }
     <!-- DESIGNATION -->
     <div class="field">
       <label>Designation *</label>
-      <input type="text" id="designation" readonly placeholder="Auto-filled or type if new" />
+      <input type="text" id="designation" readonly placeholder="Auto-filled or type if new" style="display:block;" />
+      <select id="designationSelect" style="display:none;" onchange="document.getElementById('designation').value=this.value;">
+        <option value="">-- Select Designation --</option>
+        <option>Chairman / CEO / Secretary / Coordinator</option>
+        <option>Dean</option>
+        <option>Principal</option>
+        <option>Vice-Principal</option>
+        <option>Director</option>
+        <option>Registrar</option>
+        <option>Faculty</option>
+        <option>Professor</option>
+        <option>HOD</option>
+        <option>Tutor</option>
+        <option>Lecturer</option>
+        <option>Assistant Professor</option>
+        <option>Associate Professor</option>
+        <option>Student PG 1st Year</option>
+        <option>Student PG 2nd Year</option>
+        <option>Student UG 1st Year</option>
+        <option>Student UG 2nd Year</option>
+        <option>Student UG 3rd Year</option>
+        <option>Student UG 4th Year</option>
+        <option>Student UG 5th Year</option>
+        <option>Resident</option>
+        <option>Medical Officer</option>
+        <option>Library</option>
+        <option>Book Seller</option>
+        <option>Vendor</option>
+        <option>Technician</option>
+        <option>Statistician</option>
+        <option>Chairman</option>
+        <option>CEO</option>
+        <option>Secretary</option>
+        <option>Coordinator</option>
+      </select>
     </div>
 
     <!-- DEPARTMENT -->
@@ -500,13 +534,18 @@ function showFieldError(fieldId, message) {
 // ── FIELD STATE HELPERS ───────────────────────
 function makeContactFieldsEditable() {
   isNewContact = true;
-  ['email','mobile','altMobile','landline','designation','department'].forEach(function(id) {
+  ['email','mobile','altMobile','landline','department'].forEach(function(id) {
     var el = document.getElementById(id);
     el.value = '';
     el.removeAttribute('readonly');
     el.style.background = '#fff';
     el.style.color = '#111827';
   });
+  // Show designation dropdown, hide text input
+  document.getElementById('designation').style.display = 'none';
+  document.getElementById('designation').value = '';
+  document.getElementById('designationSelect').style.display = 'block';
+  document.getElementById('designationSelect').value = '';
   clearValidationUI();
 }
 
@@ -519,6 +558,10 @@ function makeContactFieldsReadonly() {
     el.style.background = '#F3F4F6';
     el.style.color = '#6B7280';
   });
+  // Show designation text input readonly, hide dropdown
+  document.getElementById('designation').style.display = 'block';
+  document.getElementById('designationSelect').style.display = 'none';
+  document.getElementById('designationSelect').value = '';
   clearValidationUI();
 }
 
@@ -629,7 +672,12 @@ function checkDraft() {
   if (draft.mobile)      document.getElementById('mobile').value      = draft.mobile;
   if (draft.altMobile)   document.getElementById('altMobile').value   = draft.altMobile;
   if (draft.landline)    document.getElementById('landline').value    = draft.landline;
-  if (draft.designation) document.getElementById('designation').value = draft.designation;
+  if (draft.designation) {
+    document.getElementById('designation').value = draft.designation;
+    if (draft.contactIsNew) {
+      document.getElementById('designationSelect').value = draft.designation;
+    }
+  }
   if (draft.department)  document.getElementById('department').value  = draft.department;
   if (draft.isbn)        document.getElementById('isbn').value        = draft.isbn;
   if (draft.bookTitle)   document.getElementById('bookTitle').value   = draft.bookTitle;
