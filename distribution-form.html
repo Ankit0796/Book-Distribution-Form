@@ -164,8 +164,10 @@ input.input-ok { border-color: #15803D; }
     <div class="field">
       <label>Designation *</label>
       <input type="text" id="designation" readonly placeholder="Auto-filled or type if new" style="display:block;" />
-      <select id="designationSelect" style="display:none;" onchange="document.getElementById('designation').value=this.value;">
-        <option value="">-- Select Designation --</option>
+      <div id="designationSelectWrapper" style="display:none;">
+        <input type="text" id="designationSearch" placeholder="Search designation..." oninput="filterSelect('designationSearch','designationSelect')" style="margin-bottom:4px;" />
+        <select id="designationSelect" size="5" style="height:auto;" onchange="document.getElementById('designation').value=this.value;document.getElementById('designationSearch').value='';">
+          <option value="">-- Select Designation --</option>
         <option>Chairman / CEO / Secretary / Coordinator</option>
         <option>Dean</option>
         <option>Principal</option>
@@ -199,13 +201,16 @@ input.input-ok { border-color: #15803D; }
         <option>Coordinator</option>
       </select>
     </div>
+      </div>
 
     <!-- DEPARTMENT -->
     <div class="field">
       <label>Department *</label>
       <input type="text" id="department" readonly placeholder="Auto-filled or type if new" style="display:block;" />
-      <select id="departmentSelect" style="display:none;" onchange="document.getElementById('department').value=this.value;">
-        <option value="">-- Select Department --</option>
+     <div id="departmentSelectWrapper" style="display:none;">
+        <input type="text" id="departmentSearch" placeholder="Search department..." oninput="filterSelect('departmentSearch','departmentSelect')" style="margin-bottom:4px;" />
+        <select id="departmentSelect" size="5" style="height:auto;" onchange="document.getElementById('department').value=this.value;document.getElementById('departmentSearch').value='';">
+          <option value="">-- Select Department --</option>
         <option>Physiotherapy / Sports Medicine</option>
         <option>Nursing</option>
         <option>Surgery / Plastic Surgery</option>
@@ -237,7 +242,7 @@ input.input-ok { border-color: #15803D; }
         <option>Pharmacy</option>
       </select>
     </div>
-    
+    </div>
     <!-- EMAIL -->
     <div class="field">
       <label>Email *</label>
@@ -576,13 +581,17 @@ function makeContactFieldsEditable() {
   // Show designation dropdown, hide text input
   document.getElementById('designation').style.display = 'none';
   document.getElementById('designation').value = '';
-  document.getElementById('designationSelect').style.display = 'block';
+  document.getElementById('designationSelectWrapper').style.display = 'block';
   document.getElementById('designationSelect').value = '';
+  document.getElementById('designationSearch').value = '';
+  filterSelect('designationSearch','designationSelect');
   // Show department dropdown, hide text input
   document.getElementById('department').style.display = 'none';
   document.getElementById('department').value = '';
-  document.getElementById('departmentSelect').style.display = 'block';
+  document.getElementById('departmentSelectWrapper').style.display = 'block';
   document.getElementById('departmentSelect').value = '';
+  document.getElementById('departmentSearch').value = '';
+  filterSelect('departmentSearch','departmentSelect');
   clearValidationUI();
 }
 
@@ -596,12 +605,12 @@ function makeContactFieldsReadonly() {
     el.style.color = '#6B7280';
   });
   // Show designation text input readonly, hide dropdown
-  document.getElementById('designation').style.display = 'block';
-  document.getElementById('designationSelect').style.display = 'none';
+ document.getElementById('designation').style.display = 'block';
+  document.getElementById('designationSelectWrapper').style.display = 'none';
   document.getElementById('designationSelect').value = '';
   // Show department text input readonly, hide dropdown
   document.getElementById('department').style.display = 'block';
-  document.getElementById('departmentSelect').style.display = 'none';
+  document.getElementById('departmentSelectWrapper').style.display = 'none';
   document.getElementById('departmentSelect').value = '';
   clearValidationUI();
 }
@@ -717,12 +726,16 @@ function checkDraft() {
     document.getElementById('designation').value = draft.designation;
     if (draft.contactIsNew) {
       document.getElementById('designationSelect').value = draft.designation;
+      document.getElementById('designationSearch').value = '';
+      filterSelect('designationSearch','designationSelect');
     }
   }
   if (draft.department) {
     document.getElementById('department').value = draft.department;
     if (draft.contactIsNew) {
       document.getElementById('departmentSelect').value = draft.department;
+      document.getElementById('departmentSearch').value = '';
+      filterSelect('departmentSearch','departmentSelect');
     }
   }
   if (draft.isbn)        document.getElementById('isbn').value        = draft.isbn;
@@ -1266,8 +1279,14 @@ function loadSheet(sheetName, callback) {
   .catch(function(e) { console.error('Error loading ' + sheetName, e); });
 }
 
-function clearField(id) {
-  document.getElementById(id).value = '';
+function filterSelect(searchId, selectId) {
+  var search = document.getElementById(searchId).value.toLowerCase();
+  var select = document.getElementById(selectId);
+  var options = select.querySelectorAll('option');
+  options.forEach(function(opt) {
+    if (!opt.value) return; // keep the placeholder
+    opt.style.display = opt.textContent.toLowerCase().indexOf(search) !== -1 ? '' : 'none';
+  });
 }
 
 function resetContactSelection() {
