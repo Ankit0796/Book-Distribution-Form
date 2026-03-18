@@ -250,10 +250,10 @@ input.input-ok { border-color: #15803D; }
       <input type="text" id="state" readonly placeholder="Auto-filled or type if new" />
     </div>
 
-    <!-- COUNTRY -->
+  <!-- COUNTRY -->
     <div class="field">
       <label>Country *</label>
-      <input type="text" id="country" readonly placeholder="Auto-filled" value="India" />
+      <input type="text" id="country" readonly placeholder="Auto-filled or type if new" />
     </div>
 
     <!-- ISBN -->
@@ -533,25 +533,23 @@ function clearValidationUI() {
 }
 
 function makeCityStateCountryEditable() {
-  ['city','state'].forEach(function(id) {
+  ['city','state','country'].forEach(function(id) {
     var el = document.getElementById(id);
-    el.value = '';
+    el.value = id === 'country' ? 'India' : '';
     el.removeAttribute('readonly');
     el.style.background = '#fff';
     el.style.color = '#111827';
   });
-  // Country stays readonly but gets default value India
-  document.getElementById('country').value = 'India';
 }
 
 function makeCityStateCountryReadonly() {
-  ['city','state'].forEach(function(id) {
+  ['city','state','country'].forEach(function(id) {
     var el = document.getElementById(id);
+    el.value = '';
     el.setAttribute('readonly', true);
     el.style.background = '#F3F4F6';
     el.style.color = '#6B7280';
   });
-  document.getElementById('country').value = 'India';
 }
 
 // ── DRAFT SAVE ───────────────────────────────
@@ -840,7 +838,7 @@ function clearContact() {
   makeCityStateCountryReadonly();
   document.getElementById('city').value    = '';
   document.getElementById('state').value   = '';
-  document.getElementById('country').value = 'India';
+  document.getElementById('country').value = '';
   document.getElementById('contact').value = '';
   document.getElementById('sdContact_text').textContent = '-- Select Contact --';
   document.getElementById('sdContact_text').style.color = '#9CA3AF';
@@ -864,7 +862,7 @@ function clearInstitution() {
   makeCityStateCountryReadonly();
   document.getElementById('city').value    = '';
   document.getElementById('state').value   = '';
-  document.getElementById('country').value = 'India';
+  document.getElementById('country').value = '';
   document.getElementById('institution').value = '';
   document.getElementById('sdInstitution_text').textContent = '-- Select Institution --';
   document.getElementById('sdInstitution_text').style.color = '#9CA3AF';
@@ -874,8 +872,18 @@ function clearInstitution() {
   document.getElementById('newInstitutionName').value = '';
   document.getElementById('dupInstitutionMsg').style.display = 'none';
   rebuildInstitutionDropdown(null);
-  rebuildContactDropdown(null);
-  resetContactSelection();
+
+  // Only reset contact if contact is NOT being added as new
+  var contactVal = document.getElementById('contact').value;
+  if (contactVal !== '__NEW__') {
+    rebuildContactDropdown(null);
+    resetContactSelection();
+  } else {
+    // Contact is new — just rebuild full contact list but keep all new contact fields intact
+    rebuildContactDropdown(null);
+    // Also make city and state editable again since institution was cleared
+    makeCityStateCountryEditable();
+  }
 }
 
 // ── DUPLICATE CHECKS ─────────────────────────
@@ -1196,7 +1204,7 @@ function clearForm() {
   makeCityStateCountryReadonly();
   document.getElementById('city').value    = '';
   document.getElementById('state').value   = '';
-  document.getElementById('country').value = 'India';
+  document.getElementById('country').value = '';
   ['isbn','bookTitle','author','edition','numBooks','remarks'].forEach(clearField);
   document.getElementById('visitDate').valueAsDate = new Date();
   document.getElementById('isbnNotFound').style.display = 'none';
