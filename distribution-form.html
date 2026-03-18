@@ -1172,14 +1172,14 @@ function submitForm() {
   .then(function() {
     localStorage.removeItem(DRAFT_KEY);
     showMsg('Submitted successfully!', true);
-    showReceipt();
     clearForm();
+    showReceipt();
   })
   .catch(function() {
     localStorage.removeItem(DRAFT_KEY);
     showMsg('Submitted successfully!', true);
-    showReceipt();
     clearForm();
+    showReceipt();
   });
 }
 
