@@ -575,10 +575,12 @@ var STUDENT_SUBMIT_URL  = 'YOUR_STUDENT_ENDPOINT_HERE';
 var F_DRAFT_KEY = 'cbsFacultyDraft';
 var S_DRAFT_KEY = 'cbsStudentDraft';
 
-var allInstitutions   = [];
-var allFContacts      = [];
-var allSContacts      = [];
-var allBooks          = [];
+var allInstitutions    = [];
+var allFContacts       = [];
+var allSContacts       = [];
+var allBooks           = [];
+var allFSubmissions    = [];
+var allSSubmissions    = [];
 var dropdownData      = {};
 var currentRep        = '';
 var currentRole       = '';
@@ -669,12 +671,14 @@ function selectRole(role) {
 // ── LOAD DATA ────────────────────────────────
 function loadAllData(callback) {
   var loaded = 0;
-  function done() { loaded++; if (loaded === 4) callback(); }
+  function done() { loaded++; if (loaded === 6) callback(); }
 
-  loadSheet('Institutions', function(rows) { allInstitutions = rows; done(); });
-  loadSheet('Books',        function(rows) { allBooks = rows; done(); });
-  loadSheet('Contacts',     function(rows) { allFContacts = rows; done(); });
-  loadSheet('Student_Contacts', function(rows) { allSContacts = rows; done(); });
+  loadSheet('Institutions',        function(rows) { allInstitutions = rows; done(); });
+  loadSheet('Books',               function(rows) { allBooks = rows; done(); });
+  loadSheet('Contacts',            function(rows) { allFContacts = rows; done(); });
+  loadSheet('Student_Contacts',    function(rows) { allSContacts = rows; done(); });
+  loadSheet('Faculty_Submissions', function(rows) { allFSubmissions = rows; done(); });
+  loadSheet('Student_Submissions', function(rows) { allSSubmissions = rows; done(); });
 }
 
 // ── FACULTY FORM START ────────────────────────
@@ -875,39 +879,67 @@ function validateBatch() {
 // ── FACULTY DUPLICATE CHECK ───────────────────
 function checkFDuplicate() {
   if (!fIsNewContact) return;
-  var name  = (document.getElementById('fNewContactName').value || '').trim().toLowerCase();
-  var email = (document.getElementById('fEmail').value           || '').trim().toLowerCase();
-  var phone = (document.getElementById('fMobile').value          || '').trim();
-  var inst  = (document.getElementById('fInstitution').value     || '').trim().toLowerCase();
-  if (inst === '__new__') inst = (document.getElementById('fNewInstitutionName').value || '').trim().toLowerCase();
 
-  var msg = document.getElementById('fDupContactMsg');
-  var box = document.getElementById('fDupConfirmBox');
+  var name  = (document.getElementById('fNewContactName').value || '').trim().toLowerCase();
+  var email = (document.getElementById('fEmail').value          || '').trim().toLowerCase();
+  var phone = (document.getElementById('fMobile').value         || '').trim();
+  var instVal = document.getElementById('fInstitution').value || '';
+  var inst = instVal === '__NEW__'
+    ? (document.getElementById('fNewInstitutionName').value || '').trim().toLowerCase()
+    : instVal.trim().toLowerCase();
+
+  var msg  = document.getElementById('fDupContactMsg');
+  var box  = document.getElementById('fDupConfirmBox');
   var bmsg = document.getElementById('fDupConfirmMsg');
-  var chk = document.getElementById('fDupConfirmCheck');
+  var chk  = document.getElementById('fDupConfirmCheck');
 
   if (!name) { msg.style.display = 'none'; box.style.display = 'none'; fDupScore = 0; return; }
 
-  var best = 0; var bestR = null;
-  allFContacts.forEach(function(r) {
+  var best = 0; var bestR = null; var bestSource = '';
+
+  // ── Check Faculty_Submissions first ──
+  allFSubmissions.forEach(function(r) {
+    var rName  = (r[6]  || '').trim().toLowerCase();  // G
+    var rInst  = (r[2]  || '').trim().toLowerCase();  // C
+    var rEmail = (r[7]  || '').trim().toLowerCase();  // H
+    var rPhone = (r[8]  || '').trim();                // I
     var s = 0;
-    if (name  && (r[0]||'').trim().toLowerCase() === name)  s++;
-    if (inst  && (r[1]||'').trim().toLowerCase() === inst)  s++;
-    if (email && (r[4]||'').trim().toLowerCase() === email) s++;
-    if (phone && (r[5]||'').trim()               === phone) s++;
-    if (s > best) { best = s; bestR = r; }
+    if (name  && rName  && name  === rName)  s++;
+    if (inst  && rInst  && inst  === rInst)  s++;
+    if (email && rEmail && email === rEmail) s++;
+    if (phone && rPhone && phone === rPhone) s++;
+    if (s > best) { best = s; bestR = r; bestSource = 'submission'; }
   });
 
+  // ── Fall back to Contacts sheet if no match found ──
+  if (best === 0) {
+    allFContacts.forEach(function(r) {
+      var rName  = (r[0] || '').trim().toLowerCase();
+      var rInst  = (r[1] || '').trim().toLowerCase();
+      var rEmail = (r[4] || '').trim().toLowerCase();
+      var rPhone = (r[5] || '').trim();
+      var s = 0;
+      if (name  && rName  && name  === rName)  s++;
+      if (inst  && rInst  && inst  === rInst)  s++;
+      if (email && rEmail && email === rEmail) s++;
+      if (phone && rPhone && phone === rPhone) s++;
+      if (s > best) { best = s; bestR = r; bestSource = 'contacts'; }
+    });
+  }
+
   fDupScore = best;
+  var displayName = bestSource === 'submission' ? (bestR[6] || '?') : (bestR[0] || '?');
+  var displayInst = bestSource === 'submission' ? (bestR[2] || '?') : (bestR[1] || '?');
+
   if (best === 4) {
-    msg.textContent = '🚫 Exact duplicate: "' + bestR[0] + '" at "' + bestR[1] + '" already exists. Please select from dropdown.';
+    msg.textContent = '🚫 Exact duplicate: "' + displayName + '" at "' + displayInst + '" was already submitted. Please do not submit again.';
     msg.className = 'warn-msg warn-red'; msg.style.display = 'block';
     box.style.display = 'none'; chk.checked = false; return;
   }
   if (best >= 2) {
-    msg.textContent = '⚠️ ' + (best === 3 ? 'Probable' : 'Possible') + ' duplicate: "' + bestR[0] + '" at "' + bestR[1] + '" matches ' + best + '/4 identifiers.';
+    msg.textContent = '⚠️ ' + (best === 3 ? 'Probable' : 'Possible') + ' duplicate: "' + displayName + '" at "' + displayInst + '" matches ' + best + '/4 identifiers.';
     msg.className = 'warn-msg warn-amber'; msg.style.display = 'block';
-    bmsg.textContent = 'Matches ' + best + ' of 4 identifiers. Confirm this is a different person.';
+    bmsg.textContent = 'Matches ' + best + ' of 4 identifiers. Confirm this is a different person before submitting.';
     box.style.display = 'block'; chk.checked = false; return;
   }
   msg.style.display = 'none'; box.style.display = 'none'; chk.checked = false; fDupScore = 0;
@@ -916,43 +948,72 @@ function checkFDuplicate() {
 // ── STUDENT DUPLICATE CHECK ───────────────────
 function checkSDuplicate() {
   if (!sIsNewContact) return;
-  var name  = (document.getElementById('sNewContactName').value || '').trim().toLowerCase();
-  var email = (document.getElementById('sEmail').value           || '').trim().toLowerCase();
-  var phone = (document.getElementById('sMobile').value          || '').trim();
-  var inst  = (document.getElementById('sInstitution').value     || '').trim().toLowerCase();
-  if (inst === '__new__') inst = (document.getElementById('sNewInstitutionName').value || '').trim().toLowerCase();
 
-  var msg = document.getElementById('sDupContactMsg');
-  var box = document.getElementById('sDupConfirmBox');
+  var name  = (document.getElementById('sNewContactName').value || '').trim().toLowerCase();
+  var email = (document.getElementById('sEmail').value          || '').trim().toLowerCase();
+  var phone = (document.getElementById('sMobile').value         || '').trim();
+  var instVal = document.getElementById('sInstitution').value || '';
+  var inst = instVal === '__NEW__'
+    ? (document.getElementById('sNewInstitutionName').value || '').trim().toLowerCase()
+    : instVal.trim().toLowerCase();
+
+  var msg  = document.getElementById('sDupContactMsg');
+  var box  = document.getElementById('sDupConfirmBox');
   var bmsg = document.getElementById('sDupConfirmMsg');
-  var chk = document.getElementById('sDupConfirmCheck');
+  var chk  = document.getElementById('sDupConfirmCheck');
 
   if (!name) { msg.style.display = 'none'; box.style.display = 'none'; sDupScore = 0; return; }
 
-  var best = 0; var bestR = null;
-  allSContacts.forEach(function(r) {
+  var best = 0; var bestR = null; var bestSource = '';
+
+  // ── Check Student_Submissions first ──
+  allSSubmissions.forEach(function(r) {
+    var rName  = (r[7]  || '').trim().toLowerCase();  // H
+    var rInst  = (r[3]  || '').trim().toLowerCase();  // D
+    var rEmail = (r[11] || '').trim().toLowerCase();  // L
+    var rPhone = (r[12] || '').trim();                // M
     var s = 0;
-    if (name  && (r[0]||'').trim().toLowerCase() === name)  s++;
-    if (inst  && (r[1]||'').trim().toLowerCase() === inst)  s++;
-    if (email && (r[2]||'').trim().toLowerCase() === email) s++;
-    if (phone && (r[3]||'').trim()               === phone) s++;
-    if (s > best) { best = s; bestR = r; }
+    if (name  && rName  && name  === rName)  s++;
+    if (inst  && rInst  && inst  === rInst)  s++;
+    if (email && rEmail && email === rEmail) s++;
+    if (phone && rPhone && phone === rPhone) s++;
+    if (s > best) { best = s; bestR = r; bestSource = 'submission'; }
   });
 
+  // ── Fall back to Student_Contacts sheet if no match found ──
+  if (best === 0) {
+    allSContacts.forEach(function(r) {
+      var rName  = (r[0] || '').trim().toLowerCase();
+      var rInst  = (r[1] || '').trim().toLowerCase();
+      var rEmail = (r[2] || '').trim().toLowerCase();
+      var rPhone = (r[3] || '').trim();
+      var s = 0;
+      if (name  && rName  && name  === rName)  s++;
+      if (inst  && rInst  && inst  === rInst)  s++;
+      if (email && rEmail && email === rEmail) s++;
+      if (phone && rPhone && phone === rPhone) s++;
+      if (s > best) { best = s; bestR = r; bestSource = 'contacts'; }
+    });
+  }
+
   sDupScore = best;
+  var displayName = bestSource === 'submission' ? (bestR[7] || '?') : (bestR[0] || '?');
+  var displayInst = bestSource === 'submission' ? (bestR[3] || '?') : (bestR[1] || '?');
+
   if (best === 4) {
-    msg.textContent = '🚫 Exact duplicate: "' + bestR[0] + '" at "' + bestR[1] + '" already exists. Please select from dropdown.';
+    msg.textContent = '🚫 Exact duplicate: "' + displayName + '" at "' + displayInst + '" was already submitted. Please do not submit again.';
     msg.className = 'warn-msg warn-red'; msg.style.display = 'block';
     box.style.display = 'none'; chk.checked = false; return;
   }
   if (best >= 2) {
-    msg.textContent = '⚠️ ' + (best === 3 ? 'Probable' : 'Possible') + ' duplicate: "' + bestR[0] + '" at "' + bestR[1] + '" matches ' + best + '/4 identifiers.';
+    msg.textContent = '⚠️ ' + (best === 3 ? 'Probable' : 'Possible') + ' duplicate: "' + displayName + '" at "' + displayInst + '" matches ' + best + '/4 identifiers.';
     msg.className = 'warn-msg warn-amber'; msg.style.display = 'block';
-    bmsg.textContent = 'Matches ' + best + ' of 4 identifiers. Confirm this is a different student.';
+    bmsg.textContent = 'Matches ' + best + ' of 4 identifiers. Confirm this is a different student before submitting.';
     box.style.display = 'block'; chk.checked = false; return;
   }
   msg.style.display = 'none'; box.style.display = 'none'; chk.checked = false; sDupScore = 0;
 }
+
 
 // ── FACULTY FIELD STATE ───────────────────────
 function makeFContactEditable() {
@@ -1982,11 +2043,14 @@ document.getElementById('scannerModal').addEventListener('click', function(e) {
 
 // ── SHEET LOADER ──────────────────────────────
 function loadSheet(sheetName, callback) {
-  fetch(API + encodeURIComponent(sheetName))
+  fetch(API + encodeURIComponent(sheetName) + '&headers=0&tq=select%20*')
   .then(function(r) { return r.text(); })
   .then(function(text) {
     var json = JSON.parse(text.substring(47).slice(0,-2));
-    var rows = json.table.rows.map(function(r) { return r.c.map(function(c) { return c ? c.v : ''; }); });
+    var rows = json.table.rows.map(function(r) {
+      return r.c.map(function(c) { return c ? (c.v !== null && c.v !== undefined ? String(c.v) : '') : ''; });
+    });
+    // Row 0 is the header — skip it
     callback(rows.slice(1));
   })
   .catch(function(e) { console.error('Error loading ' + sheetName, e); callback([]); });
