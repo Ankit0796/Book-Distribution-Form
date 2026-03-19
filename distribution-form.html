@@ -92,6 +92,13 @@ input.input-ok { border-color: #15803D; }
 .receipt-label { color: #6B7280; font-weight: bold; flex: 1; }
 .receipt-value { color: #111827; flex: 2; text-align: right; }
 .optional { color: #9CA3AF; font-weight: normal; }
+  .book-entry { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 10px; padding: 16px; margin-bottom: 12px; position: relative; }
+.book-entry-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.book-entry-title { font-size: 14px; font-weight: bold; color: #1B3A6B; }
+.book-remove-btn { background: none; border: none; color: #9CA3AF; font-size: 20px; cursor: pointer; line-height: 1; padding: 0 4px; }
+.book-remove-btn:hover { color: #B91C1C; }
+.add-book-btn { width: 100%; padding: 12px; background: #EFF6FF; color: #2563EB; border: 2px dashed #2563EB; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 4px; margin-bottom: 16px; }
+.add-book-btn:hover { background: #DBEAFE; }
   .scanner-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; }
 .scanner-modal.open { display: flex; }
 .scanner-box { background: white; border-radius: 16px; padding: 20px; width: 92%; max-width: 420px; }
@@ -326,20 +333,9 @@ input.input-ok { border-color: #15803D; }
     <div class="field"><label>State *</label><input type="text" id="fState" readonly placeholder="Auto-filled or type if new" /></div>
     <div class="field"><label>Country *</label><input type="text" id="fCountry" readonly placeholder="Auto-filled or type if new" /></div>
 
-    <!-- ISBN -->
-    <div class="field">
-      <label>ISBN *</label>
-      <div class="isbn-row">
-        <input type="text" id="fIsbn" maxlength="13" placeholder="Type 13 digit ISBN" oninput="validateISBNInput('f')" />
-        <button class="scan-btn" onclick="openScanner('f')">📷 Scan</button>
-        <button onclick="lookupISBN('f')">Search</button>
-      </div>
-      <p id="fIsbnNotFound" class="not-found"></p>
-    </div>
-    <div class="field"><label>Book Title</label><input type="text" id="fBookTitle" readonly placeholder="Auto-filled" /></div>
-    <div class="field"><label>Author</label><input type="text" id="fAuthor" readonly placeholder="Auto-filled" /></div>
-    <div class="field"><label>Edition</label><input type="text" id="fEdition" readonly placeholder="Auto-filled" /></div>
-    <div class="field"><label>Number of Books *</label><input type="number" id="fNumBooks" min="1" placeholder="Enter quantity" /></div>
+    <!-- BOOKS -->
+    <div id="fBooksContainer"></div>
+    <button class="add-book-btn" onclick="addBookEntry('f')">+ Add Another Book</button>
     <div class="field"><label>Remarks <span class="optional">(Optional)</span></label><textarea id="fRemarks" rows="3" placeholder="Optional"></textarea></div>
 
     <div class="btn-row">
@@ -363,11 +359,7 @@ input.input-ok { border-color: #15803D; }
       <div class="receipt-row"><span class="receipt-label">Mobile</span><span class="receipt-value" id="fr_mobile"></span></div>
       <div class="receipt-row"><span class="receipt-label">Alt Mobile</span><span class="receipt-value" id="fr_altMobile"></span></div>
       <div class="receipt-row"><span class="receipt-label">Landline</span><span class="receipt-value" id="fr_landline"></span></div>
-      <div class="receipt-row"><span class="receipt-label">Book Title</span><span class="receipt-value" id="fr_bookTitle"></span></div>
-      <div class="receipt-row"><span class="receipt-label">ISBN</span><span class="receipt-value" id="fr_isbn"></span></div>
-      <div class="receipt-row"><span class="receipt-label">Author</span><span class="receipt-value" id="fr_author"></span></div>
-      <div class="receipt-row"><span class="receipt-label">Edition</span><span class="receipt-value" id="fr_edition"></span></div>
-      <div class="receipt-row"><span class="receipt-label">No. of Books</span><span class="receipt-value" id="fr_numBooks"></span></div>
+      <div id="fr_booksSection"></div>
       <div class="receipt-row"><span class="receipt-label">Remarks</span><span class="receipt-value" id="fr_remarks"></span></div>
       <button class="btn-pdf" onclick="downloadReceipt('faculty')">⬇️ Download Receipt</button>
     </div>
@@ -516,20 +508,9 @@ input.input-ok { border-color: #15803D; }
     <div class="field"><label>State *</label><input type="text" id="sState" readonly placeholder="Auto-filled or type if new" /></div>
     <div class="field"><label>Country *</label><input type="text" id="sCountry" readonly placeholder="Auto-filled or type if new" /></div>
 
-    <!-- ISBN -->
-    <div class="field">
-      <label>ISBN *</label>
-      <div class="isbn-row">
-        <input type="text" id="sIsbn" maxlength="13" placeholder="Type 13 digit ISBN" oninput="validateISBNInput('s')" />
-        <button class="scan-btn" onclick="openScanner('s')">📷 Scan</button>
-        <button onclick="lookupISBN('s')">Search</button>
-      </div>
-      <p id="sIsbnNotFound" class="not-found"></p>
-    </div>
-    <div class="field"><label>Book Title</label><input type="text" id="sBookTitle" readonly placeholder="Auto-filled" /></div>
-    <div class="field"><label>Author</label><input type="text" id="sAuthor" readonly placeholder="Auto-filled" /></div>
-    <div class="field"><label>Edition</label><input type="text" id="sEdition" readonly placeholder="Auto-filled" /></div>
-    <div class="field"><label>Number of Books *</label><input type="number" id="sNumBooks" min="1" placeholder="Enter quantity" /></div>
+    <!-- BOOKS -->
+    <div id="sBooksContainer"></div>
+    <button class="add-book-btn" onclick="addBookEntry('s')">+ Add Another Book</button>
     <div class="field"><label>Remarks <span class="optional">(Optional)</span></label><textarea id="sRemarks" rows="3" placeholder="Optional"></textarea></div>
 
     <div class="btn-row">
@@ -552,11 +533,7 @@ input.input-ok { border-color: #15803D; }
       <div class="receipt-row"><span class="receipt-label">Batch</span><span class="receipt-value" id="sr_batch"></span></div>
       <div class="receipt-row"><span class="receipt-label">Email</span><span class="receipt-value" id="sr_email"></span></div>
       <div class="receipt-row"><span class="receipt-label">Mobile</span><span class="receipt-value" id="sr_mobile"></span></div>
-      <div class="receipt-row"><span class="receipt-label">Book Title</span><span class="receipt-value" id="sr_bookTitle"></span></div>
-      <div class="receipt-row"><span class="receipt-label">ISBN</span><span class="receipt-value" id="sr_isbn"></span></div>
-      <div class="receipt-row"><span class="receipt-label">Author</span><span class="receipt-value" id="sr_author"></span></div>
-      <div class="receipt-row"><span class="receipt-label">Edition</span><span class="receipt-value" id="sr_edition"></span></div>
-      <div class="receipt-row"><span class="receipt-label">No. of Books</span><span class="receipt-value" id="sr_numBooks"></span></div>
+      <div id="sr_booksSection"></div>
       <div class="receipt-row"><span class="receipt-label">Remarks</span><span class="receipt-value" id="sr_remarks"></span></div>
       <button class="btn-pdf" onclick="downloadReceipt('student')">⬇️ Download Receipt</button>
     </div>
@@ -695,6 +672,7 @@ function startFacultyForm() {
   dropdownData['sdFDepartment'] = DEPARTMENTS.map(function(d) { return { value: d, label: d }; });
   renderItems('sdFDepartment', dropdownData['sdFDepartment']);
 
+  addBookEntry('f');
   loadAllData(function() {
     rebuildFInstitutionDropdown(null);
     rebuildFContactDropdown(null);
@@ -716,6 +694,7 @@ function startStudentForm() {
   dropdownData['sdSCourse'] = COURSES.map(function(d) { return { value: d, label: d }; });
   renderItems('sdSCourse', dropdownData['sdSCourse']);
 
+  addBookEntry('s');
   loadAllData(function() {
     rebuildSInstitutionDropdown(null);
     rebuildSContactDropdown(null);
@@ -899,10 +878,10 @@ function checkFDuplicate() {
 
   // ── Check Faculty_Submissions first ──
   allFSubmissions.forEach(function(r) {
-    var rName  = (r[6]  || '').trim().toLowerCase();  // G
-    var rInst  = (r[2]  || '').trim().toLowerCase();  // C
-    var rEmail = (r[7]  || '').trim().toLowerCase();  // H
-    var rPhone = (r[8]  || '').trim();                // I
+    var rName  = (r[7]  || '').trim().toLowerCase();  // H - Contact Person
+    var rInst  = (r[3]  || '').trim().toLowerCase();  // D - Institution
+    var rEmail = (r[10] || '').trim().toLowerCase();  // K - Email
+    var rPhone = (r[11] || '').trim().replace(/^\+91\s*/, ''); // L - Mobile
     var s = 0;
     if (name  && rName  && name  === rName)  s++;
     if (inst  && rInst  && inst  === rInst)  s++;
@@ -928,8 +907,8 @@ function checkFDuplicate() {
   }
 
   fDupScore = best;
-  var displayName = bestSource === 'submission' ? (bestR[6] || '?') : (bestR[0] || '?');
-  var displayInst = bestSource === 'submission' ? (bestR[2] || '?') : (bestR[1] || '?');
+  var displayName = bestSource === 'submission' ? (bestR[7] || '?') : (bestR[0] || '?');
+  var displayInst = bestSource === 'submission' ? (bestR[3] || '?') : (bestR[1] || '?');
 
   if (best === 4) {
     msg.textContent = '🚫 Exact duplicate: "' + displayName + '" at "' + displayInst + '" was already submitted. Please do not submit again.';
@@ -968,10 +947,10 @@ function checkSDuplicate() {
 
   // ── Check Student_Submissions first ──
   allSSubmissions.forEach(function(r) {
-    var rName  = (r[7]  || '').trim().toLowerCase();  // H
-    var rInst  = (r[3]  || '').trim().toLowerCase();  // D
-    var rEmail = (r[11] || '').trim().toLowerCase();  // L
-    var rPhone = (r[12] || '').trim();                // M
+    var rName  = (r[7]  || '').trim().toLowerCase();  // H - Student Name
+    var rInst  = (r[3]  || '').trim().toLowerCase();  // D - Institution
+    var rEmail = (r[11] || '').trim().toLowerCase();  // L - Email
+    var rPhone = (r[12] || '').trim().replace(/^\+91\s*/, ''); // M - Mobile
     var s = 0;
     if (name  && rName  && name  === rName)  s++;
     if (inst  && rInst  && inst  === rInst)  s++;
@@ -997,8 +976,8 @@ function checkSDuplicate() {
   }
 
   sDupScore = best;
-  var displayName = bestSource === 'submission' ? (bestR[7] || '?') : (bestR[0] || '?');
-  var displayInst = bestSource === 'submission' ? (bestR[3] || '?') : (bestR[1] || '?');
+  var displayName = bestSource === 'submission' ? (bestR[7]  || '?') : (bestR[0] || '?');
+  var displayInst = bestSource === 'submission' ? (bestR[3]  || '?') : (bestR[1] || '?');
 
   if (best === 4) {
     msg.textContent = '🚫 Exact duplicate: "' + displayName + '" at "' + displayInst + '" was already submitted. Please do not submit again.';
@@ -1701,15 +1680,18 @@ function submitFacultyForm() {
   var city        = document.getElementById('fCity').value.trim();
   var state       = document.getElementById('fState').value.trim();
   var country     = document.getElementById('fCountry').value.trim();
-  var isbn        = document.getElementById('fIsbn').value.trim();
-  var bookTitle   = document.getElementById('fBookTitle').value.trim();
-  var numBooks    = document.getElementById('fNumBooks').value;
+  var books = getBookEntries('f');
 
   var institution = instVal === '__NEW__' ? document.getElementById('fNewInstitutionName').value.trim() : instVal;
   var contact     = contactVal === '__NEW__' ? document.getElementById('fNewContactName').value.trim() : contactVal;
 
-  if (!salesperson || !visitDate || !institution || !contact || !bookTitle || !numBooks) { showFMsg('Please fill all required fields marked with *', false); return; }
-  if (!isbn || isbn.length !== 13 || /[^0-9]/.test(isbn)) { showFMsg('ISBN must be exactly 13 digits.', false); return; }
+  if (!salesperson || !visitDate || !institution || !contact) { showFMsg('Please fill all required fields marked with *', false); return; }
+  if (books.length === 0) { showFMsg('Please add at least one book.', false); return; }
+  for (var bi = 0; bi < books.length; bi++) {
+    if (!books[bi].isbn) { showFMsg('Book ' + (bi+1) + ': Please enter an ISBN.', false); return; }
+    if (books[bi].isbn.length !== 13 || /[^0-9]/.test(books[bi].isbn)) { showFMsg('Book ' + (bi+1) + ': ISBN must be exactly 13 digits.', false); return; }
+    if (!books[bi].title) { showFMsg('Book ' + (bi+1) + ': Please search the ISBN to auto-fill book details.', false); return; }
+  }
   if (!email) { showFMsg('Email is required.', false); return; }
   if (!mobile) { showFMsg('Mobile is required.', false); return; }
   if (!designation) { showFMsg('Designation is required.', false); return; }
@@ -1731,14 +1713,17 @@ function submitFacultyForm() {
 
   var mR = document.getElementById('fMobile').value.trim();
   var aR = document.getElementById('fAltMobile').value.trim();
+  var remarks = document.getElementById('fRemarks').value;
 
-  var row = [visitDate, salesperson, 'Faculty', institution, city, state, country,
+  var baseRow = [visitDate, salesperson, 'Faculty', institution, city, state, country,
     contact, designation, department, email,
     mR ? '+91 ' + mR : '', aR ? '+91 ' + aR : '',
-    document.getElementById('fLandline').value,
-    bookTitle, isbn, document.getElementById('fAuthor').value,
-    document.getElementById('fEdition').value, numBooks,
-    document.getElementById('fRemarks').value];
+    document.getElementById('fLandline').value];
+
+  // Build one row per book
+  var rows = books.map(function(b) {
+    return baseRow.concat([b.title, b.isbn, b.author, b.edition, remarks]);
+  });
 
   fLastSubmission = {
     date: visitDate, salesperson: salesperson, institution: institution,
@@ -1746,13 +1731,10 @@ function submitFacultyForm() {
     designation: designation, department: department, email: email,
     mobile: mR ? '+91 ' + mR : '', altMobile: aR ? '+91 ' + aR : '',
     landline: document.getElementById('fLandline').value,
-    bookTitle: bookTitle, isbn: isbn,
-    author: document.getElementById('fAuthor').value,
-    edition: document.getElementById('fEdition').value,
-    numBooks: numBooks, remarks: document.getElementById('fRemarks').value,
+    books: books, remarks: remarks,
   };
 
-  fetch(FACULTY_SUBMIT_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ values: row }) })
+  fetch(FACULTY_SUBMIT_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ rows: rows }) })
   .then(function() { localStorage.removeItem(F_DRAFT_KEY); showFMsg('Submitted successfully!', true); clearFForm(); showFReceipt(); })
   .catch(function() { localStorage.removeItem(F_DRAFT_KEY); showFMsg('Submitted successfully!', true); clearFForm(); showFReceipt(); });
 }
@@ -1771,15 +1753,18 @@ function submitStudentForm() {
   var city        = document.getElementById('sCity').value.trim();
   var state       = document.getElementById('sState').value.trim();
   var country     = document.getElementById('sCountry').value.trim();
-  var isbn        = document.getElementById('sIsbn').value.trim();
-  var bookTitle   = document.getElementById('sBookTitle').value.trim();
-  var numBooks    = document.getElementById('sNumBooks').value;
+  var books = getBookEntries('s');
 
   var institution = instVal === '__NEW__' ? document.getElementById('sNewInstitutionName').value.trim() : instVal;
   var contact     = contactVal === '__NEW__' ? document.getElementById('sNewContactName').value.trim() : contactVal;
 
-  if (!salesperson || !visitDate || !institution || !contact || !bookTitle || !numBooks) { showSMsg('Please fill all required fields marked with *', false); return; }
-  if (!isbn || isbn.length !== 13 || /[^0-9]/.test(isbn)) { showSMsg('ISBN must be exactly 13 digits.', false); return; }
+ if (!salesperson || !visitDate || !institution || !contact) { showSMsg('Please fill all required fields marked with *', false); return; }
+  if (books.length === 0) { showSMsg('Please add at least one book.', false); return; }
+  for (var bi = 0; bi < books.length; bi++) {
+    if (!books[bi].isbn) { showSMsg('Book ' + (bi+1) + ': Please enter an ISBN.', false); return; }
+    if (books[bi].isbn.length !== 13 || /[^0-9]/.test(books[bi].isbn)) { showSMsg('Book ' + (bi+1) + ': ISBN must be exactly 13 digits.', false); return; }
+    if (!books[bi].title) { showSMsg('Book ' + (bi+1) + ': Please search the ISBN to auto-fill book details.', false); return; }
+  }
   if (!email)  { showSMsg('Email is required.', false); return; }
   if (!mobile) { showSMsg('Mobile is required.', false); return; }
   if (!year)   { showSMsg('Year is required.', false); return; }
@@ -1796,25 +1781,24 @@ function submitStudentForm() {
   }
 
   var mR = document.getElementById('sMobile').value.trim();
+  var remarks = document.getElementById('sRemarks').value;
 
-  var row = [visitDate, salesperson, 'Student', institution, city, state, country,
-    contact, year, course, batch, email, mR ? '+91 ' + mR : '',
-    bookTitle, isbn, document.getElementById('sAuthor').value,
-    document.getElementById('sEdition').value, numBooks,
-    document.getElementById('sRemarks').value];
+  var baseRow = [visitDate, salesperson, 'Student', institution, city, state, country,
+    contact, year, course, batch, email, mR ? '+91 ' + mR : ''];
+
+  var rows = books.map(function(b) {
+    return baseRow.concat([b.title, b.isbn, b.author, b.edition, remarks]);
+  });
 
   sLastSubmission = {
     date: visitDate, salesperson: salesperson, institution: institution,
     city: city, state: state, country: country, contact: contact,
     year: year, course: course, batch: batch, email: email,
     mobile: mR ? '+91 ' + mR : '',
-    bookTitle: bookTitle, isbn: isbn,
-    author: document.getElementById('sAuthor').value,
-    edition: document.getElementById('sEdition').value,
-    numBooks: numBooks, remarks: document.getElementById('sRemarks').value,
+    books: books, remarks: remarks,
   };
 
-  fetch(STUDENT_SUBMIT_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ values: row }) })
+  fetch(STUDENT_SUBMIT_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ rows: rows }) })
   .then(function() { localStorage.removeItem(S_DRAFT_KEY); showSMsg('Submitted successfully!', true); clearSForm(); showSReceipt(); })
   .catch(function() { localStorage.removeItem(S_DRAFT_KEY); showSMsg('Submitted successfully!', true); clearSForm(); showSReceipt(); });
 }
@@ -1824,9 +1808,18 @@ function showFReceipt() {
   if (!fLastSubmission) return;
   var s = fLastSubmission;
   ['date','salesperson','institution','city','state','country','contact','designation','department',
-   'email','mobile','altMobile','landline','bookTitle','isbn','author','edition','numBooks','remarks'].forEach(function(k) {
+   'email','mobile','altMobile','landline','remarks'].forEach(function(k) {
     var el = document.getElementById('fr_' + k);
     if (el) el.textContent = s[k] || '—';
+  });
+  var section = document.getElementById('fr_booksSection');
+  section.innerHTML = '';
+  (s.books || []).forEach(function(b, i) {
+    section.innerHTML +=
+      '<div class="receipt-row"><span class="receipt-label">Book ' + (i+1) + ' Title</span><span class="receipt-value">' + (b.title || '—') + '</span></div>' +
+      '<div class="receipt-row"><span class="receipt-label">Book ' + (i+1) + ' ISBN</span><span class="receipt-value">' + (b.isbn || '—') + '</span></div>' +
+      '<div class="receipt-row"><span class="receipt-label">Book ' + (i+1) + ' Author</span><span class="receipt-value">' + (b.author || '—') + '</span></div>' +
+      '<div class="receipt-row"><span class="receipt-label">Book ' + (i+1) + ' Edition</span><span class="receipt-value">' + (b.edition || '—') + '</span></div>';
   });
   document.getElementById('fReceipt').style.display = 'block';
 }
@@ -1835,9 +1828,18 @@ function showSReceipt() {
   if (!sLastSubmission) return;
   var s = sLastSubmission;
   ['date','salesperson','institution','city','state','country','contact','year','course','batch',
-   'email','mobile','bookTitle','isbn','author','edition','numBooks','remarks'].forEach(function(k) {
+   'email','mobile','remarks'].forEach(function(k) {
     var el = document.getElementById('sr_' + k);
     if (el) el.textContent = s[k] || '—';
+  });
+  var section = document.getElementById('sr_booksSection');
+  section.innerHTML = '';
+  (s.books || []).forEach(function(b, i) {
+    section.innerHTML +=
+      '<div class="receipt-row"><span class="receipt-label">Book ' + (i+1) + ' Title</span><span class="receipt-value">' + (b.title || '—') + '</span></div>' +
+      '<div class="receipt-row"><span class="receipt-label">Book ' + (i+1) + ' ISBN</span><span class="receipt-value">' + (b.isbn || '—') + '</span></div>' +
+      '<div class="receipt-row"><span class="receipt-label">Book ' + (i+1) + ' Author</span><span class="receipt-value">' + (b.author || '—') + '</span></div>' +
+      '<div class="receipt-row"><span class="receipt-label">Book ' + (i+1) + ' Edition</span><span class="receipt-value">' + (b.edition || '—') + '</span></div>';
   });
   document.getElementById('sReceipt').style.display = 'block';
 }
@@ -1846,21 +1848,35 @@ function downloadReceipt(type) {
   var s = type === 'faculty' ? fLastSubmission : sLastSubmission;
   if (!s) return;
 
-  var rows = type === 'faculty' ? [
-    ['Date of Visit', s.date], ['Salesperson', s.salesperson],
-    ['Institution', s.institution], ['City', s.city], ['State', s.state], ['Country', s.country],
-    ['Contact Person', s.contact], ['Designation', s.designation], ['Department', s.department],
-    ['Email', s.email], ['Mobile', s.mobile || '—'], ['Alt Mobile', s.altMobile || '—'],
-    ['Landline', s.landline || '—'], ['Book Title', s.bookTitle], ['ISBN', s.isbn],
-    ['Author', s.author], ['Edition', s.edition], ['Number of Books', s.numBooks], ['Remarks', s.remarks || '—'],
-  ] : [
-    ['Date of Visit', s.date], ['Salesperson', s.salesperson],
-    ['Institution', s.institution], ['City', s.city], ['State', s.state], ['Country', s.country],
-    ['Student Name', s.contact], ['Year', s.year], ['Course', s.course], ['Batch', s.batch || '—'],
-    ['Email', s.email], ['Mobile', s.mobile || '—'],
-    ['Book Title', s.bookTitle], ['ISBN', s.isbn],
-    ['Author', s.author], ['Edition', s.edition], ['Number of Books', s.numBooks], ['Remarks', s.remarks || '—'],
-  ];
+  var rows = [];
+  if (type === 'faculty') {
+    rows = [
+      ['Date of Visit', s.date], ['Salesperson', s.salesperson],
+      ['Institution', s.institution], ['City', s.city], ['State', s.state], ['Country', s.country],
+      ['Contact Person', s.contact], ['Designation', s.designation], ['Department', s.department],
+      ['Email', s.email], ['Mobile', s.mobile || '—'], ['Alt Mobile', s.altMobile || '—'],
+      ['Landline', s.landline || '—'], ['Remarks', s.remarks || '—'],
+    ];
+    (s.books || []).forEach(function(b, i) {
+      rows.push(['Book ' + (i+1) + ' Title',   b.title   || '—']);
+      rows.push(['Book ' + (i+1) + ' ISBN',    b.isbn    || '—']);
+      rows.push(['Book ' + (i+1) + ' Author',  b.author  || '—']);
+      rows.push(['Book ' + (i+1) + ' Edition', b.edition || '—']);
+    });
+  } else {
+    rows = [
+      ['Date of Visit', s.date], ['Salesperson', s.salesperson],
+      ['Institution', s.institution], ['City', s.city], ['State', s.state], ['Country', s.country],
+      ['Student Name', s.contact], ['Year', s.year], ['Course', s.course], ['Batch', s.batch || '—'],
+      ['Email', s.email], ['Mobile', s.mobile || '—'], ['Remarks', s.remarks || '—'],
+    ];
+    (s.books || []).forEach(function(b, i) {
+      rows.push(['Book ' + (i+1) + ' Title',   b.title   || '—']);
+      rows.push(['Book ' + (i+1) + ' ISBN',    b.isbn    || '—']);
+      rows.push(['Book ' + (i+1) + ' Author',  b.author  || '—']);
+      rows.push(['Book ' + (i+1) + ' Edition', b.edition || '—']);
+    });
+  }
 
   var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">';
   html += '<title>Receipt - ' + s.contact + ' - ' + s.date + '</title>';
@@ -1894,11 +1910,10 @@ function downloadReceipt(type) {
 function clearFForm() {
   resetFContactSelection(); clearFContact();
   makeFCityStateReadonly();
-  ['fCity','fState','fCountry','fIsbn','fBookTitle','fAuthor','fEdition','fNumBooks','fRemarks'].forEach(function(id) {
+  ['fCity','fState','fCountry','fRemarks'].forEach(function(id) {
     document.getElementById(id).value = '';
   });
-  document.getElementById('fIsbn').classList.remove('input-error','input-ok');
-  document.getElementById('fIsbnNotFound').style.display = 'none';
+  clearBookEntries('f');
   document.getElementById('fVisitDate').valueAsDate = new Date();
   document.getElementById('facultyDraftBanner').style.display = 'none';
   document.getElementById('fReceipt').style.display = 'none';
@@ -1907,11 +1922,10 @@ function clearFForm() {
 function clearSForm() {
   resetSContactSelection(); clearSContact();
   makeSCityStateReadonly();
-  ['sCity','sState','sCountry','sIsbn','sBookTitle','sAuthor','sEdition','sNumBooks','sRemarks'].forEach(function(id) {
+  ['sCity','sState','sCountry','sRemarks'].forEach(function(id) {
     document.getElementById(id).value = '';
   });
-  document.getElementById('sIsbn').classList.remove('input-error','input-ok');
-  document.getElementById('sIsbnNotFound').style.display = 'none';
+  clearBookEntries('s');
   document.getElementById('sVisitDate').valueAsDate = new Date();
   document.getElementById('studentDraftBanner').style.display = 'none';
   document.getElementById('sReceipt').style.display = 'none';
@@ -1931,13 +1945,160 @@ function showSMsg(text, success) {
   el.style.display = 'block';
   setTimeout(function() { el.style.display = 'none'; }, 4000);
 }
+  // ── BOOK ENTRIES ──────────────────────────────
+var fBookCount = 0;
+var sBookCount = 0;
+
+function addBookEntry(prefix) {
+  var container = document.getElementById(prefix + 'BooksContainer');
+  var count = prefix === 'f' ? ++fBookCount : ++sBookCount;
+  var id = prefix + 'Book' + count;
+
+  var div = document.createElement('div');
+  div.className = 'book-entry';
+  div.id = id;
+
+  div.innerHTML =
+    '<div class="book-entry-header">' +
+      '<span class="book-entry-title">📖 Book ' + count + '</span>' +
+      (count > 1 ? '<button class="book-remove-btn" onclick="removeBookEntry(\'' + prefix + '\',\'' + id + '\')" title="Remove">✕</button>' : '') +
+    '</div>' +
+    '<div class="field">' +
+      '<label>ISBN *</label>' +
+      '<div class="isbn-row">' +
+        '<input type="text" id="' + id + '_isbn" maxlength="13" placeholder="Type 13 digit ISBN" oninput="validateISBNInput(\'' + prefix + '\',\'' + id + '\')" />' +
+        '<button class="scan-btn" onclick="openScanner(\'' + prefix + '\',\'' + id + '\')">📷 Scan</button>' +
+        '<button onclick="lookupISBNEntry(\'' + prefix + '\',\'' + id + '\')">Search</button>' +
+      '</div>' +
+      '<p id="' + id + '_notFound" class="not-found"></p>' +
+    '</div>' +
+    '<div class="field"><label>Book Title</label><input type="text" id="' + id + '_title" readonly placeholder="Auto-filled" /></div>' +
+    '<div class="field"><label>Author</label><input type="text" id="' + id + '_author" readonly placeholder="Auto-filled" /></div>' +
+    '<div class="field"><label>Edition</label><input type="text" id="' + id + '_edition" readonly placeholder="Auto-filled" /></div>';
+
+  container.appendChild(div);
+}
+
+function removeBookEntry(prefix, id) {
+  var el = document.getElementById(id);
+  if (el) el.parentNode.removeChild(el);
+  renumberBookEntries(prefix);
+}
+
+function renumberBookEntries(prefix) {
+  var container = document.getElementById(prefix + 'BooksContainer');
+  var entries = container.querySelectorAll('.book-entry');
+  entries.forEach(function(entry, i) {
+    var header = entry.querySelector('.book-entry-title');
+    if (header) header.textContent = '📖 Book ' + (i + 1);
+  });
+}
+
+function validateISBNInput(prefix, entryId) {
+  var inputId = entryId ? entryId + '_isbn' : prefix + 'Isbn';
+  var notFoundId = entryId ? entryId + '_notFound' : prefix + 'IsbnNotFound';
+  var el = document.getElementById(inputId);
+  var notFound = document.getElementById(notFoundId);
+  if (!el || !notFound) return;
+  var cleaned = el.value.replace(/[^0-9]/g, '');
+  if (cleaned !== el.value) {
+    el.value = cleaned;
+    notFound.textContent = '⚠️ ISBN can only contain numbers.';
+    notFound.className = 'not-found is-error';
+    notFound.style.display = 'block';
+    el.classList.add('input-error');
+    el.classList.remove('input-ok');
+    return;
+  }
+  el.classList.remove('input-error', 'input-ok');
+  notFound.style.display = 'none';
+  if (entryId) {
+    document.getElementById(entryId + '_title').value   = '';
+    document.getElementById(entryId + '_author').value  = '';
+    document.getElementById(entryId + '_edition').value = '';
+  }
+}
+
+function lookupISBNEntry(prefix, entryId) {
+  var inputId    = entryId + '_isbn';
+  var notFoundId = entryId + '_notFound';
+  var el         = document.getElementById(inputId);
+  var notFound   = document.getElementById(notFoundId);
+  var isbn       = el.value.trim();
+
+  document.getElementById(entryId + '_title').value   = '';
+  document.getElementById(entryId + '_author').value  = '';
+  document.getElementById(entryId + '_edition').value = '';
+  notFound.style.display = 'none';
+  el.classList.remove('input-error', 'input-ok');
+
+  if (!isbn) {
+    notFound.textContent = '⚠️ Please enter an ISBN.';
+    notFound.className = 'not-found is-error'; notFound.style.display = 'block';
+    el.classList.add('input-error'); return;
+  }
+  if (/[^0-9]/.test(isbn)) {
+    notFound.textContent = '⚠️ ISBN can only contain numbers.';
+    notFound.className = 'not-found is-error'; notFound.style.display = 'block';
+    el.classList.add('input-error'); return;
+  }
+  if (isbn.length !== 13) {
+    notFound.textContent = '⚠️ ISBN must be exactly 13 digits. You entered ' + isbn.length + '.';
+    notFound.className = 'not-found is-error'; notFound.style.display = 'block';
+    el.classList.add('input-error'); return;
+  }
+
+  var found = null;
+  allBooks.forEach(function(r) {
+    if (found) return;
+    if (String(r[0] || '').replace(/\D/g, '') === isbn) found = r;
+  });
+
+  if (found) {
+    document.getElementById(entryId + '_title').value   = found[1] || '';
+    document.getElementById(entryId + '_author').value  = found[2] || '';
+    document.getElementById(entryId + '_edition').value = found[3] || '';
+    el.classList.add('input-ok');
+    notFound.style.display = 'none';
+  } else {
+    notFound.textContent = '⚠️ Book not found. Please check the ISBN.';
+    notFound.className = 'not-found is-error'; notFound.style.display = 'block';
+    el.classList.add('input-error');
+  }
+}
+
+function getBookEntries(prefix) {
+  var container = document.getElementById(prefix + 'BooksContainer');
+  var entries   = container.querySelectorAll('.book-entry');
+  var books     = [];
+  entries.forEach(function(entry) {
+    var id    = entry.id;
+    var isbn  = (document.getElementById(id + '_isbn')    || {}).value || '';
+    var title = (document.getElementById(id + '_title')   || {}).value || '';
+    var auth  = (document.getElementById(id + '_author')  || {}).value || '';
+    var edn   = (document.getElementById(id + '_edition') || {}).value || '';
+    books.push({ isbn: isbn.trim(), title: title.trim(), author: auth.trim(), edition: edn.trim() });
+  });
+  return books;
+}
+
+function clearBookEntries(prefix) {
+  var container = document.getElementById(prefix + 'BooksContainer');
+  container.innerHTML = '';
+  if (prefix === 'f') fBookCount = 0;
+  else sBookCount = 0;
+  addBookEntry(prefix);
+}
 // ── BARCODE SCANNER ───────────────────────────
 var scannerCodeReader = null;
 var scannerStream     = null;
 var scannerPrefix     = 'f';
 
-function openScanner(prefix) {
-  scannerPrefix = prefix;
+var scannerEntryId = null;
+
+function openScanner(prefix, entryId) {
+  scannerPrefix  = prefix;
+  scannerEntryId = entryId || null;
   document.getElementById('scannerModal').classList.add('open');
   document.getElementById('scannerStatus').textContent = 'Initialising camera...';
   document.getElementById('scannerStatus').className   = 'scanner-status';
@@ -2002,9 +2163,12 @@ function startScanner() {
           return;
         }
 
-        document.getElementById(scannerPrefix + 'Isbn').value = code;
-        document.getElementById(scannerPrefix + 'IsbnNotFound').style.display = 'none';
-        document.getElementById(scannerPrefix + 'Isbn').classList.remove('input-error','input-ok');
+       var isbnFieldId    = scannerEntryId ? scannerEntryId + '_isbn'     : scannerPrefix + 'Isbn';
+        var notFoundFieldId = scannerEntryId ? scannerEntryId + '_notFound' : scannerPrefix + 'IsbnNotFound';
+
+        document.getElementById(isbnFieldId).value = code;
+        document.getElementById(notFoundFieldId).style.display = 'none';
+        document.getElementById(isbnFieldId).classList.remove('input-error','input-ok');
 
         document.getElementById('scannerStatus').textContent = '✓ ISBN ' + code + ' scanned! Click Search to look up the book.';
         document.getElementById('scannerStatus').className = 'scanner-status success';
