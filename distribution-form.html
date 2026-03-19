@@ -92,13 +92,46 @@ input.input-ok { border-color: #15803D; }
 .receipt-label { color: #6B7280; font-weight: bold; flex: 1; }
 .receipt-value { color: #111827; flex: 2; text-align: right; }
 .optional { color: #9CA3AF; font-weight: normal; }
+  .scanner-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; }
+.scanner-modal.open { display: flex; }
+.scanner-box { background: white; border-radius: 16px; padding: 20px; width: 92%; max-width: 420px; }
+.scanner-box h3 { color: #1B3A6B; font-size: 18px; margin-bottom: 6px; text-align: center; }
+.scanner-box p { color: #6B7280; font-size: 13px; text-align: center; margin-bottom: 16px; }
+.scanner-video-wrap { position: relative; width: 100%; border-radius: 10px; overflow: hidden; background: #000; margin-bottom: 16px; }
+.scanner-video-wrap video { width: 100%; display: block; max-height: 260px; object-fit: cover; }
+.scanner-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 70%; height: 80px; border: 3px solid #2563EB; border-radius: 8px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.45); pointer-events: none; }
+.scanner-line { position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: #2563EB; animation: scanline 1.5s linear infinite; }
+@keyframes scanline { 0% { top: 0; } 100% { top: 100%; } }
+.scanner-status { text-align: center; font-size: 14px; color: #374151; margin-bottom: 12px; min-height: 20px; }
+.scanner-status.success { color: #15803D; font-weight: bold; }
+.scanner-status.error { color: #B91C1C; }
+.scanner-close { width: 100%; padding: 12px; background: #F3F4F6; color: #374151; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; }
+.scanner-close:hover { background: #E5E7EB; }
+.scan-btn { padding: 10px 14px; background: #1B3A6B; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+.scan-btn:hover { background: #2563EB; }
 .form-type-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 16px; }
 .badge-faculty { background: #EFF6FF; color: #1B3A6B; border: 1px solid #2563EB; }
 .badge-student { background: #F0FDF4; color: #166534; border: 1px solid #15803D; }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/zxing-js/0.21.3/umd/index.min.js"></script>
 </head>
 <body>
-<div class="container">
+<!-- BARCODE SCANNER MODAL -->
+<div id="scannerModal" class="scanner-modal">
+  <div class="scanner-box">
+    <h3>📷 Scan ISBN Barcode</h3>
+    <p>Point the camera at the barcode on the back of the book</p>
+    <div class="scanner-video-wrap">
+      <video id="scannerVideo" playsinline muted></video>
+      <div class="scanner-overlay">
+        <div class="scanner-line"></div>
+      </div>
+    </div>
+    <p id="scannerStatus" class="scanner-status">Initialising camera...</p>
+    <button class="scanner-close" onclick="closeScanner()">✕ Close</button>
+  </div>
+</div>
+  <div class="container">
 
   <!-- PIN SCREEN -->
   <div id="pinScreen" class="pin-screen">
@@ -298,6 +331,7 @@ input.input-ok { border-color: #15803D; }
       <label>ISBN *</label>
       <div class="isbn-row">
         <input type="text" id="fIsbn" maxlength="13" placeholder="Type 13 digit ISBN" oninput="validateISBNInput('f')" />
+        <button class="scan-btn" onclick="openScanner('f')">📷 Scan</button>
         <button onclick="lookupISBN('f')">Search</button>
       </div>
       <p id="fIsbnNotFound" class="not-found"></p>
@@ -487,6 +521,7 @@ input.input-ok { border-color: #15803D; }
       <label>ISBN *</label>
       <div class="isbn-row">
         <input type="text" id="sIsbn" maxlength="13" placeholder="Type 13 digit ISBN" oninput="validateISBNInput('s')" />
+        <button class="scan-btn" onclick="openScanner('s')">📷 Scan</button>
         <button onclick="lookupISBN('s')">Search</button>
       </div>
       <p id="sIsbnNotFound" class="not-found"></p>
@@ -1835,6 +1870,112 @@ function showSMsg(text, success) {
   el.style.display = 'block';
   setTimeout(function() { el.style.display = 'none'; }, 4000);
 }
+// ── BARCODE SCANNER ───────────────────────────
+var scannerCodeReader = null;
+var scannerStream     = null;
+var scannerPrefix     = 'f';
+
+function openScanner(prefix) {
+  scannerPrefix = prefix;
+  document.getElementById('scannerModal').classList.add('open');
+  document.getElementById('scannerStatus').textContent = 'Initialising camera...';
+  document.getElementById('scannerStatus').className   = 'scanner-status';
+  startScanner();
+}
+
+function closeScanner() {
+  stopScanner();
+  document.getElementById('scannerModal').classList.remove('open');
+}
+
+function startScanner() {
+  stopScanner();
+
+  if (typeof ZXing === 'undefined') {
+    document.getElementById('scannerStatus').textContent = '⚠️ Scanner library not loaded. Please check your connection.';
+    document.getElementById('scannerStatus').className   = 'scanner-status error';
+    return;
+  }
+
+  var hints = new Map();
+  hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+    ZXing.BarcodeFormat.EAN_13,
+    ZXing.BarcodeFormat.EAN_8,
+    ZXing.BarcodeFormat.CODE_128,
+  ]);
+
+  scannerCodeReader = new ZXing.BrowserMultiFormatReader(hints);
+
+  document.getElementById('scannerStatus').textContent = 'Looking for camera...';
+
+  scannerCodeReader.listVideoInputDevices()
+  .then(function(devices) {
+    if (!devices || devices.length === 0) {
+      document.getElementById('scannerStatus').textContent = '⚠️ No camera found on this device.';
+      document.getElementById('scannerStatus').className = 'scanner-status error';
+      return;
+    }
+
+    // Prefer rear camera on mobile
+    var deviceId = devices[0].deviceId;
+    devices.forEach(function(d) {
+      if (d.label && (d.label.toLowerCase().indexOf('back') !== -1 || d.label.toLowerCase().indexOf('rear') !== -1 || d.label.toLowerCase().indexOf('environment') !== -1)) {
+        deviceId = d.deviceId;
+      }
+    });
+
+    document.getElementById('scannerStatus').textContent = 'Camera ready. Point at barcode.';
+
+    scannerCodeReader.decodeFromVideoDevice(deviceId, 'scannerVideo', function(result, err) {
+      if (result) {
+        var code = result.getText().replace(/\D/g, '');
+
+        // Only accept 13-digit barcodes
+        if (code.length !== 13) {
+          document.getElementById('scannerStatus').textContent = 'Detected: ' + code + ' — not a valid ISBN. Keep scanning...';
+          document.getElementById('scannerStatus').className = 'scanner-status error';
+          return;
+        }
+
+        // Success
+        document.getElementById(scannerPrefix + 'Isbn').value = code;
+        document.getElementById(scannerPrefix + 'IsbnNotFound').style.display = 'none';
+        document.getElementById(scannerPrefix + 'Isbn').classList.remove('input-error');
+        document.getElementById(scannerPrefix + 'Isbn').classList.remove('input-ok');
+
+        document.getElementById('scannerStatus').textContent = '✓ ISBN ' + code + ' scanned! Click Search to look up the book.';
+        document.getElementById('scannerStatus').className = 'scanner-status success';
+
+        // Auto-close scanner after short delay
+        setTimeout(function() {
+          closeScanner();
+        }, 1200);
+      }
+
+      if (err && !(err instanceof ZXing.NotFoundException)) {
+        // Ignore NotFoundException — it just means no barcode in frame yet
+        console.warn('Scanner error:', err);
+      }
+    });
+  })
+  .catch(function(err) {
+    document.getElementById('scannerStatus').textContent = '⚠️ Camera access denied. Please allow camera permission and try again.';
+    document.getElementById('scannerStatus').className = 'scanner-status error';
+    console.error('Camera error:', err);
+  });
+}
+
+function stopScanner() {
+  if (scannerCodeReader) {
+    try { scannerCodeReader.reset(); } catch(e) {}
+    scannerCodeReader = null;
+  }
+}
+
+// Close scanner if user taps outside the box
+document.getElementById('scannerModal').addEventListener('click', function(e) {
+  if (e.target === this) closeScanner();
+});
 
 // ── SHEET LOADER ──────────────────────────────
 function loadSheet(sheetName, callback) {
