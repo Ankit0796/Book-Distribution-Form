@@ -123,27 +123,7 @@ input.input-ok { border-color: #15803D; }
 <script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
 </head>
 <body>
-  // ── SALUTATION STRIPPER ───────────────────────
-function stripSalutation(name) {
-  if (!name) return '';
-  var salutations = [
-    'dr.','dr','prof.','prof','mr.','mr','mrs.','mrs','ms.','ms',
-    'shri.','shri','smt.','smt','er.','er','adv.','adv',
-    'rev.','rev','fr.','fr','sr.','sr','capt.','capt',
-    'col.','col','lt.','lt','maj.','maj','brig.','brig',
-    'gen.','gen','air','cmde','wg','sqn','ldr','flt'
-  ];
-  var parts = name.trim().split(/\s+/);
-  while (parts.length > 1) {
-    var first = parts[0].toLowerCase().replace(/\.$/,'');
-    if (salutations.indexOf(first) !== -1 || salutations.indexOf(parts[0].toLowerCase()) !== -1) {
-      parts.shift();
-    } else {
-      break;
-    }
-  }
-  return parts.join(' ').toLowerCase().trim();
-}
+ 
   
 <!-- BARCODE SCANNER MODAL -->
 <div id="scannerModal" class="scanner-modal">
@@ -568,7 +548,29 @@ function stripSalutation(name) {
 </div>
 
 <script>
+  
+// <!-- SALUTATION STRIPPER -->
 
+  function stripSalutation(name) {
+  if (!name) return '';
+  var salutations = [
+    'dr.','dr','prof.','prof','mr.','mr','mrs.','mrs','ms.','ms',
+    'shri.','shri','smt.','smt','er.','er','adv.','adv',
+    'rev.','rev','fr.','fr','sr.','sr','capt.','capt',
+    'col.','col','lt.','lt','maj.','maj','brig.','brig',
+    'gen.','gen','air','cmde','wg','sqn','ldr','flt'
+  ];
+  var parts = name.trim().split(/\s+/);
+  while (parts.length > 1) {
+    var first = parts[0].toLowerCase().replace(/\.$/,'');
+    if (salutations.indexOf(first) !== -1 || salutations.indexOf(parts[0].toLowerCase()) !== -1) {
+      parts.shift();
+    } else {
+      break;
+    }
+  }
+  return parts.join(' ').toLowerCase().trim();
+}
 var SHEET_ID  = '1IklTD1JAhWOGmtm2w5UWMkuVMc8gFeIrgNL1I193xxs';
 var PIN       = '3693';
 var COMPANY   = 'CBS Publishers & Distributors';
