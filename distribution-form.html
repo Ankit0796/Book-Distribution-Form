@@ -61,10 +61,11 @@ input.input-ok { border-color: #15803D; }
 .name-screen .btn { max-width: 300px; margin: 16px auto 0; display: block; }
 .new-entry { background: #EFF6FF; border: 1px dashed #2563EB; border-radius: 8px; padding: 14px; margin-top: 8px; }
 .new-entry label { color: #2563EB; }
-.isbn-row { display: flex; gap: 10px; }
-.isbn-row input { flex: 1; }
-.isbn-row button { padding: 10px 16px; background: #2563EB; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; white-space: nowrap; }
-.isbn-row button:hover { background: #1B3A6B; }
+.isbn-row { display: flex; flex-direction: column; gap: 8px; }
+.isbn-row input { width: 100%; }
+.isbn-row-buttons { display: flex; gap: 10px; }
+.isbn-row-buttons button { flex: 1; padding: 11px 16px; background: #2563EB; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; }
+.isbn-row-buttons button:hover { background: #1B3A6B; }
 .not-found { font-size: 13px; margin-top: 6px; display: none; }
 .not-found.is-error { color: #B91C1C; }
 .not-found.is-ok { color: #15803D; }
@@ -2126,14 +2127,20 @@ function addBookEntry(prefix) {
       (count > 1 ? '<button class="book-remove-btn" onclick="removeBookEntry(\'' + prefix + '\',\'' + id + '\')" title="Remove">✕</button>' : '') +
     '</div>' +
     '<div class="field">' +
-      '<label>ISBN *</label>' +
-      '<div class="isbn-row">' +
-        '<input type="text" id="' + id + '_isbn" maxlength="13" placeholder="Type 13 digit ISBN" oninput="validateISBNInput(\'' + prefix + '\',\'' + id + '\')" />' +
-        '<button class="scan-btn" onclick="openScanner(\'' + prefix + '\',\'' + id + '\')">📷 Scan</button>' +
-        '<button onclick="lookupISBNEntry(\'' + prefix + '\',\'' + id + '\')">Search</button>' +
-      '</div>' +
-      '<p id="' + id + '_notFound" class="not-found"></p>' +
+  '<label>ISBN *</label>' +
+  '<div class="isbn-row">' +
+
+    '<input type="text" id="' + id + '_isbn" maxlength="13" placeholder="Type 13 digit ISBN" oninput="validateISBNInput(\'' + prefix + '\', \'' + id + '\')" />' +
+
+    '<div class="isbn-row-buttons">' +
+      '<button class="scan-btn" onclick="openScanner(\'' + prefix + '\', \'' + id + '\')">📷 Scan</button>' +
+      '<button onclick="lookupISBNEntry(\'' + prefix + '\', \'' + id + '\')">Search</button>' +
     '</div>' +
+
+  '</div>' +
+
+  '<p id="' + id + '_notFound" class="not-found"></p>' +
+'</div>' +
     '<div class="field"><label>Book Title</label><input type="text" id="' + id + '_title" readonly placeholder="Auto-filled" /></div>' +
     '<div class="field"><label>Author</label><input type="text" id="' + id + '_author" readonly placeholder="Auto-filled" /></div>' +
     '<div class="field"><label>Edition</label><input type="text" id="' + id + '_edition" readonly placeholder="Auto-filled" /></div>';
