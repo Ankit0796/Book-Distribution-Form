@@ -297,6 +297,7 @@ input.input-ok { border-color: #15803D; }
       <p id="fEmailNote" class="field-note" style="display:none;">📧 Verification email will be sent to this address.</p>
       <p id="fEmailError" class="field-error"></p>
       <p id="fEmailOk" class="field-ok">✓ Valid email address</p>
+      <p id="fEmailDupMsg" class="warn-msg"></p>
     </div>
 
     <!-- MOBILE -->
@@ -308,6 +309,7 @@ input.input-ok { border-color: #15803D; }
       </div>
       <p id="fMobileError" class="field-error"></p>
       <p id="fMobileOk" class="field-ok">✓ Valid mobile number</p>
+      <p id="fMobileDupMsg" class="warn-msg"></p>
     </div>
 
     <!-- ALT MOBILE -->
@@ -477,8 +479,8 @@ input.input-ok { border-color: #15803D; }
 
     <!-- BATCH -->
     <div class="field">
-      <label>Batch <span class="optional">(Optional)</span></label>
-      <input type="text" id="sBatch" readonly placeholder="Auto-filled or type if new" maxlength="10" oninput="validateBatch()" />
+      <label>Batch *</label>
+      <input type="text" id="sBatch" readonly placeholder="Auto-filled or type if new" maxlength="4" oninput="validateBatch()" />
       <p id="sBatchError" class="field-error"></p>
     </div>
 
@@ -489,6 +491,7 @@ input.input-ok { border-color: #15803D; }
       <p id="sEmailNote" class="field-note" style="display:none;">📧 Verification email will be sent to this address.</p>
       <p id="sEmailError" class="field-error"></p>
       <p id="sEmailOk" class="field-ok">✓ Valid email address</p>
+      <p id="sEmailDupMsg" class="warn-msg"></p>
     </div>
 
     <!-- MOBILE -->
@@ -500,6 +503,7 @@ input.input-ok { border-color: #15803D; }
       </div>
       <p id="sMobileError" class="field-error"></p>
       <p id="sMobileOk" class="field-ok">✓ Valid mobile number</p>
+      <p id="sMobileDupMsg" class="warn-msg"></p>
     </div>
 
     
@@ -844,14 +848,34 @@ function validateBatch() {
   var err   = document.getElementById('sBatchError');
   var input = document.getElementById('sBatch');
   err.style.display = 'none';
-  input.classList.remove('input-error');
-  if (!val) return true;
-  if (/[^0-9]/.test(val)) {
-    input.classList.add('input-error');
-    err.textContent = '⚠️ Batch must be a number only.';
+  input.classList.remove('input-error', 'input-ok');
+
+  // Strip special characters and letters instantly as user types
+  var cleaned = val.replace(/[^0-9]/g, '');
+  if (cleaned !== val) {
+    input.value = cleaned;
+    val = cleaned;
+    err.textContent = '⚠️ Batch can only contain numbers.';
     err.style.display = 'block';
+    input.classList.add('input-error');
     return false;
   }
+
+  if (!val) return true;
+
+  if (val.length < 4) {
+    err.textContent = '⚠️ Batch must be exactly 4 digits.';
+    err.style.display = 'block';
+    input.classList.add('input-error');
+    return false;
+  }
+
+  if (val.length === 4) {
+    input.classList.add('input-ok');
+    err.style.display = 'none';
+    return true;
+  }
+
   return true;
 }
   
@@ -907,21 +931,80 @@ function checkFDuplicate() {
   }
 
   fDupScore = best;
-  var displayName = bestSource === 'submission' ? (bestR[7] || '?') : (bestR[0] || '?');
-  var displayInst = bestSource === 'submission' ? (bestR[3] || '?') : (bestR[1] || '?');
+
+  // Clear all field-level dup messages first
+  ['fDupContactMsg','fEmailDupMsg','fMobileDupMsg'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; el.textContent = ''; }
+  });
+  document.getElementById('fDupConfirmBox').style.display = 'none';
+  document.getElementById('fDupConfirmCheck').checked = false;
+
+  if (best === 0) { fDupScore = 0; return; }
+
+  var displayName = bestSource === 'submission' ? (bestR[7]  || '?') : (bestR[0] || '?');
+  var displayInst = bestSource === 'submission' ? (bestR[3]  || '?') : (bestR[1] || '?');
+
+  // Work out which fields matched
+  var rName  = bestSource === 'submission' ? (bestR[6]  || '').trim().toLowerCase() : (bestR[0] || '').trim().toLowerCase();
+  var rInst  = bestSource === 'submission' ? (bestR[2]  || '').trim().toLowerCase() : (bestR[1] || '').trim().toLowerCase();
+  var rEmail = bestSource === 'submission' ? (bestR[7]  || '').trim().toLowerCase() : (bestR[4] || '').trim().toLowerCase();
+  var rPhone = bestSource === 'submission' ? (bestR[8]  || '').trim().replace(/^\+91\s*/,'') : (bestR[5] || '').trim().replace(/^\+91\s*/,'');
+
+  // Recalculate with correct indices for display
+  if (bestSource === 'submission') {
+    rName  = (bestR[6]  || '').trim().toLowerCase();
+    rInst  = (bestR[2]  || '').trim().toLowerCase();
+    rEmail = (bestR[7]  || '').trim().toLowerCase();
+    rPhone = (bestR[8]  || '').trim().replace(/^\+91\s*/,'');
+  } else {
+    rName  = (bestR[0] || '').trim().toLowerCase();
+    rInst  = (bestR[1] || '').trim().toLowerCase();
+    rEmail = (bestR[4] || '').trim().toLowerCase();
+    rPhone = (bestR[5] || '').trim().replace(/^\+91\s*/,'');
+  }
+
+  var nameMatched  = name  && rName  && name  === rName;
+  var instMatched  = inst  && rInst  && inst  === rInst;
+  var emailMatched = email && rEmail && email === rEmail;
+  var phoneMatched = phone && rPhone && phone === rPhone;
+
+  var dupLabel = best === 4 ? '🚫 Exact duplicate' : (best === 3 ? '⚠️ Probable duplicate' : '⚠️ Possible match');
+  var dupClass = best === 4 ? 'warn-msg warn-red' : 'warn-msg warn-amber';
+  var summary  = dupLabel + ': "' + displayName + '" at "' + displayInst + '" matches ' + best + '/4 identifiers.';
+
+  // Show on name field
+  if (nameMatched || best >= 2) {
+    msg.textContent = summary;
+    msg.className = dupClass;
+    msg.style.display = 'block';
+  } else {
+    msg.style.display = 'none';
+  }
+
+  // Show on email field if email matched
+  var emailDupEl = document.getElementById('fEmailDupMsg');
+  if (emailMatched) {
+    emailDupEl.textContent = dupLabel + ': This email matches an existing record (' + best + '/4 identifiers).';
+    emailDupEl.className = dupClass;
+    emailDupEl.style.display = 'block';
+  }
+
+  // Show on mobile field if phone matched
+  var mobileDupEl = document.getElementById('fMobileDupMsg');
+  if (phoneMatched) {
+    mobileDupEl.textContent = dupLabel + ': This mobile matches an existing record (' + best + '/4 identifiers).';
+    mobileDupEl.className = dupClass;
+    mobileDupEl.style.display = 'block';
+  }
 
   if (best === 4) {
-    msg.textContent = '🚫 Exact duplicate: "' + displayName + '" at "' + displayInst + '" was already submitted. Please do not submit again.';
-    msg.className = 'warn-msg warn-red'; msg.style.display = 'block';
     box.style.display = 'none'; chk.checked = false; return;
   }
   if (best >= 2) {
-    msg.textContent = '⚠️ ' + (best === 3 ? 'Probable' : 'Possible') + ' duplicate: "' + displayName + '" at "' + displayInst + '" matches ' + best + '/4 identifiers.';
-    msg.className = 'warn-msg warn-amber'; msg.style.display = 'block';
     bmsg.textContent = 'Matches ' + best + ' of 4 identifiers. Confirm this is a different person before submitting.';
-    box.style.display = 'block'; chk.checked = false; return;
+    box.style.display = 'block'; chk.checked = false;
   }
-  msg.style.display = 'none'; box.style.display = 'none'; chk.checked = false; fDupScore = 0;
 }
 
 // ── STUDENT DUPLICATE CHECK ───────────────────
@@ -976,21 +1059,62 @@ function checkSDuplicate() {
   }
 
   sDupScore = best;
-  var displayName = bestSource === 'submission' ? (bestR[7]  || '?') : (bestR[0] || '?');
-  var displayInst = bestSource === 'submission' ? (bestR[3]  || '?') : (bestR[1] || '?');
+
+  // Clear all field-level dup messages first
+  ['sDupContactMsg','sEmailDupMsg','sMobileDupMsg'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; el.textContent = ''; }
+  });
+  document.getElementById('sDupConfirmBox').style.display = 'none';
+  document.getElementById('sDupConfirmCheck').checked = false;
+
+  if (best === 0) { sDupScore = 0; return; }
+
+  var displayName = bestSource === 'submission' ? (bestR[7] || '?') : (bestR[0] || '?');
+  var displayInst = bestSource === 'submission' ? (bestR[3] || '?') : (bestR[1] || '?');
+
+  var rName  = bestSource === 'submission' ? (bestR[7]  || '').trim().toLowerCase() : (bestR[0] || '').trim().toLowerCase();
+  var rInst  = bestSource === 'submission' ? (bestR[3]  || '').trim().toLowerCase() : (bestR[1] || '').trim().toLowerCase();
+  var rEmail = bestSource === 'submission' ? (bestR[11] || '').trim().toLowerCase() : (bestR[2] || '').trim().toLowerCase();
+  var rPhone = bestSource === 'submission' ? (bestR[12] || '').trim().replace(/^\+91\s*/,'') : (bestR[3] || '').trim().replace(/^\+91\s*/,'');
+
+  var nameMatched  = name  && rName  && name  === rName;
+  var emailMatched = email && rEmail && email === rEmail;
+  var phoneMatched = phone && rPhone && phone === rPhone;
+
+  var dupLabel = best === 4 ? '🚫 Exact duplicate' : (best === 3 ? '⚠️ Probable duplicate' : '⚠️ Possible match');
+  var dupClass = best === 4 ? 'warn-msg warn-red' : 'warn-msg warn-amber';
+  var summary  = dupLabel + ': "' + displayName + '" at "' + displayInst + '" matches ' + best + '/4 identifiers.';
+
+  if (nameMatched || best >= 2) {
+    msg.textContent = summary;
+    msg.className = dupClass;
+    msg.style.display = 'block';
+  } else {
+    msg.style.display = 'none';
+  }
+
+  var emailDupEl = document.getElementById('sEmailDupMsg');
+  if (emailMatched) {
+    emailDupEl.textContent = dupLabel + ': This email matches an existing record (' + best + '/4 identifiers).';
+    emailDupEl.className = dupClass;
+    emailDupEl.style.display = 'block';
+  }
+
+  var mobileDupEl = document.getElementById('sMobileDupMsg');
+  if (phoneMatched) {
+    mobileDupEl.textContent = dupLabel + ': This mobile matches an existing record (' + best + '/4 identifiers).';
+    mobileDupEl.className = dupClass;
+    mobileDupEl.style.display = 'block';
+  }
 
   if (best === 4) {
-    msg.textContent = '🚫 Exact duplicate: "' + displayName + '" at "' + displayInst + '" was already submitted. Please do not submit again.';
-    msg.className = 'warn-msg warn-red'; msg.style.display = 'block';
     box.style.display = 'none'; chk.checked = false; return;
   }
   if (best >= 2) {
-    msg.textContent = '⚠️ ' + (best === 3 ? 'Probable' : 'Possible') + ' duplicate: "' + displayName + '" at "' + displayInst + '" matches ' + best + '/4 identifiers.';
-    msg.className = 'warn-msg warn-amber'; msg.style.display = 'block';
     bmsg.textContent = 'Matches ' + best + ' of 4 identifiers. Confirm this is a different student before submitting.';
-    box.style.display = 'block'; chk.checked = false; return;
+    box.style.display = 'block'; chk.checked = false;
   }
-  msg.style.display = 'none'; box.style.display = 'none'; chk.checked = false; sDupScore = 0;
 }
 
 
@@ -1013,6 +1137,10 @@ function makeFContactEditable() {
   document.getElementById('fDupConfirmBox').style.display = 'none';
   document.getElementById('fDupConfirmCheck').checked = false;
   fDupScore = 0;
+  ['fEmailDupMsg','fMobileDupMsg'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; el.textContent = ''; }
+  });
 }
 
 function makeFContactReadonly() {
@@ -1036,6 +1164,10 @@ function makeFContactReadonly() {
   document.getElementById('fDupConfirmBox').style.display = 'none';
   document.getElementById('fDupConfirmCheck').checked = false;
   fDupScore = 0;
+  ['fEmailDupMsg','fMobileDupMsg'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; el.textContent = ''; }
+  });
 }
 
 function showFDropdown(inputId, wrapperId, sdId, textId, displayId, placeholder) {
@@ -1096,6 +1228,10 @@ function makeSContactEditable() {
   document.getElementById('sDupConfirmBox').style.display = 'none';
   document.getElementById('sDupConfirmCheck').checked = false;
   sDupScore = 0;
+  ['sEmailDupMsg','sMobileDupMsg'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; el.textContent = ''; }
+  });
 }
 
 function makeSContactReadonly() {
@@ -1119,6 +1255,10 @@ function makeSContactReadonly() {
   document.getElementById('sDupConfirmBox').style.display = 'none';
   document.getElementById('sDupConfirmCheck').checked = false;
   sDupScore = 0;
+  ['sEmailDupMsg','sMobileDupMsg'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; el.textContent = ''; }
+  });
 }
 
 function makeSCityStateEditable() {
@@ -1769,6 +1909,8 @@ function submitStudentForm() {
   if (!mobile) { showSMsg('Mobile is required.', false); return; }
   if (!year)   { showSMsg('Year is required.', false); return; }
   if (!course) { showSMsg('Course is required.', false); return; }
+  if (!batch) { showSMsg('Batch is required.', false); return; }
+  if (batch.length !== 4 || /[^0-9]/.test(batch)) { showSMsg('Batch must be exactly 4 digits.', false); return; }
   if (!city)   { showSMsg('City is required.', false); return; }
   if (!state)  { showSMsg('State is required.', false); return; }
 
