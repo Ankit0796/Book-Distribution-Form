@@ -906,86 +906,87 @@ function checkFDuplicate() {
 
   if (!name) { fDupScore = 0; return; }
 
-  var best = 0; var bestR = null; var bestSource = '';
+  var best = 0;
+  var bestR = null;
+  var bestSource = '';
+  var bestNameMatched  = false;
+  var bestEmailMatched = false;
+  var bestPhoneMatched = false;
+  var bestDisplayName  = '';
+  var bestDisplayInst  = '';
 
   // ── Check Faculty_Submissions first ──
   allFSubmissions.forEach(function(r) {
-    var rName  = (r[7]  || '').trim().toLowerCase();   // H - Contact Person
-    var rInst  = (r[3]  || '').trim().toLowerCase();   // D - Institution
-    var rEmail = (r[10] || '').trim().toLowerCase();   // K - Email
-    var rPhone = (r[11] || '').trim().replace(/^\+91\s*/,''); // L - Mobile
+    var rn = (r[7]  || '').trim().toLowerCase();
+    var ri = (r[3]  || '').trim().toLowerCase();
+    var re = (r[10] || '').trim().toLowerCase();
+    var rp = (r[11] || '').trim().replace(/^\+91\s*/g, '');
     var s = 0;
-    if (name  && rName  && name  === rName)  s++;
-    if (inst  && rInst  && inst  === rInst)  s++;
-    if (email && rEmail && email === rEmail) s++;
-    if (phone && rPhone && phone === rPhone) s++;
-    if (s > best) { best = s; bestR = r; bestSource = 'submission'; }
+    if (name  && rn && name  === rn) s++;
+    if (inst  && ri && inst  === ri) s++;
+    if (email && re && email === re) s++;
+    if (phone && rp && phone === rp) s++;
+    if (s > best) {
+      best = s; bestR = r; bestSource = 'submission';
+      bestNameMatched  = (name  && rn && name  === rn);
+      bestEmailMatched = (email && re && email === re);
+      bestPhoneMatched = (phone && rp && phone === rp);
+      bestDisplayName  = r[7]  || '?';
+      bestDisplayInst  = r[3]  || '?';
+    }
   });
 
-  // ── Fall back to Contacts sheet ──
+  // ── Fall back to Contacts sheet only if no match at all in submissions ──
   if (best === 0) {
     allFContacts.forEach(function(r) {
-      var rName  = (r[0] || '').trim().toLowerCase();
-      var rInst  = (r[1] || '').trim().toLowerCase();
-      var rEmail = (r[4] || '').trim().toLowerCase();
-      var rPhone = (r[5] || '').trim().replace(/^\+91\s*/,'');
+      var rn = (r[0] || '').trim().toLowerCase();
+      var ri = (r[1] || '').trim().toLowerCase();
+      var re = (r[4] || '').trim().toLowerCase();
+      var rp = (r[5] || '').trim().replace(/^\+91\s*/g, '');
       var s = 0;
-      if (name  && rName  && name  === rName)  s++;
-      if (inst  && rInst  && inst  === rInst)  s++;
-      if (email && rEmail && email === rEmail) s++;
-      if (phone && rPhone && phone === rPhone) s++;
-      if (s > best) { best = s; bestR = r; bestSource = 'contacts'; }
+      if (name  && rn && name  === rn) s++;
+      if (inst  && ri && inst  === ri) s++;
+      if (email && re && email === re) s++;
+      if (phone && rp && phone === rp) s++;
+      if (s > best) {
+        best = s; bestR = r; bestSource = 'contacts';
+        bestNameMatched  = (name  && rn && name  === rn);
+        bestEmailMatched = (email && re && email === re);
+        bestPhoneMatched = (phone && rp && phone === rp);
+        bestDisplayName  = r[0] || '?';
+        bestDisplayInst  = r[1] || '?';
+      }
     });
   }
 
   fDupScore = best;
   if (best === 0) return;
 
-  // ── Get matched record field values ──
-  var rName  = bestSource === 'submission'
-    ? (bestR[7]  || '').trim().toLowerCase()
-    : (bestR[0]  || '').trim().toLowerCase();
-  var rInst  = bestSource === 'submission'
-    ? (bestR[3]  || '').trim().toLowerCase()
-    : (bestR[1]  || '').trim().toLowerCase();
-  var rEmail = bestSource === 'submission'
-    ? (bestR[10] || '').trim().toLowerCase()
-    : (bestR[4]  || '').trim().toLowerCase();
-  var rPhone = bestSource === 'submission'
-    ? (bestR[11] || '').trim().replace(/^\+91\s*/,'')
-    : (bestR[5]  || '').trim().replace(/^\+91\s*/,'');
-
-  var displayName = bestSource === 'submission' ? (bestR[7]  || '?') : (bestR[0] || '?');
-  var displayInst = bestSource === 'submission' ? (bestR[3]  || '?') : (bestR[1] || '?');
-
-  var nameMatched  = name  && rName  && name  === rName;
-  var emailMatched = email && rEmail && email === rEmail;
-  var phoneMatched = phone && rPhone && phone === rPhone;
-
-  var dupLabel = best === 4 ? '🚫 Exact duplicate' : (best === 3 ? '⚠️ Probable duplicate' : '⚠️ Possible match');
-  var dupClass = best === 4 ? 'warn-msg warn-red'  : 'warn-msg warn-amber';
-  var summary  = dupLabel + ': "' + displayName + '" at "' + displayInst + '" matches ' + best + '/4 identifiers.';
+  var dupLabel = best === 4 ? '🚫 Exact duplicate'   :
+                 best === 3 ? '⚠️ Probable duplicate' : '⚠️ Possible match';
+  var dupClass = best === 4 ? 'warn-msg warn-red' : 'warn-msg warn-amber';
+  var summary  = dupLabel + ': "' + bestDisplayName + '" at "' + bestDisplayInst + '" matches ' + best + '/4 identifiers.';
 
   // Show on name field
-  if (nameMatched || best >= 2) {
-    msg.textContent = summary;
-    msg.className   = dupClass;
+  if (bestNameMatched || best >= 2) {
+    msg.textContent   = summary;
+    msg.className     = dupClass;
     msg.style.display = 'block';
   }
 
-  // Show on email field if email matched
+  // Show on email field
   var emailDupEl = document.getElementById('fEmailDupMsg');
-  if (emailDupEl && emailMatched) {
-    emailDupEl.textContent = dupLabel + ': This email matches an existing record (' + best + '/4 identifiers).';
-    emailDupEl.className   = dupClass;
+  if (emailDupEl && bestEmailMatched) {
+    emailDupEl.textContent   = dupLabel + ': This email matches an existing record (' + best + '/4 identifiers).';
+    emailDupEl.className     = dupClass;
     emailDupEl.style.display = 'block';
   }
 
-  // Show on mobile field if phone matched
+  // Show on mobile field
   var mobileDupEl = document.getElementById('fMobileDupMsg');
-  if (mobileDupEl && phoneMatched) {
-    mobileDupEl.textContent = dupLabel + ': This mobile matches an existing record (' + best + '/4 identifiers).';
-    mobileDupEl.className   = dupClass;
+  if (mobileDupEl && bestPhoneMatched) {
+    mobileDupEl.textContent   = dupLabel + ': This mobile matches an existing record (' + best + '/4 identifiers).';
+    mobileDupEl.className     = dupClass;
     mobileDupEl.style.display = 'block';
   }
 
@@ -994,11 +995,10 @@ function checkFDuplicate() {
     chk.checked = false;
     return;
   }
-
   if (best >= 2) {
-    bmsg.textContent = 'Matches ' + best + ' of 4 identifiers. Confirm this is a different person before submitting.';
+    bmsg.textContent  = 'Matches ' + best + ' of 4 identifiers. Confirm this is a different person before submitting.';
     box.style.display = 'block';
-    chk.checked = false;
+    chk.checked       = false;
   }
 }
 
