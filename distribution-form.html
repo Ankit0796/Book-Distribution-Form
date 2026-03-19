@@ -939,8 +939,8 @@ function checkFDuplicate() {
   allFSubmissions.forEach(function(r) {
     var rName  = stripSalutation(r[7]  || '');   // H - Contact Name
     var rInst  = (r[3]  || '').trim().toLowerCase(); // D - Institution
-    var rEmail = (r[10] || '').trim().toLowerCase(); // K - Email
-    var rPhone = (r[11] || '').trim().replace(/^\+91\s*/,''); // L - Mobile
+    var rEmail = (r[8] || '').trim().toLowerCase(); // K - Email
+    var rPhone = (r[9] || '').trim().replace(/^\+91\s*/,''); // L - Mobile
     var s = 0;
     if (name  && rName  && name  === rName)  s++;
     if (inst  && rInst  && inst  === rInst)  s++;
@@ -979,10 +979,10 @@ function checkFDuplicate() {
     ? (bestR[3]  || '').trim().toLowerCase()
     : (bestR[1] || '').trim().toLowerCase();
   var rEmailC = bestSource === 'submission'
-    ? (bestR[10] || '').trim().toLowerCase()
+    ? (bestR[8] || '').trim().toLowerCase()
     : (bestR[4] || '').trim().toLowerCase();
   var rPhoneC = bestSource === 'submission'
-    ? (bestR[11] || '').trim().replace(/^\+91\s*/,'')
+    ? (bestR[9] || '').trim().replace(/^\+91\s*/,'')
     : (bestR[5] || '').trim().replace(/^\+91\s*/,'');
 
   var nameMatched  = name  && rNameC  && name  === rNameC;
