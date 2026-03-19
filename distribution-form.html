@@ -113,7 +113,7 @@ input.input-ok { border-color: #15803D; }
 .badge-faculty { background: #EFF6FF; color: #1B3A6B; border: 1px solid #2563EB; }
 .badge-student { background: #F0FDF4; color: #166534; border: 1px solid #15803D; }
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/zxing-js/0.21.3/umd/index.min.js"></script>
+<script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
 </head>
 <body>
 <!-- BARCODE SCANNER MODAL -->
@@ -1891,20 +1891,21 @@ function closeScanner() {
 function startScanner() {
   stopScanner();
 
+  // Wait for library to load
   if (typeof ZXing === 'undefined') {
-    document.getElementById('scannerStatus').textContent = '⚠️ Scanner library not loaded. Please check your connection.';
-    document.getElementById('scannerStatus').className   = 'scanner-status error';
+    document.getElementById('scannerStatus').textContent = 'Loading scanner...';
+    document.getElementById('scannerStatus').className   = 'scanner-status';
+    setTimeout(startScanner, 800);
     return;
   }
 
-  var hints = new Map();
-  hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
-    ZXing.BarcodeFormat.EAN_13,
-    ZXing.BarcodeFormat.EAN_8,
-    ZXing.BarcodeFormat.CODE_128,
-  ]);
-
-  scannerCodeReader = new ZXing.BrowserMultiFormatReader(hints);
+  try {
+    scannerCodeReader = new ZXing.BrowserMultiFormatReader();
+  } catch(e) {
+    document.getElementById('scannerStatus').textContent = '⚠️ Could not start scanner. Try refreshing the page.';
+    document.getElementById('scannerStatus').className   = 'scanner-status error';
+    return;
+  }
 
   document.getElementById('scannerStatus').textContent = 'Looking for camera...';
 
@@ -1919,7 +1920,11 @@ function startScanner() {
     // Prefer rear camera on mobile
     var deviceId = devices[0].deviceId;
     devices.forEach(function(d) {
-      if (d.label && (d.label.toLowerCase().indexOf('back') !== -1 || d.label.toLowerCase().indexOf('rear') !== -1 || d.label.toLowerCase().indexOf('environment') !== -1)) {
+      if (d.label && (
+        d.label.toLowerCase().indexOf('back')        !== -1 ||
+        d.label.toLowerCase().indexOf('rear')        !== -1 ||
+        d.label.toLowerCase().indexOf('environment') !== -1
+      )) {
         deviceId = d.deviceId;
       }
     });
@@ -1930,36 +1935,34 @@ function startScanner() {
       if (result) {
         var code = result.getText().replace(/\D/g, '');
 
-        // Only accept 13-digit barcodes
         if (code.length !== 13) {
           document.getElementById('scannerStatus').textContent = 'Detected: ' + code + ' — not a valid ISBN. Keep scanning...';
           document.getElementById('scannerStatus').className = 'scanner-status error';
           return;
         }
 
-        // Success
         document.getElementById(scannerPrefix + 'Isbn').value = code;
         document.getElementById(scannerPrefix + 'IsbnNotFound').style.display = 'none';
-        document.getElementById(scannerPrefix + 'Isbn').classList.remove('input-error');
-        document.getElementById(scannerPrefix + 'Isbn').classList.remove('input-ok');
+        document.getElementById(scannerPrefix + 'Isbn').classList.remove('input-error','input-ok');
 
         document.getElementById('scannerStatus').textContent = '✓ ISBN ' + code + ' scanned! Click Search to look up the book.';
         document.getElementById('scannerStatus').className = 'scanner-status success';
 
-        // Auto-close scanner after short delay
-        setTimeout(function() {
-          closeScanner();
-        }, 1200);
+        setTimeout(function() { closeScanner(); }, 1200);
       }
 
-      if (err && !(err instanceof ZXing.NotFoundException)) {
-        // Ignore NotFoundException — it just means no barcode in frame yet
+      // Silently ignore NotFoundException — means no barcode in frame yet
+      if (err && err.name !== 'NotFoundException') {
         console.warn('Scanner error:', err);
       }
     });
   })
   .catch(function(err) {
-    document.getElementById('scannerStatus').textContent = '⚠️ Camera access denied. Please allow camera permission and try again.';
+    var msg = '⚠️ Camera access denied. Please allow camera permission and try again.';
+    if (err && err.message && err.message.indexOf('Requested device not found') !== -1) {
+      msg = '⚠️ No camera found. Please use manual entry.';
+    }
+    document.getElementById('scannerStatus').textContent = msg;
     document.getElementById('scannerStatus').className = 'scanner-status error';
     console.error('Camera error:', err);
   });
