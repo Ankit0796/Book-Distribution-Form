@@ -30,6 +30,15 @@ input.input-ok { border-color: #15803D; }
 .btn-pdf:hover { background: #166534; }
 .btn-row { display: flex; gap: 10px; margin-top: 10px; }
 .btn-row .btn, .btn-row .btn-secondary { margin-top: 0; }
+.role-screen { text-align: center; padding: 40px 20px; }
+.role-screen h2 { margin-bottom: 10px; }
+.role-screen p { color: #6B7280; margin-bottom: 30px; font-size: 15px; }
+.role-btn-row { display: flex; gap: 16px; justify-content: center; margin-top: 10px; }
+.role-btn { flex: 1; max-width: 200px; padding: 20px 14px; border: 2px solid #1B3A6B; border-radius: 12px; background: white; cursor: pointer; text-align: center; transition: all 0.15s; }
+.role-btn:hover { background: #EFF6FF; border-color: #2563EB; }
+.role-btn .role-icon { font-size: 36px; display: block; margin-bottom: 8px; }
+.role-btn .role-label { font-size: 16px; font-weight: bold; color: #1B3A6B; }
+.role-btn .role-sub { font-size: 12px; color: #6B7280; margin-top: 4px; }
 .msg { text-align: center; margin-top: 16px; font-size: 15px; font-weight: bold; }
 .success { color: #15803D; }
 .error { color: #B91C1C; }
@@ -73,6 +82,9 @@ input.input-ok { border-color: #15803D; }
 .selected-display.has-value { border-color: #2563EB; background: #EFF6FF; }
 .clear-btn { display: none; margin-left: 8px; color: #9CA3AF; font-size: 16px; font-weight: bold; cursor: pointer; padding: 0 4px; line-height: 1; }
 .clear-btn:hover { color: #B91C1C; }
+.dup-confirm { background: #FFFBEB; border: 1px solid #F59E0B; border-radius: 8px; padding: 12px 14px; margin-top: 8px; font-size: 13px; color: #92400E; display: none; }
+.dup-confirm label { color: #92400E; font-size: 13px; font-weight: normal; margin-bottom: 0; cursor: pointer; display: flex; align-items: flex-start; gap: 8px; }
+.dup-confirm input[type="checkbox"] { width: auto; margin-top: 2px; flex-shrink: 0; }
 .receipt { display: none; background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 20px; margin-top: 16px; }
 .receipt h3 { color: #1B3A6B; margin-bottom: 16px; font-size: 18px; text-align: center; }
 .receipt-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #E5E7EB; font-size: 14px; }
@@ -80,6 +92,9 @@ input.input-ok { border-color: #15803D; }
 .receipt-label { color: #6B7280; font-weight: bold; flex: 1; }
 .receipt-value { color: #111827; flex: 2; text-align: right; }
 .optional { color: #9CA3AF; font-weight: normal; }
+.form-type-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 16px; }
+.badge-faculty { background: #EFF6FF; color: #1B3A6B; border: 1px solid #2563EB; }
+.badge-student { background: #F0FDF4; color: #166534; border: 1px solid #15803D; }
 </style>
 </head>
 <body>
@@ -107,72 +122,111 @@ input.input-ok { border-color: #15803D; }
     <p id="nameError" class="msg error" style="display:none;">Please enter your name.</p>
   </div>
 
-  <!-- FORM SCREEN -->
-  <div id="formScreen" style="display:none;">
+  <!-- ROLE SCREEN -->
+  <div id="roleScreen" class="role-screen" style="display:none;">
+    <h2>📚 Book Distribution</h2>
+    <p>Who are you distributing to?</p>
+    <div class="role-btn-row">
+      <div class="role-btn" onclick="selectRole('faculty')">
+        <span class="role-icon">🎓</span>
+        <div class="role-label">Faculty</div>
+        <div class="role-sub">Dean, HOD, Professor,<br>Doctor, Library etc.</div>
+      </div>
+      <div class="role-btn" onclick="selectRole('student')">
+        <span class="role-icon">📖</span>
+        <div class="role-label">Student</div>
+        <div class="role-sub">UG, PG,<br>Research students</div>
+      </div>
+    </div>
+  </div>
 
-    <div id="welcomeBanner" class="welcome-banner">
-      <div class="welcome-name" id="welcomeName"></div>
+  <!-- FACULTY FORM -->
+  <div id="facultyForm" style="display:none;">
+    <div id="facultyWelcomeBanner" class="welcome-banner">
+      <div class="welcome-name" id="facultyWelcomeName"></div>
       <div class="welcome-sub">CBS Publishers &amp; Distributors — Complementary Distribution</div>
     </div>
-
-    <h2>📚 Complementary Book Distribution</h2>
-
-    <div id="draftBanner" class="draft-banner">
-      📋 You have a saved draft. Your previous data has been restored.
+    <div style="text-align:center;margin-bottom:16px;">
+      <span class="form-type-badge badge-faculty">🎓 Faculty Distribution</span>
     </div>
+    <h2>📚 Complementary Book Distribution</h2>
+    <div id="facultyDraftBanner" class="draft-banner">📋 You have a saved draft. Your previous data has been restored.</div>
 
-    <!-- SALESPERSON -->
     <div class="field">
       <label>Salesperson</label>
-      <div class="rep-readonly" id="repDisplay"></div>
-      <input type="hidden" id="salesperson" />
+      <div class="rep-readonly" id="fRepDisplay"></div>
+      <input type="hidden" id="fSalesperson" />
     </div>
-
-    <!-- DATE -->
     <div class="field">
       <label>Date of Visit *</label>
-      <input type="date" id="visitDate" />
+      <input type="date" id="fVisitDate" />
     </div>
 
-    <!-- CONTACT PERSON -->
+ <!-- INSTITUTION -->
+    <div class="field">
+      <label>Institution *</label>
+      <div class="search-dropdown" id="sdFInstitution">
+        <div class="selected-display" id="sdFInstitution_display">
+          <span id="sdFInstitution_text" style="color:#9CA3AF;flex:1;cursor:pointer;" onclick="toggleDropdown('sdFInstitution')">-- Select Institution --</span>
+          <span class="arrow" onclick="toggleDropdown('sdFInstitution')" style="cursor:pointer;">▼</span>
+          <span id="sdFInstitution_clear" class="clear-btn" onclick="clearFInstitution()" title="Clear">✕</span>
+        </div>
+        <div class="dropdown-list" id="sdFInstitution_list">
+          <input type="text" placeholder="Search institution..." oninput="filterList('sdFInstitution')" onclick="event.stopPropagation()" style="width:100%;padding:10px 14px;border:none;border-bottom:1px solid #E5E7EB;border-radius:0;margin:0;font-size:15px;" />
+          <div id="sdFInstitution_items"></div>
+        </div>
+      </div>
+      <input type="hidden" id="fInstitution" />
+    </div>
+    <div id="fNewInstitutionBox" class="new-entry" style="display:none;">
+      <div class="field">
+        <label>New Institution Name *</label>
+        <input type="text" id="fNewInstitutionName" placeholder="Type institution name" oninput="checkFDupInstitution()" />
+        <p id="fDupInstitutionMsg" class="warn-msg"></p>
+      </div>
+    </div>
+    
+    <!-- CONTACT -->
     <div class="field">
       <label>Contact Person *</label>
-      <div class="search-dropdown" id="sdContact">
-        <div class="selected-display" id="sdContact_display">
-          <span id="sdContact_text" style="color:#9CA3AF;flex:1;cursor:pointer;" onclick="toggleDropdown('sdContact')">-- Select Contact --</span>
-          <span class="arrow" onclick="toggleDropdown('sdContact')" style="cursor:pointer;">▼</span>
-          <span id="sdContact_clear" class="clear-btn" onclick="clearContact()" title="Clear">✕</span>
+      <div class="search-dropdown" id="sdFContact">
+        <div class="selected-display" id="sdFContact_display">
+          <span id="sdFContact_text" style="color:#9CA3AF;flex:1;cursor:pointer;" onclick="toggleDropdown('sdFContact')">-- Select Contact --</span>
+          <span class="arrow" onclick="toggleDropdown('sdFContact')" style="cursor:pointer;">▼</span>
+          <span id="sdFContact_clear" class="clear-btn" onclick="clearFContact()" title="Clear">✕</span>
         </div>
-        <div class="dropdown-list" id="sdContact_list">
-          <input type="text" placeholder="Search contact..." oninput="filterList('sdContact')" onclick="event.stopPropagation()" style="width:100%;padding:10px 14px;border:none;border-bottom:1px solid #E5E7EB;border-radius:0;margin:0;font-size:15px;" />
-          <div id="sdContact_items"></div>
+        <div class="dropdown-list" id="sdFContact_list">
+          <input type="text" placeholder="Search contact..." oninput="filterList('sdFContact')" onclick="event.stopPropagation()" style="width:100%;padding:10px 14px;border:none;border-bottom:1px solid #E5E7EB;border-radius:0;margin:0;font-size:15px;" />
+          <div id="sdFContact_items"></div>
         </div>
       </div>
-      <input type="hidden" id="contact" />
+      <input type="hidden" id="fContact" />
     </div>
-
-    <!-- NEW CONTACT -->
-    <div id="newContactBox" class="new-entry" style="display:none;">
+    <div id="fNewContactBox" class="new-entry" style="display:none;">
       <div class="field">
         <label>New Contact Name *</label>
-        <input type="text" id="newContactName" placeholder="Type contact name" oninput="checkDuplicateContact()" />
-        <p id="dupContactMsg" class="warn-msg"></p>
+        <input type="text" id="fNewContactName" placeholder="Type contact name" oninput="checkFDuplicate()" />
+        <p id="fDupContactMsg" class="warn-msg"></p>
       </div>
+    </div>
+    <div id="fDupConfirmBox" class="dup-confirm">
+      <p id="fDupConfirmMsg" style="margin-bottom:8px;font-weight:bold;"></p>
+      <label><input type="checkbox" id="fDupConfirmCheck" /> I confirm this is a different person and not a duplicate entry.</label>
     </div>
 
     <!-- DESIGNATION -->
     <div class="field">
       <label>Designation *</label>
-      <input type="text" id="designation" readonly placeholder="Auto-filled or type if new" style="display:block;" />
-      <div id="designationSelectWrapper" style="display:none;">
-        <div class="search-dropdown" id="sdDesignation">
-          <div class="selected-display" id="sdDesignation_display" onclick="toggleDropdown('sdDesignation')">
-            <span id="sdDesignation_text" style="color:#9CA3AF;flex:1;">-- Select Designation --</span>
+      <input type="text" id="fDesignation" readonly placeholder="Auto-filled or select if new" style="display:block;" />
+      <div id="fDesignationWrapper" style="display:none;">
+        <div class="search-dropdown" id="sdFDesignation">
+          <div class="selected-display" id="sdFDesignation_display" onclick="toggleDropdown('sdFDesignation')">
+            <span id="sdFDesignation_text" style="color:#9CA3AF;flex:1;">-- Select Designation --</span>
             <span class="arrow">▼</span>
           </div>
-          <div class="dropdown-list" id="sdDesignation_list">
-            <input type="text" placeholder="Search designation..." oninput="filterList('sdDesignation')" onclick="event.stopPropagation()" style="width:100%;padding:10px 14px;border:none;border-bottom:1px solid #E5E7EB;border-radius:0;margin:0;font-size:15px;" />
-            <div id="sdDesignation_items"></div>
+          <div class="dropdown-list" id="sdFDesignation_list">
+            <input type="text" placeholder="Search designation..." oninput="filterList('sdFDesignation')" onclick="event.stopPropagation()" style="width:100%;padding:10px 14px;border:none;border-bottom:1px solid #E5E7EB;border-radius:0;margin:0;font-size:15px;" />
+            <div id="sdFDesignation_items"></div>
           </div>
         </div>
       </div>
@@ -181,16 +235,16 @@ input.input-ok { border-color: #15803D; }
     <!-- DEPARTMENT -->
     <div class="field">
       <label>Department *</label>
-      <input type="text" id="department" readonly placeholder="Auto-filled or type if new" style="display:block;" />
-      <div id="departmentSelectWrapper" style="display:none;">
-        <div class="search-dropdown" id="sdDepartment">
-          <div class="selected-display" id="sdDepartment_display" onclick="toggleDropdown('sdDepartment')">
-            <span id="sdDepartment_text" style="color:#9CA3AF;flex:1;">-- Select Department --</span>
+      <input type="text" id="fDepartment" readonly placeholder="Auto-filled or select if new" style="display:block;" />
+      <div id="fDepartmentWrapper" style="display:none;">
+        <div class="search-dropdown" id="sdFDepartment">
+          <div class="selected-display" id="sdFDepartment_display" onclick="toggleDropdown('sdFDepartment')">
+            <span id="sdFDepartment_text" style="color:#9CA3AF;flex:1;">-- Select Department --</span>
             <span class="arrow">▼</span>
           </div>
-          <div class="dropdown-list" id="sdDepartment_list">
-            <input type="text" placeholder="Search department..." oninput="filterList('sdDepartment')" onclick="event.stopPropagation()" style="width:100%;padding:10px 14px;border:none;border-bottom:1px solid #E5E7EB;border-radius:0;margin:0;font-size:15px;" />
-            <div id="sdDepartment_items"></div>
+          <div class="dropdown-list" id="sdFDepartment_list">
+            <input type="text" placeholder="Search department..." oninput="filterList('sdFDepartment')" onclick="event.stopPropagation()" style="width:100%;padding:10px 14px;border:none;border-bottom:1px solid #E5E7EB;border-radius:0;margin:0;font-size:15px;" />
+            <div id="sdFDepartment_items"></div>
           </div>
         </div>
       </div>
@@ -199,10 +253,10 @@ input.input-ok { border-color: #15803D; }
     <!-- EMAIL -->
     <div class="field">
       <label>Email *</label>
-      <input type="text" id="email" readonly placeholder="Auto-filled or type if new" oninput="validateEmail()" />
-      <p id="emailNote" class="field-note" style="display:none;">📧 Verification email will be sent to this address.</p>
-      <p id="emailError" class="field-error"></p>
-      <p id="emailOk" class="field-ok">✓ Valid email address</p>
+      <input type="text" id="fEmail" readonly placeholder="Auto-filled or type if new" oninput="validateFEmail(); checkFDuplicate();" />
+      <p id="fEmailNote" class="field-note" style="display:none;">📧 Verification email will be sent to this address.</p>
+      <p id="fEmailError" class="field-error"></p>
+      <p id="fEmailOk" class="field-ok">✓ Valid email address</p>
     </div>
 
     <!-- MOBILE -->
@@ -210,10 +264,10 @@ input.input-ok { border-color: #15803D; }
       <label>Mobile Number *</label>
       <div class="phone-row">
         <div class="country-code">+91</div>
-        <input type="text" id="mobile" readonly placeholder="Auto-filled or type if new" maxlength="10" oninput="validateMobile()" />
+        <input type="text" id="fMobile" readonly placeholder="Auto-filled or type if new" maxlength="10" oninput="validateFMobile(); checkFDuplicate();" />
       </div>
-      <p id="mobileError" class="field-error"></p>
-      <p id="mobileOk" class="field-ok">✓ Valid mobile number</p>
+      <p id="fMobileError" class="field-error"></p>
+      <p id="fMobileOk" class="field-ok">✓ Valid mobile number</p>
     </div>
 
     <!-- ALT MOBILE -->
@@ -221,132 +275,258 @@ input.input-ok { border-color: #15803D; }
       <label>Alternative Mobile <span class="optional">(Optional)</span></label>
       <div class="phone-row">
         <div class="country-code">+91</div>
-        <input type="text" id="altMobile" readonly placeholder="Auto-filled or type if new" maxlength="10" oninput="validateAltMobile()" />
+        <input type="text" id="fAltMobile" readonly placeholder="Auto-filled or type if new" maxlength="10" oninput="validateFAltMobile()" />
       </div>
-      <p id="altMobileError" class="field-error"></p>
-      <p id="altMobileOk" class="field-ok">✓ Valid mobile number</p>
+      <p id="fAltMobileError" class="field-error"></p>
+      <p id="fAltMobileOk" class="field-ok">✓ Valid mobile number</p>
     </div>
 
     <!-- LANDLINE -->
     <div class="field">
       <label>Landline <span class="optional">(Optional)</span></label>
-      <input type="text" id="landline" readonly placeholder="Auto-filled or type if new" maxlength="12" oninput="validateLandline()" />
-      <p id="landlineError" class="field-error"></p>
+      <input type="text" id="fLandline" readonly placeholder="Auto-filled or type if new" maxlength="12" oninput="validateFLandline()" />
+      <p id="fLandlineError" class="field-error"></p>
     </div>
 
-    <!-- INSTITUTION -->
-    <div class="field">
-      <label>Institution *</label>
-      <div class="search-dropdown" id="sdInstitution">
-        <div class="selected-display" id="sdInstitution_display">
-          <span id="sdInstitution_text" style="color:#9CA3AF;flex:1;cursor:pointer;" onclick="toggleDropdown('sdInstitution')">-- Select Institution --</span>
-          <span class="arrow" onclick="toggleDropdown('sdInstitution')" style="cursor:pointer;">▼</span>
-          <span id="sdInstitution_clear" class="clear-btn" onclick="clearInstitution()" title="Clear">✕</span>
-        </div>
-        <div class="dropdown-list" id="sdInstitution_list">
-          <input type="text" placeholder="Search institution..." oninput="filterList('sdInstitution')" onclick="event.stopPropagation()" style="width:100%;padding:10px 14px;border:none;border-bottom:1px solid #E5E7EB;border-radius:0;margin:0;font-size:15px;" />
-          <div id="sdInstitution_items"></div>
-        </div>
-      </div>
-      <input type="hidden" id="institution" />
-    </div>
 
-    <!-- NEW INSTITUTION -->
-    <div id="newInstitutionBox" class="new-entry" style="display:none;">
-      <div class="field">
-        <label>New Institution Name *</label>
-        <input type="text" id="newInstitutionName" placeholder="Type institution name" oninput="checkDuplicateInstitution()" />
-        <p id="dupInstitutionMsg" class="warn-msg"></p>
-      </div>
-    </div>
-
-    <!-- CITY -->
-    <div class="field">
-      <label>City *</label>
-      <input type="text" id="city" readonly placeholder="Auto-filled or type if new" />
-    </div>
-
-    <!-- STATE -->
-    <div class="field">
-      <label>State *</label>
-      <input type="text" id="state" readonly placeholder="Auto-filled or type if new" />
-    </div>
-
-    <!-- COUNTRY -->
-    <div class="field">
-      <label>Country *</label>
-      <input type="text" id="country" readonly placeholder="Auto-filled or type if new" />
-    </div>
+    <div class="field"><label>City *</label><input type="text" id="fCity" readonly placeholder="Auto-filled or type if new" /></div>
+    <div class="field"><label>State *</label><input type="text" id="fState" readonly placeholder="Auto-filled or type if new" /></div>
+    <div class="field"><label>Country *</label><input type="text" id="fCountry" readonly placeholder="Auto-filled or type if new" /></div>
 
     <!-- ISBN -->
     <div class="field">
       <label>ISBN *</label>
       <div class="isbn-row">
-        <input type="text" id="isbn" maxlength="13" placeholder="Type 13 digit ISBN" oninput="validateISBNInput()" />
-        <button onclick="lookupISBN()">Search</button>
+        <input type="text" id="fIsbn" maxlength="13" placeholder="Type 13 digit ISBN" oninput="validateISBNInput('f')" />
+        <button onclick="lookupISBN('f')">Search</button>
       </div>
-      <p id="isbnNotFound" class="not-found"></p>
+      <p id="fIsbnNotFound" class="not-found"></p>
     </div>
-
-    <!-- BOOK AUTO-FILL -->
-    <div class="field">
-      <label>Book Title</label>
-      <input type="text" id="bookTitle" readonly placeholder="Auto-filled" />
-    </div>
-    <div class="field">
-      <label>Author</label>
-      <input type="text" id="author" readonly placeholder="Auto-filled" />
-    </div>
-    <div class="field">
-      <label>Edition</label>
-      <input type="text" id="edition" readonly placeholder="Auto-filled" />
-    </div>
-
-    <!-- NUMBER OF BOOKS -->
-    <div class="field">
-      <label>Number of Books *</label>
-      <input type="number" id="numBooks" min="1" placeholder="Enter quantity" />
-    </div>
-
-    <!-- REMARKS -->
-    <div class="field">
-      <label>Remarks <span class="optional">(Optional)</span></label>
-      <textarea id="remarks" rows="3" placeholder="Optional"></textarea>
-    </div>
+    <div class="field"><label>Book Title</label><input type="text" id="fBookTitle" readonly placeholder="Auto-filled" /></div>
+    <div class="field"><label>Author</label><input type="text" id="fAuthor" readonly placeholder="Auto-filled" /></div>
+    <div class="field"><label>Edition</label><input type="text" id="fEdition" readonly placeholder="Auto-filled" /></div>
+    <div class="field"><label>Number of Books *</label><input type="number" id="fNumBooks" min="1" placeholder="Enter quantity" /></div>
+    <div class="field"><label>Remarks <span class="optional">(Optional)</span></label><textarea id="fRemarks" rows="3" placeholder="Optional"></textarea></div>
 
     <div class="btn-row">
-      <button class="btn-secondary" onclick="saveDraft()">💾 Save and Continue Later</button>
-      <button class="btn" onclick="submitForm()">Submit</button>
+      <button class="btn-secondary" onclick="saveFDraft()">💾 Save Draft</button>
+      <button class="btn" onclick="submitFacultyForm()">Submit</button>
     </div>
+    <p id="fFormMsg" class="msg" style="display:none;"></p>
 
-    <p id="formMsg" class="msg" style="display:none;"></p>
-
-    <!-- RECEIPT -->
-    <div id="receipt" class="receipt">
-      <h3>✅ Submission Receipt</h3>
-      <div class="receipt-row"><span class="receipt-label">Date</span><span class="receipt-value" id="r_date"></span></div>
-      <div class="receipt-row"><span class="receipt-label">Salesperson</span><span class="receipt-value" id="r_salesperson"></span></div>
-      <div class="receipt-row"><span class="receipt-label">Institution</span><span class="receipt-value" id="r_institution"></span></div>
-      <div class="receipt-row"><span class="receipt-label">City</span><span class="receipt-value" id="r_city"></span></div>
-      <div class="receipt-row"><span class="receipt-label">State</span><span class="receipt-value" id="r_state"></span></div>
-      <div class="receipt-row"><span class="receipt-label">Country</span><span class="receipt-value" id="r_country"></span></div>
-      <div class="receipt-row"><span class="receipt-label">Contact</span><span class="receipt-value" id="r_contact"></span></div>
-      <div class="receipt-row"><span class="receipt-label">Designation</span><span class="receipt-value" id="r_designation"></span></div>
-      <div class="receipt-row"><span class="receipt-label">Department</span><span class="receipt-value" id="r_department"></span></div>
-      <div class="receipt-row"><span class="receipt-label">Email</span><span class="receipt-value" id="r_email"></span></div>
-      <div class="receipt-row"><span class="receipt-label">Mobile</span><span class="receipt-value" id="r_mobile"></span></div>
-      <div class="receipt-row"><span class="receipt-label">Alt Mobile</span><span class="receipt-value" id="r_altMobile"></span></div>
-      <div class="receipt-row"><span class="receipt-label">Landline</span><span class="receipt-value" id="r_landline"></span></div>
-      <div class="receipt-row"><span class="receipt-label">Book Title</span><span class="receipt-value" id="r_bookTitle"></span></div>
-      <div class="receipt-row"><span class="receipt-label">ISBN</span><span class="receipt-value" id="r_isbn"></span></div>
-      <div class="receipt-row"><span class="receipt-label">Author</span><span class="receipt-value" id="r_author"></span></div>
-      <div class="receipt-row"><span class="receipt-label">Edition</span><span class="receipt-value" id="r_edition"></span></div>
-      <div class="receipt-row"><span class="receipt-label">No. of Books</span><span class="receipt-value" id="r_numBooks"></span></div>
-      <div class="receipt-row"><span class="receipt-label">Remarks</span><span class="receipt-value" id="r_remarks"></span></div>
-      <button class="btn-pdf" onclick="downloadPDF()">⬇️ Download PDF Receipt</button>
+    <div id="fReceipt" class="receipt">
+      <h3>✅ Submission Receipt — Faculty</h3>
+      <div class="receipt-row"><span class="receipt-label">Date</span><span class="receipt-value" id="fr_date"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Salesperson</span><span class="receipt-value" id="fr_salesperson"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Institution</span><span class="receipt-value" id="fr_institution"></span></div>
+      <div class="receipt-row"><span class="receipt-label">City</span><span class="receipt-value" id="fr_city"></span></div>
+      <div class="receipt-row"><span class="receipt-label">State</span><span class="receipt-value" id="fr_state"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Country</span><span class="receipt-value" id="fr_country"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Contact</span><span class="receipt-value" id="fr_contact"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Designation</span><span class="receipt-value" id="fr_designation"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Department</span><span class="receipt-value" id="fr_department"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Email</span><span class="receipt-value" id="fr_email"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Mobile</span><span class="receipt-value" id="fr_mobile"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Alt Mobile</span><span class="receipt-value" id="fr_altMobile"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Landline</span><span class="receipt-value" id="fr_landline"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Book Title</span><span class="receipt-value" id="fr_bookTitle"></span></div>
+      <div class="receipt-row"><span class="receipt-label">ISBN</span><span class="receipt-value" id="fr_isbn"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Author</span><span class="receipt-value" id="fr_author"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Edition</span><span class="receipt-value" id="fr_edition"></span></div>
+      <div class="receipt-row"><span class="receipt-label">No. of Books</span><span class="receipt-value" id="fr_numBooks"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Remarks</span><span class="receipt-value" id="fr_remarks"></span></div>
+      <button class="btn-pdf" onclick="downloadReceipt('faculty')">⬇️ Download Receipt</button>
     </div>
-
   </div>
+
+  <!-- STUDENT FORM -->
+  <div id="studentForm" style="display:none;">
+    <div id="studentWelcomeBanner" class="welcome-banner">
+      <div class="welcome-name" id="studentWelcomeName"></div>
+      <div class="welcome-sub">CBS Publishers &amp; Distributors — Complementary Distribution</div>
+    </div>
+    <div style="text-align:center;margin-bottom:16px;">
+      <span class="form-type-badge badge-student">📖 Student Distribution</span>
+    </div>
+    <h2>📚 Complementary Book Distribution</h2>
+    <div id="studentDraftBanner" class="draft-banner">📋 You have a saved draft. Your previous data has been restored.</div>
+
+    <div class="field">
+      <label>Salesperson</label>
+      <div class="rep-readonly" id="sRepDisplay"></div>
+      <input type="hidden" id="sSalesperson" />
+    </div>
+    <div class="field">
+      <label>Date of Visit *</label>
+      <input type="date" id="sVisitDate" />
+    </div>
+
+<!-- INSTITUTION -->
+    <div class="field">
+      <label>Institution *</label>
+      <div class="search-dropdown" id="sdSInstitution">
+        <div class="selected-display" id="sdSInstitution_display">
+          <span id="sdSInstitution_text" style="color:#9CA3AF;flex:1;cursor:pointer;" onclick="toggleDropdown('sdSInstitution')">-- Select Institution --</span>
+          <span class="arrow" onclick="toggleDropdown('sdSInstitution')" style="cursor:pointer;">▼</span>
+          <span id="sdSInstitution_clear" class="clear-btn" onclick="clearSInstitution()" title="Clear">✕</span>
+        </div>
+        <div class="dropdown-list" id="sdSInstitution_list">
+          <input type="text" placeholder="Search institution..." oninput="filterList('sdSInstitution')" onclick="event.stopPropagation()" style="width:100%;padding:10px 14px;border:none;border-bottom:1px solid #E5E7EB;border-radius:0;margin:0;font-size:15px;" />
+          <div id="sdSInstitution_items"></div>
+        </div>
+      </div>
+      <input type="hidden" id="sInstitution" />
+    </div>
+    <div id="sNewInstitutionBox" class="new-entry" style="display:none;">
+      <div class="field">
+        <label>New Institution Name *</label>
+        <input type="text" id="sNewInstitutionName" placeholder="Type institution name" oninput="checkSDupInstitution()" />
+        <p id="sDupInstitutionMsg" class="warn-msg"></p>
+      </div>
+    </div>
+    
+    <!-- CONTACT -->
+    <div class="field">
+      <label>Student Name *</label>
+      <div class="search-dropdown" id="sdSContact">
+        <div class="selected-display" id="sdSContact_display">
+          <span id="sdSContact_text" style="color:#9CA3AF;flex:1;cursor:pointer;" onclick="toggleDropdown('sdSContact')">-- Select Student --</span>
+          <span class="arrow" onclick="toggleDropdown('sdSContact')" style="cursor:pointer;">▼</span>
+          <span id="sdSContact_clear" class="clear-btn" onclick="clearSContact()" title="Clear">✕</span>
+        </div>
+        <div class="dropdown-list" id="sdSContact_list">
+          <input type="text" placeholder="Search student..." oninput="filterList('sdSContact')" onclick="event.stopPropagation()" style="width:100%;padding:10px 14px;border:none;border-bottom:1px solid #E5E7EB;border-radius:0;margin:0;font-size:15px;" />
+          <div id="sdSContact_items"></div>
+        </div>
+      </div>
+      <input type="hidden" id="sContact" />
+    </div>
+    <div id="sNewContactBox" class="new-entry" style="display:none;">
+      <div class="field">
+        <label>New Student Name *</label>
+        <input type="text" id="sNewContactName" placeholder="Type student name" oninput="checkSDuplicate()" />
+        <p id="sDupContactMsg" class="warn-msg"></p>
+      </div>
+    </div>
+    <div id="sDupConfirmBox" class="dup-confirm">
+      <p id="sDupConfirmMsg" style="margin-bottom:8px;font-weight:bold;"></p>
+      <label><input type="checkbox" id="sDupConfirmCheck" /> I confirm this is a different student and not a duplicate entry.</label>
+    </div>
+
+    <!-- YEAR -->
+    <div class="field">
+      <label>Year *</label>
+      <input type="text" id="sYear" readonly placeholder="Auto-filled or select if new" style="display:block;" />
+      <div id="sYearWrapper" style="display:none;">
+        <div class="search-dropdown" id="sdSYear">
+          <div class="selected-display" id="sdSYear_display" onclick="toggleDropdown('sdSYear')">
+            <span id="sdSYear_text" style="color:#9CA3AF;flex:1;">-- Select Year --</span>
+            <span class="arrow">▼</span>
+          </div>
+          <div class="dropdown-list" id="sdSYear_list">
+            <input type="text" placeholder="Search year..." oninput="filterList('sdSYear')" onclick="event.stopPropagation()" style="width:100%;padding:10px 14px;border:none;border-bottom:1px solid #E5E7EB;border-radius:0;margin:0;font-size:15px;" />
+            <div id="sdSYear_items"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COURSE -->
+    <div class="field">
+      <label>Course *</label>
+      <input type="text" id="sCourse" readonly placeholder="Auto-filled or select if new" style="display:block;" />
+      <div id="sCourseWrapper" style="display:none;">
+        <div class="search-dropdown" id="sdSCourse">
+          <div class="selected-display" id="sdSCourse_display" onclick="toggleDropdown('sdSCourse')">
+            <span id="sdSCourse_text" style="color:#9CA3AF;flex:1;">-- Select Course --</span>
+            <span class="arrow">▼</span>
+          </div>
+          <div class="dropdown-list" id="sdSCourse_list">
+            <input type="text" placeholder="Search course..." oninput="filterList('sdSCourse')" onclick="event.stopPropagation()" style="width:100%;padding:10px 14px;border:none;border-bottom:1px solid #E5E7EB;border-radius:0;margin:0;font-size:15px;" />
+            <div id="sdSCourse_items"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BATCH -->
+    <div class="field">
+      <label>Batch <span class="optional">(Optional)</span></label>
+      <input type="text" id="sBatch" readonly placeholder="Auto-filled or type if new" maxlength="10" oninput="validateBatch()" />
+      <p id="sBatchError" class="field-error"></p>
+    </div>
+
+    <!-- EMAIL -->
+    <div class="field">
+      <label>Email *</label>
+      <input type="text" id="sEmail" readonly placeholder="Auto-filled or type if new" oninput="validateSEmail(); checkSDuplicate();" />
+      <p id="sEmailNote" class="field-note" style="display:none;">📧 Verification email will be sent to this address.</p>
+      <p id="sEmailError" class="field-error"></p>
+      <p id="sEmailOk" class="field-ok">✓ Valid email address</p>
+    </div>
+
+    <!-- MOBILE -->
+    <div class="field">
+      <label>Mobile Number *</label>
+      <div class="phone-row">
+        <div class="country-code">+91</div>
+        <input type="text" id="sMobile" readonly placeholder="Auto-filled or type if new" maxlength="10" oninput="validateSMobile(); checkSDuplicate();" />
+      </div>
+      <p id="sMobileError" class="field-error"></p>
+      <p id="sMobileOk" class="field-ok">✓ Valid mobile number</p>
+    </div>
+
+    
+
+    <div class="field"><label>City *</label><input type="text" id="sCity" readonly placeholder="Auto-filled or type if new" /></div>
+    <div class="field"><label>State *</label><input type="text" id="sState" readonly placeholder="Auto-filled or type if new" /></div>
+    <div class="field"><label>Country *</label><input type="text" id="sCountry" readonly placeholder="Auto-filled or type if new" /></div>
+
+    <!-- ISBN -->
+    <div class="field">
+      <label>ISBN *</label>
+      <div class="isbn-row">
+        <input type="text" id="sIsbn" maxlength="13" placeholder="Type 13 digit ISBN" oninput="validateISBNInput('s')" />
+        <button onclick="lookupISBN('s')">Search</button>
+      </div>
+      <p id="sIsbnNotFound" class="not-found"></p>
+    </div>
+    <div class="field"><label>Book Title</label><input type="text" id="sBookTitle" readonly placeholder="Auto-filled" /></div>
+    <div class="field"><label>Author</label><input type="text" id="sAuthor" readonly placeholder="Auto-filled" /></div>
+    <div class="field"><label>Edition</label><input type="text" id="sEdition" readonly placeholder="Auto-filled" /></div>
+    <div class="field"><label>Number of Books *</label><input type="number" id="sNumBooks" min="1" placeholder="Enter quantity" /></div>
+    <div class="field"><label>Remarks <span class="optional">(Optional)</span></label><textarea id="sRemarks" rows="3" placeholder="Optional"></textarea></div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="saveSDraft()">💾 Save Draft</button>
+      <button class="btn" onclick="submitStudentForm()">Submit</button>
+    </div>
+    <p id="sFormMsg" class="msg" style="display:none;"></p>
+
+    <div id="sReceipt" class="receipt">
+      <h3>✅ Submission Receipt — Student</h3>
+      <div class="receipt-row"><span class="receipt-label">Date</span><span class="receipt-value" id="sr_date"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Salesperson</span><span class="receipt-value" id="sr_salesperson"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Institution</span><span class="receipt-value" id="sr_institution"></span></div>
+      <div class="receipt-row"><span class="receipt-label">City</span><span class="receipt-value" id="sr_city"></span></div>
+      <div class="receipt-row"><span class="receipt-label">State</span><span class="receipt-value" id="sr_state"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Country</span><span class="receipt-value" id="sr_country"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Student Name</span><span class="receipt-value" id="sr_contact"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Year</span><span class="receipt-value" id="sr_year"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Course</span><span class="receipt-value" id="sr_course"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Batch</span><span class="receipt-value" id="sr_batch"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Email</span><span class="receipt-value" id="sr_email"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Mobile</span><span class="receipt-value" id="sr_mobile"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Book Title</span><span class="receipt-value" id="sr_bookTitle"></span></div>
+      <div class="receipt-row"><span class="receipt-label">ISBN</span><span class="receipt-value" id="sr_isbn"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Author</span><span class="receipt-value" id="sr_author"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Edition</span><span class="receipt-value" id="sr_edition"></span></div>
+      <div class="receipt-row"><span class="receipt-label">No. of Books</span><span class="receipt-value" id="sr_numBooks"></span></div>
+      <div class="receipt-row"><span class="receipt-label">Remarks</span><span class="receipt-value" id="sr_remarks"></span></div>
+      <button class="btn-pdf" onclick="downloadReceipt('student')">⬇️ Download Receipt</button>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -355,23 +535,31 @@ var SHEET_ID  = '1IklTD1JAhWOGmtm2w5UWMkuVMc8gFeIrgNL1I193xxs';
 var PIN       = '3693';
 var COMPANY   = 'CBS Publishers & Distributors';
 var API       = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:json&sheet=';
-var DRAFT_KEY = 'bookDistributionDraft';
+var FACULTY_SUBMIT_URL  = 'YOUR_FACULTY_ENDPOINT_HERE';
+var STUDENT_SUBMIT_URL  = 'YOUR_STUDENT_ENDPOINT_HERE';
+var F_DRAFT_KEY = 'cbsFacultyDraft';
+var S_DRAFT_KEY = 'cbsStudentDraft';
 
-var allContacts     = [];
-var allInstitutions = [];
-var allBooks        = [];
-var dropdownData    = {};
-var lastSubmission  = null;
-var currentRep      = '';
-var isNewContact    = false;
+var allInstitutions   = [];
+var allFContacts      = [];
+var allSContacts      = [];
+var allBooks          = [];
+var dropdownData      = {};
+var currentRep        = '';
+var currentRole       = '';
+var fIsNewContact     = false;
+var sIsNewContact     = false;
+var fDupScore         = 0;
+var sDupScore         = 0;
+var fLastSubmission   = null;
+var sLastSubmission   = null;
 
 var DESIGNATIONS = [
   'Chairman / CEO / Secretary / Coordinator','Dean','Principal','Vice-Principal',
   'Director','Registrar','Faculty','Professor','HOD','Tutor','Lecturer',
-  'Assistant Professor','Associate Professor','Student PG 1st Year','Student PG 2nd Year',
-  'Student UG 1st Year','Student UG 2nd Year','Student UG 3rd Year','Student UG 4th Year',
-  'Student UG 5th Year','Resident','Medical Officer','Library','Book Seller','Vendor',
-  'Technician','Statistician','Chairman','CEO','Secretary','Coordinator'
+  'Assistant Professor','Associate Professor','Resident','Medical Officer',
+  'Library','Book Seller','Vendor','Technician','Statistician',
+  'Chairman','CEO','Secretary','Coordinator'
 ];
 
 var DEPARTMENTS = [
@@ -387,6 +575,15 @@ var DEPARTMENTS = [
   'Pathology','Pharmacy'
 ];
 
+var YEARS = [
+  '1st Year','2nd Year','3rd Year','4th Year','5th Year',
+  'PhD / Research'
+];
+
+var COURSES = [
+  'MBBS','BDS','BAMS','B.Sc Nursing','MD','MS','PhD','FMGE'
+];
+
 // ── URL REP ──────────────────────────────────
 function getRepFromURL() {
   var params = new URLSearchParams(window.location.search);
@@ -400,7 +597,7 @@ function checkPin() {
   if (entered === PIN) {
     document.getElementById('pinScreen').style.display = 'none';
     var rep = getRepFromURL();
-    if (rep) { currentRep = rep; startForm(); }
+    if (rep) { currentRep = rep; showRoleScreen(); }
     else { document.getElementById('nameScreen').style.display = 'block'; }
   } else {
     document.getElementById('pinError').style.display = 'block';
@@ -416,386 +613,470 @@ function confirmName() {
   if (!name) { document.getElementById('nameError').style.display = 'block'; return; }
   currentRep = name;
   document.getElementById('nameScreen').style.display = 'none';
-  startForm();
+  showRoleScreen();
 }
 
 document.getElementById('manualNameInput').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') confirmName();
 });
 
-function startForm() {
-  document.getElementById('salesperson').value = currentRep;
-  document.getElementById('repDisplay').textContent = currentRep;
-  document.getElementById('welcomeName').textContent = 'Welcome, ' + currentRep + ' 👋';
-  document.getElementById('welcomeBanner').style.display = 'block';
-  document.getElementById('formScreen').style.display = 'block';
-  document.getElementById('visitDate').valueAsDate = new Date();
-  loadAllData();
+function showRoleScreen() {
+  document.getElementById('roleScreen').style.display = 'block';
+}
+
+function selectRole(role) {
+  currentRole = role;
+  document.getElementById('roleScreen').style.display = 'none';
+  if (role === 'faculty') startFacultyForm();
+  else startStudentForm();
 }
 
 // ── LOAD DATA ────────────────────────────────
-function loadAllData() {
-  loadSheet('Institutions', function(rows) {
-    allInstitutions = rows;
-    rebuildInstitutionDropdown(null);
-  });
-  loadSheet('Contacts', function(rows) {
-    allContacts = rows;
-    rebuildContactDropdown(null);
-    checkDraft();
-  });
-  loadSheet('Books', function(rows) {
-    allBooks = rows;
-  });
+function loadAllData(callback) {
+  var loaded = 0;
+  function done() { loaded++; if (loaded === 4) callback(); }
 
-  dropdownData['sdDesignation'] = DESIGNATIONS.map(function(d) { return { value: d, label: d }; });
-  renderItems('sdDesignation', dropdownData['sdDesignation']);
-
-  dropdownData['sdDepartment'] = DEPARTMENTS.map(function(d) { return { value: d, label: d }; });
-  renderItems('sdDepartment', dropdownData['sdDepartment']);
+  loadSheet('Institutions', function(rows) { allInstitutions = rows; done(); });
+  loadSheet('Books',        function(rows) { allBooks = rows; done(); });
+  loadSheet('Contacts',     function(rows) { allFContacts = rows; done(); });
+  loadSheet('Student_Contacts', function(rows) { allSContacts = rows; done(); });
 }
 
-// ── ISBN VALIDATION ───────────────────────────
-function validateISBNInput() {
-  var isbnInput = document.getElementById('isbn');
-  var val       = isbnInput.value;
-  var notFound  = document.getElementById('isbnNotFound');
+// ── FACULTY FORM START ────────────────────────
+function startFacultyForm() {
+  document.getElementById('facultyForm').style.display = 'block';
+  document.getElementById('fSalesperson').value = currentRep;
+  document.getElementById('fRepDisplay').textContent = currentRep;
+  document.getElementById('facultyWelcomeName').textContent = 'Welcome, ' + currentRep + ' 👋';
+  document.getElementById('facultyWelcomeBanner').style.display = 'block';
+  document.getElementById('fVisitDate').valueAsDate = new Date();
 
-  var cleaned = val.replace(/[^0-9]/g, '');
-  if (cleaned !== val) {
-    isbnInput.value = cleaned;
+  dropdownData['sdFDesignation'] = DESIGNATIONS.map(function(d) { return { value: d, label: d }; });
+  renderItems('sdFDesignation', dropdownData['sdFDesignation']);
+  dropdownData['sdFDepartment'] = DEPARTMENTS.map(function(d) { return { value: d, label: d }; });
+  renderItems('sdFDepartment', dropdownData['sdFDepartment']);
+
+  loadAllData(function() {
+    rebuildFInstitutionDropdown(null);
+    rebuildFContactDropdown(null);
+    checkFDraft();
+  });
+}
+
+// ── STUDENT FORM START ────────────────────────
+function startStudentForm() {
+  document.getElementById('studentForm').style.display = 'block';
+  document.getElementById('sSalesperson').value = currentRep;
+  document.getElementById('sRepDisplay').textContent = currentRep;
+  document.getElementById('studentWelcomeName').textContent = 'Welcome, ' + currentRep + ' 👋';
+  document.getElementById('studentWelcomeBanner').style.display = 'block';
+  document.getElementById('sVisitDate').valueAsDate = new Date();
+
+  dropdownData['sdSYear'] = YEARS.map(function(d) { return { value: d, label: d }; });
+  renderItems('sdSYear', dropdownData['sdSYear']);
+  dropdownData['sdSCourse'] = COURSES.map(function(d) { return { value: d, label: d }; });
+  renderItems('sdSCourse', dropdownData['sdSCourse']);
+
+  loadAllData(function() {
+    rebuildSInstitutionDropdown(null);
+    rebuildSContactDropdown(null);
+    checkSDraft();
+  });
+}
+
+// ── ISBN ─────────────────────────────────────
+function validateISBNInput(prefix) {
+  var el       = document.getElementById(prefix + 'Isbn');
+  var notFound = document.getElementById(prefix + 'IsbnNotFound');
+  var cleaned  = el.value.replace(/[^0-9]/g, '');
+  if (cleaned !== el.value) {
+    el.value = cleaned;
     notFound.textContent = '⚠️ ISBN can only contain numbers.';
     notFound.className = 'not-found is-error';
     notFound.style.display = 'block';
-    isbnInput.classList.add('input-error');
-    isbnInput.classList.remove('input-ok');
+    el.classList.add('input-error');
+    el.classList.remove('input-ok');
     return;
   }
-
-  isbnInput.classList.remove('input-error', 'input-ok');
+  el.classList.remove('input-error','input-ok');
   notFound.style.display = 'none';
-  document.getElementById('bookTitle').value = '';
-  document.getElementById('author').value    = '';
-  document.getElementById('edition').value   = '';
+  document.getElementById(prefix + 'BookTitle').value = '';
+  document.getElementById(prefix + 'Author').value    = '';
+  document.getElementById(prefix + 'Edition').value   = '';
 }
 
-function lookupISBN() {
-  var isbnInput = document.getElementById('isbn');
-  var isbn      = isbnInput.value.trim();
-  var notFound  = document.getElementById('isbnNotFound');
-
-  document.getElementById('bookTitle').value = '';
-  document.getElementById('author').value    = '';
-  document.getElementById('edition').value   = '';
+function lookupISBN(prefix) {
+  var el       = document.getElementById(prefix + 'Isbn');
+  var isbn     = el.value.trim();
+  var notFound = document.getElementById(prefix + 'IsbnNotFound');
+  document.getElementById(prefix + 'BookTitle').value = '';
+  document.getElementById(prefix + 'Author').value    = '';
+  document.getElementById(prefix + 'Edition').value   = '';
   notFound.style.display = 'none';
-  isbnInput.classList.remove('input-error', 'input-ok');
+  el.classList.remove('input-error','input-ok');
 
   if (!isbn) {
     notFound.textContent = '⚠️ Please enter an ISBN.';
-    notFound.className = 'not-found is-error';
-    notFound.style.display = 'block';
-    isbnInput.classList.add('input-error');
-    return;
+    notFound.className = 'not-found is-error'; notFound.style.display = 'block';
+    el.classList.add('input-error'); return;
   }
-
   if (/[^0-9]/.test(isbn)) {
     notFound.textContent = '⚠️ ISBN can only contain numbers.';
-    notFound.className = 'not-found is-error';
-    notFound.style.display = 'block';
-    isbnInput.classList.add('input-error');
-    return;
+    notFound.className = 'not-found is-error'; notFound.style.display = 'block';
+    el.classList.add('input-error'); return;
   }
-
   if (isbn.length !== 13) {
     notFound.textContent = '⚠️ ISBN must be exactly 13 digits. You entered ' + isbn.length + ' digit' + (isbn.length === 1 ? '' : 's') + '.';
-    notFound.className = 'not-found is-error';
-    notFound.style.display = 'block';
-    isbnInput.classList.add('input-error');
-    return;
+    notFound.className = 'not-found is-error'; notFound.style.display = 'block';
+    el.classList.add('input-error'); return;
   }
-
   var found = null;
   allBooks.forEach(function(r) {
     if (found) return;
-    if (String(r[0] || '').replace(/\D/g, '') === isbn) found = r;
+    if (String(r[0] || '').replace(/\D/g,'') === isbn) found = r;
   });
-
   if (found) {
-    document.getElementById('bookTitle').value = found[1] || '';
-    document.getElementById('author').value    = found[2] || '';
-    document.getElementById('edition').value   = found[3] || '';
-    isbnInput.classList.add('input-ok');
-    notFound.style.display = 'none';
+    document.getElementById(prefix + 'BookTitle').value = found[1] || '';
+    document.getElementById(prefix + 'Author').value    = found[2] || '';
+    document.getElementById(prefix + 'Edition').value   = found[3] || '';
+    el.classList.add('input-ok');
   } else {
     notFound.textContent = '⚠️ Book not found. Please check the ISBN.';
-    notFound.className = 'not-found is-error';
-    notFound.style.display = 'block';
-    isbnInput.classList.add('input-error');
+    notFound.className = 'not-found is-error'; notFound.style.display = 'block';
+    el.classList.add('input-error');
   }
 }
 
-document.getElementById('isbn').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') lookupISBN();
-});
-
-// ── CONTACT VALIDATION ────────────────────────
-function validateEmail() {
-  if (!isNewContact) return true;
-  var val   = document.getElementById('email').value.trim();
-  var input = document.getElementById('email');
-  document.getElementById('emailError').style.display  = 'none';
-  document.getElementById('emailOk').style.display     = 'none';
-  document.getElementById('emailNote').style.display   = 'none';
-  input.classList.remove('input-error', 'input-ok');
+// ── VALIDATION HELPERS ────────────────────────
+function validateEmailField(inputId, errorId, okId, noteId) {
+  var val   = document.getElementById(inputId).value.trim();
+  var input = document.getElementById(inputId);
+  document.getElementById(errorId).style.display = 'none';
+  document.getElementById(okId).style.display    = 'none';
+  if (noteId) document.getElementById(noteId).style.display = 'none';
+  input.classList.remove('input-error','input-ok');
   if (!val) return true;
-  if (/^[^a-zA-Z0-9]/.test(val)) return showFieldError('email', 'Email cannot start with a special character.');
-  if (/^www\.?/i.test(val))       return showFieldError('email', 'Email should not start with www.');
-  if ((val.match(/@/g) || []).length > 1) return showFieldError('email', 'Email cannot contain more than one @ symbol.');
-  if (!val.includes('@'))         return showFieldError('email', 'Email must contain an @ symbol.');
+  if (/^[^a-zA-Z0-9]/.test(val)) return showErr(inputId, errorId, 'Email cannot start with a special character.');
+  if (/^www\.?/i.test(val))       return showErr(inputId, errorId, 'Email should not start with www.');
+  if ((val.match(/@/g)||[]).length > 1) return showErr(inputId, errorId, 'Email cannot have more than one @ symbol.');
+  if (!val.includes('@'))         return showErr(inputId, errorId, 'Email must contain an @ symbol.');
   if (!/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(val))
-    return showFieldError('email', 'Email must be in a valid format like name@domain.com');
+    return showErr(inputId, errorId, 'Email must be like name@domain.com');
   input.classList.add('input-ok');
-  document.getElementById('emailOk').style.display   = 'block';
-  document.getElementById('emailNote').style.display = 'block';
+  document.getElementById(okId).style.display = 'block';
+  if (noteId) document.getElementById(noteId).style.display = 'block';
   return true;
 }
 
-function validateMobile() {
-  if (!isNewContact) return true;
-  var val = document.getElementById('mobile').value.trim();
-  document.getElementById('mobileError').style.display = 'none';
-  document.getElementById('mobileOk').style.display    = 'none';
-  document.getElementById('mobile').classList.remove('input-error', 'input-ok');
+function validateMobileField(inputId, errorId, okId) {
+  var val = document.getElementById(inputId).value.trim();
+  document.getElementById(errorId).style.display = 'none';
+  document.getElementById(okId).style.display    = 'none';
+  document.getElementById(inputId).classList.remove('input-error','input-ok');
   if (!val) return true;
-  return runMobileValidation('mobile', val);
+  return runMobileValidation(inputId, errorId, okId, val);
 }
 
-function validateAltMobile() {
-  if (!isNewContact) return true;
-  var val = document.getElementById('altMobile').value.trim();
-  document.getElementById('altMobileError').style.display = 'none';
-  document.getElementById('altMobileOk').style.display    = 'none';
-  document.getElementById('altMobile').classList.remove('input-error', 'input-ok');
-  if (!val) return true;
-  return runMobileValidation('altMobile', val);
-}
-
-function runMobileValidation(fieldId, val) {
-  if (/[^0-9]/.test(val))  return showFieldError(fieldId, 'Mobile number cannot contain special characters or letters.');
-  if (!/^[6-9]/.test(val)) return showFieldError(fieldId, 'Mobile number must start with 6, 7, 8, or 9.');
+function runMobileValidation(inputId, errorId, okId, val) {
+  if (/[^0-9]/.test(val))  return showErr(inputId, errorId, 'Mobile cannot contain special characters or letters.');
+  if (!/^[6-9]/.test(val)) return showErr(inputId, errorId, 'Mobile must start with 6, 7, 8, or 9.');
   if (val.length < 10) return true;
   if (val.length === 10) {
-    if (/(.)\1{4,}/.test(val)) return showFieldError(fieldId, 'Mobile number cannot have the same digit repeated 5 or more times consecutively.');
-    if (isSequentialNumber(val)) return showFieldError(fieldId, 'Mobile number cannot be a sequential pattern like 1234567890.');
-    document.getElementById(fieldId).classList.add('input-ok');
-    document.getElementById(fieldId + 'Ok').style.display = 'block';
+    if (/(.)\1{4,}/.test(val)) return showErr(inputId, errorId, 'Mobile cannot have the same digit 5+ times consecutively.');
+    if (isSeq(val)) return showErr(inputId, errorId, 'Mobile cannot be a sequential pattern like 1234567890.');
+    document.getElementById(inputId).classList.add('input-ok');
+    document.getElementById(okId).style.display = 'block';
     return true;
   }
   return true;
 }
 
-function validateLandline() {
-  if (!isNewContact) return true;
-  var val = document.getElementById('landline').value.trim();
-  document.getElementById('landlineError').style.display = 'none';
-  document.getElementById('landline').classList.remove('input-error');
-  if (!val) return true;
-  if (/[^0-9]/.test(val)) return showFieldError('landline', 'Landline cannot contain special characters or letters.');
-  if (val.length >= 7 && val.length > 12) return showFieldError('landline', 'Landline must be between 7 and 12 digits.');
-  return true;
-}
-
-function isSequentialNumber(val) {
-  var asc  = '01234567890123456789';
-  var desc = '98765432109876543210';
-  return asc.indexOf(val) !== -1 || desc.indexOf(val) !== -1;
-}
-
-function showFieldError(fieldId, message) {
-  var input = document.getElementById(fieldId);
-  var err   = document.getElementById(fieldId + 'Error');
-  if (input) input.classList.add('input-error');
-  if (err) { err.textContent = '⚠️ ' + message; err.style.display = 'block'; }
+function showErr(inputId, errorId, msg) {
+  document.getElementById(inputId).classList.add('input-error');
+  var el = document.getElementById(errorId);
+  if (el) { el.textContent = '⚠️ ' + msg; el.style.display = 'block'; }
   return false;
 }
 
-// ── FIELD STATE HELPERS ───────────────────────
-function makeContactFieldsEditable() {
-  isNewContact = true;
-  ['email','mobile','altMobile','landline'].forEach(function(id) {
-    var el = document.getElementById(id);
-    el.value = '';
-    el.removeAttribute('readonly');
-    el.style.background = '#fff';
-    el.style.color = '#111827';
-  });
-  document.getElementById('designation').style.display = 'none';
-  document.getElementById('designation').value = '';
-  document.getElementById('designationSelectWrapper').style.display = 'block';
-  document.getElementById('sdDesignation_text').textContent = '-- Select Designation --';
-  document.getElementById('sdDesignation_text').style.color = '#9CA3AF';
-  document.getElementById('sdDesignation_display').classList.remove('has-value');
-  renderItems('sdDesignation', dropdownData['sdDesignation'] || []);
-  document.getElementById('department').style.display = 'none';
-  document.getElementById('department').value = '';
-  document.getElementById('departmentSelectWrapper').style.display = 'block';
-  document.getElementById('sdDepartment_text').textContent = '-- Select Department --';
-  document.getElementById('sdDepartment_text').style.color = '#9CA3AF';
-  document.getElementById('sdDepartment_display').classList.remove('has-value');
-  renderItems('sdDepartment', dropdownData['sdDepartment'] || []);
-  clearValidationUI();
+function isSeq(val) {
+  return '01234567890123456789'.indexOf(val) !== -1 || '98765432109876543210'.indexOf(val) !== -1;
 }
 
-function makeContactFieldsReadonly() {
-  isNewContact = false;
-  ['email','mobile','altMobile','landline','designation','department'].forEach(function(id) {
-    var el = document.getElementById(id);
-    el.value = '';
-    el.setAttribute('readonly', true);
-    el.style.background = '#F3F4F6';
-    el.style.color = '#6B7280';
-  });
-  document.getElementById('designation').style.display = 'block';
-  document.getElementById('designationSelectWrapper').style.display = 'none';
-  document.getElementById('department').style.display = 'block';
-  document.getElementById('departmentSelectWrapper').style.display = 'none';
-  clearValidationUI();
+// Faculty validation wrappers
+function validateFEmail()      { validateEmailField('fEmail','fEmailError','fEmailOk','fEmailNote'); }
+function validateFMobile()     { validateMobileField('fMobile','fMobileError','fMobileOk'); }
+function validateFAltMobile()  { validateMobileField('fAltMobile','fAltMobileError','fAltMobileOk'); }
+function validateFLandline() {
+  var val = document.getElementById('fLandline').value.trim();
+  document.getElementById('fLandlineError').style.display = 'none';
+  document.getElementById('fLandline').classList.remove('input-error');
+  if (!val) return true;
+  if (/[^0-9]/.test(val)) return showErr('fLandline','fLandlineError','Landline cannot have special characters.');
+  if (val.length >= 7 && val.length > 12) return showErr('fLandline','fLandlineError','Landline must be 7–12 digits.');
+  return true;
 }
 
-function clearValidationUI() {
-  ['emailNote','emailError','emailOk','mobileError','mobileOk',
-   'altMobileError','altMobileOk','landlineError'].forEach(function(id) {
+// Student validation wrappers
+function validateSEmail()  { validateEmailField('sEmail','sEmailError','sEmailOk','sEmailNote'); }
+function validateSMobile() { validateMobileField('sMobile','sMobileError','sMobileOk'); }
+
+function validateBatch() {
+  if (!sIsNewContact) return true;
+  var val   = document.getElementById('sBatch').value.trim();
+  var err   = document.getElementById('sBatchError');
+  var input = document.getElementById('sBatch');
+  err.style.display = 'none';
+  input.classList.remove('input-error');
+  if (!val) return true;
+  if (/[^0-9]/.test(val)) {
+    input.classList.add('input-error');
+    err.textContent = '⚠️ Batch must be a number only.';
+    err.style.display = 'block';
+    return false;
+  }
+  return true;
+}
+  
+// ── FACULTY DUPLICATE CHECK ───────────────────
+function checkFDuplicate() {
+  if (!fIsNewContact) return;
+  var name  = (document.getElementById('fNewContactName').value || '').trim().toLowerCase();
+  var email = (document.getElementById('fEmail').value           || '').trim().toLowerCase();
+  var phone = (document.getElementById('fMobile').value          || '').trim();
+  var inst  = (document.getElementById('fInstitution').value     || '').trim().toLowerCase();
+  if (inst === '__new__') inst = (document.getElementById('fNewInstitutionName').value || '').trim().toLowerCase();
+
+  var msg = document.getElementById('fDupContactMsg');
+  var box = document.getElementById('fDupConfirmBox');
+  var bmsg = document.getElementById('fDupConfirmMsg');
+  var chk = document.getElementById('fDupConfirmCheck');
+
+  if (!name) { msg.style.display = 'none'; box.style.display = 'none'; fDupScore = 0; return; }
+
+  var best = 0; var bestR = null;
+  allFContacts.forEach(function(r) {
+    var s = 0;
+    if (name  && (r[0]||'').trim().toLowerCase() === name)  s++;
+    if (inst  && (r[1]||'').trim().toLowerCase() === inst)  s++;
+    if (email && (r[4]||'').trim().toLowerCase() === email) s++;
+    if (phone && (r[5]||'').trim()               === phone) s++;
+    if (s > best) { best = s; bestR = r; }
+  });
+
+  fDupScore = best;
+  if (best === 4) {
+    msg.textContent = '🚫 Exact duplicate: "' + bestR[0] + '" at "' + bestR[1] + '" already exists. Please select from dropdown.';
+    msg.className = 'warn-msg warn-red'; msg.style.display = 'block';
+    box.style.display = 'none'; chk.checked = false; return;
+  }
+  if (best >= 2) {
+    msg.textContent = '⚠️ ' + (best === 3 ? 'Probable' : 'Possible') + ' duplicate: "' + bestR[0] + '" at "' + bestR[1] + '" matches ' + best + '/4 identifiers.';
+    msg.className = 'warn-msg warn-amber'; msg.style.display = 'block';
+    bmsg.textContent = 'Matches ' + best + ' of 4 identifiers. Confirm this is a different person.';
+    box.style.display = 'block'; chk.checked = false; return;
+  }
+  msg.style.display = 'none'; box.style.display = 'none'; chk.checked = false; fDupScore = 0;
+}
+
+// ── STUDENT DUPLICATE CHECK ───────────────────
+function checkSDuplicate() {
+  if (!sIsNewContact) return;
+  var name  = (document.getElementById('sNewContactName').value || '').trim().toLowerCase();
+  var email = (document.getElementById('sEmail').value           || '').trim().toLowerCase();
+  var phone = (document.getElementById('sMobile').value          || '').trim();
+  var inst  = (document.getElementById('sInstitution').value     || '').trim().toLowerCase();
+  if (inst === '__new__') inst = (document.getElementById('sNewInstitutionName').value || '').trim().toLowerCase();
+
+  var msg = document.getElementById('sDupContactMsg');
+  var box = document.getElementById('sDupConfirmBox');
+  var bmsg = document.getElementById('sDupConfirmMsg');
+  var chk = document.getElementById('sDupConfirmCheck');
+
+  if (!name) { msg.style.display = 'none'; box.style.display = 'none'; sDupScore = 0; return; }
+
+  var best = 0; var bestR = null;
+  allSContacts.forEach(function(r) {
+    var s = 0;
+    if (name  && (r[0]||'').trim().toLowerCase() === name)  s++;
+    if (inst  && (r[1]||'').trim().toLowerCase() === inst)  s++;
+    if (email && (r[2]||'').trim().toLowerCase() === email) s++;
+    if (phone && (r[3]||'').trim()               === phone) s++;
+    if (s > best) { best = s; bestR = r; }
+  });
+
+  sDupScore = best;
+  if (best === 4) {
+    msg.textContent = '🚫 Exact duplicate: "' + bestR[0] + '" at "' + bestR[1] + '" already exists. Please select from dropdown.';
+    msg.className = 'warn-msg warn-red'; msg.style.display = 'block';
+    box.style.display = 'none'; chk.checked = false; return;
+  }
+  if (best >= 2) {
+    msg.textContent = '⚠️ ' + (best === 3 ? 'Probable' : 'Possible') + ' duplicate: "' + bestR[0] + '" at "' + bestR[1] + '" matches ' + best + '/4 identifiers.';
+    msg.className = 'warn-msg warn-amber'; msg.style.display = 'block';
+    bmsg.textContent = 'Matches ' + best + ' of 4 identifiers. Confirm this is a different student.';
+    box.style.display = 'block'; chk.checked = false; return;
+  }
+  msg.style.display = 'none'; box.style.display = 'none'; chk.checked = false; sDupScore = 0;
+}
+
+// ── FACULTY FIELD STATE ───────────────────────
+function makeFContactEditable() {
+  fIsNewContact = true;
+  ['fEmail','fMobile','fAltMobile','fLandline'].forEach(function(id) {
+    var el = document.getElementById(id);
+    el.value = ''; el.removeAttribute('readonly');
+    el.style.background = '#fff'; el.style.color = '#111827';
+  });
+  showFDropdown('fDesignation','fDesignationWrapper','sdFDesignation','sdFDesignation_text','sdFDesignation_display','-- Select Designation --');
+  showFDropdown('fDepartment','fDepartmentWrapper','sdFDepartment','sdFDepartment_text','sdFDepartment_display','-- Select Department --');
+  ['fEmailNote','fEmailError','fEmailOk','fMobileError','fMobileOk','fAltMobileError','fAltMobileOk','fLandlineError'].forEach(function(id) {
     document.getElementById(id).style.display = 'none';
   });
-  ['email','mobile','altMobile','landline'].forEach(function(id) {
+  ['fEmail','fMobile','fAltMobile','fLandline'].forEach(function(id) {
     document.getElementById(id).classList.remove('input-error','input-ok');
   });
+  document.getElementById('fDupConfirmBox').style.display = 'none';
+  document.getElementById('fDupConfirmCheck').checked = false;
+  fDupScore = 0;
 }
 
-function makeCityStateCountryEditable() {
-  ['city','state','country'].forEach(function(id) {
+function makeFContactReadonly() {
+  fIsNewContact = false;
+  ['fEmail','fMobile','fAltMobile','fLandline','fDesignation','fDepartment'].forEach(function(id) {
     var el = document.getElementById(id);
-    el.value = id === 'country' ? 'India' : '';
+    el.value = ''; el.setAttribute('readonly', true);
+    el.style.background = '#F3F4F6'; el.style.color = '#6B7280';
+  });
+  document.getElementById('fDesignation').style.display = 'block';
+  document.getElementById('fDesignationWrapper').style.display = 'none';
+  document.getElementById('fDepartment').style.display = 'block';
+  document.getElementById('fDepartmentWrapper').style.display = 'none';
+  ['fEmailNote','fEmailError','fEmailOk','fMobileError','fMobileOk','fAltMobileError','fAltMobileOk','fLandlineError'].forEach(function(id) {
+    document.getElementById(id).style.display = 'none';
+  });
+  ['fEmail','fMobile','fAltMobile','fLandline'].forEach(function(id) {
+    document.getElementById(id).classList.remove('input-error','input-ok');
+  });
+  document.getElementById('fDupContactMsg').style.display = 'none';
+  document.getElementById('fDupConfirmBox').style.display = 'none';
+  document.getElementById('fDupConfirmCheck').checked = false;
+  fDupScore = 0;
+}
+
+function showFDropdown(inputId, wrapperId, sdId, textId, displayId, placeholder) {
+  document.getElementById(inputId).style.display = 'none';
+  document.getElementById(inputId).value = '';
+  document.getElementById(wrapperId).style.display = 'block';
+  document.getElementById(textId).textContent = placeholder;
+  document.getElementById(textId).style.color = '#9CA3AF';
+  document.getElementById(displayId).classList.remove('has-value');
+  renderItems(sdId, dropdownData[sdId] || []);
+}
+
+function makeFCityStateEditable() {
+  ['fCity','fState','fCountry'].forEach(function(id) {
+    var el = document.getElementById(id);
+    el.value = id === 'fCountry' ? 'India' : '';
     el.removeAttribute('readonly');
-    el.style.background = '#fff';
-    el.style.color = '#111827';
+    el.style.background = '#fff'; el.style.color = '#111827';
   });
 }
 
-function makeCityStateCountryReadonly() {
-  ['city','state','country'].forEach(function(id) {
+function makeFCityStateReadonly() {
+  ['fCity','fState','fCountry'].forEach(function(id) {
     var el = document.getElementById(id);
-    el.value = '';
-    el.setAttribute('readonly', true);
-    el.style.background = '#F3F4F6';
-    el.style.color = '#6B7280';
+    el.value = ''; el.setAttribute('readonly', true);
+    el.style.background = '#F3F4F6'; el.style.color = '#6B7280';
   });
 }
 
-// ── DRAFT SAVE ───────────────────────────────
-function saveDraft() {
-  var draft = {
-    rep:                currentRep,
-    visitDate:          document.getElementById('visitDate').value,
-    contact:            document.getElementById('contact').value,
-    contactText:        document.getElementById('sdContact_text').textContent,
-    institution:        document.getElementById('institution').value,
-    institutionText:    document.getElementById('sdInstitution_text').textContent,
-    city:               document.getElementById('city').value,
-    state:              document.getElementById('state').value,
-    country:            document.getElementById('country').value,
-    email:              document.getElementById('email').value,
-    mobile:             document.getElementById('mobile').value,
-    altMobile:          document.getElementById('altMobile').value,
-    landline:           document.getElementById('landline').value,
-    designation:        document.getElementById('designation').value,
-    department:         document.getElementById('department').value,
-    isbn:               document.getElementById('isbn').value,
-    bookTitle:          document.getElementById('bookTitle').value,
-    author:             document.getElementById('author').value,
-    edition:            document.getElementById('edition').value,
-    numBooks:           document.getElementById('numBooks').value,
-    remarks:            document.getElementById('remarks').value,
-    newContactName:     document.getElementById('newContactName').value,
-    newInstitutionName: document.getElementById('newInstitutionName').value,
-    contactIsNew:       document.getElementById('contact').value === '__NEW__',
-    institutionIsNew:   document.getElementById('institution').value === '__NEW__',
-  };
-  localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-  showMsg('Draft saved. You can close the form and come back later.', true);
+// ── STUDENT FIELD STATE ───────────────────────
+function makeSContactEditable() {
+  sIsNewContact = true;
+  ['sEmail','sMobile','sBatch'].forEach(function(id) {
+    var el = document.getElementById(id);
+    el.value = ''; el.removeAttribute('readonly');
+    el.style.background = '#fff'; el.style.color = '#111827';
+  });
+  document.getElementById('sYear').style.display = 'none';
+  document.getElementById('sYear').value = '';
+  document.getElementById('sYearWrapper').style.display = 'block';
+  document.getElementById('sdSYear_text').textContent = '-- Select Year --';
+  document.getElementById('sdSYear_text').style.color = '#9CA3AF';
+  document.getElementById('sdSYear_display').classList.remove('has-value');
+  renderItems('sdSYear', dropdownData['sdSYear'] || []);
+  document.getElementById('sCourse').style.display = 'none';
+  document.getElementById('sCourse').value = '';
+  document.getElementById('sCourseWrapper').style.display = 'block';
+  document.getElementById('sdSCourse_text').textContent = '-- Select Course --';
+  document.getElementById('sdSCourse_text').style.color = '#9CA3AF';
+  document.getElementById('sdSCourse_display').classList.remove('has-value');
+  renderItems('sdSCourse', dropdownData['sdSCourse'] || []);
+  ['sEmailNote','sEmailError','sEmailOk','sMobileError','sMobileOk'].forEach(function(id) {
+    document.getElementById(id).style.display = 'none';
+  });
+  ['sEmail','sMobile'].forEach(function(id) {
+    document.getElementById(id).classList.remove('input-error','input-ok');
+  });
+  document.getElementById('sDupConfirmBox').style.display = 'none';
+  document.getElementById('sDupConfirmCheck').checked = false;
+  sDupScore = 0;
 }
 
-// ── DRAFT RESTORE ────────────────────────────
-function checkDraft() {
-  var saved = localStorage.getItem(DRAFT_KEY);
-  if (!saved) return;
-  var draft = JSON.parse(saved);
-  if (!draft.rep || draft.rep !== currentRep) return;
-  if (!draft.contact && !draft.institution && !draft.isbn) return;
-
-  document.getElementById('draftBanner').style.display = 'block';
-  if (draft.visitDate) document.getElementById('visitDate').value = draft.visitDate;
-
-  if (draft.contact) {
-    document.getElementById('contact').value = draft.contact;
-    document.getElementById('sdContact_text').textContent = draft.contactText;
-    document.getElementById('sdContact_text').style.color = draft.contactIsNew ? '#2563EB' : '#111827';
-    document.getElementById('sdContact_display').classList.add('has-value');
-    document.getElementById('sdContact_clear').style.display = 'inline';
-    if (draft.contactIsNew) {
-      document.getElementById('newContactBox').style.display = 'block';
-      document.getElementById('newContactName').value = draft.newContactName || '';
-      makeContactFieldsEditable();
-    }
-  }
-
-  if (draft.institution) {
-    document.getElementById('institution').value = draft.institution;
-    document.getElementById('sdInstitution_text').textContent = draft.institutionText;
-    document.getElementById('sdInstitution_text').style.color = draft.institutionIsNew ? '#2563EB' : '#111827';
-    document.getElementById('sdInstitution_display').classList.add('has-value');
-    document.getElementById('sdInstitution_clear').style.display = 'inline';
-    if (draft.institutionIsNew) {
-      document.getElementById('newInstitutionBox').style.display = 'block';
-      document.getElementById('newInstitutionName').value = draft.newInstitutionName || '';
-      makeCityStateCountryEditable();
-    }
-  }
-
-  if (draft.city)      document.getElementById('city').value      = draft.city;
-  if (draft.state)     document.getElementById('state').value     = draft.state;
-  if (draft.country)   document.getElementById('country').value   = draft.country;
-  if (draft.email)     document.getElementById('email').value     = draft.email;
-  if (draft.mobile)    document.getElementById('mobile').value    = draft.mobile;
-  if (draft.altMobile) document.getElementById('altMobile').value = draft.altMobile;
-  if (draft.landline)  document.getElementById('landline').value  = draft.landline;
-  if (draft.isbn)      document.getElementById('isbn').value      = draft.isbn;
-  if (draft.bookTitle) document.getElementById('bookTitle').value = draft.bookTitle;
-  if (draft.author)    document.getElementById('author').value    = draft.author;
-  if (draft.edition)   document.getElementById('edition').value   = draft.edition;
-  if (draft.numBooks)  document.getElementById('numBooks').value  = draft.numBooks;
-  if (draft.remarks)   document.getElementById('remarks').value   = draft.remarks;
-
-  if (draft.designation) {
-    document.getElementById('designation').value = draft.designation;
-    if (draft.contactIsNew) {
-      document.getElementById('sdDesignation_text').textContent = draft.designation;
-      document.getElementById('sdDesignation_text').style.color = '#111827';
-      document.getElementById('sdDesignation_display').classList.add('has-value');
-    }
-  }
-  if (draft.department) {
-    document.getElementById('department').value = draft.department;
-    if (draft.contactIsNew) {
-      document.getElementById('sdDepartment_text').textContent = draft.department;
-      document.getElementById('sdDepartment_text').style.color = '#111827';
-      document.getElementById('sdDepartment_display').classList.add('has-value');
-    }
-  }
+function makeSContactReadonly() {
+  sIsNewContact = false;
+  ['sEmail','sMobile','sYear','sCourse','sBatch'].forEach(function(id) {
+    var el = document.getElementById(id);
+    el.value = ''; el.setAttribute('readonly', true);
+    el.style.background = '#F3F4F6'; el.style.color = '#6B7280';
+  });
+  document.getElementById('sYear').style.display = 'block';
+  document.getElementById('sYearWrapper').style.display = 'none';
+  document.getElementById('sCourse').style.display = 'block';
+  document.getElementById('sCourseWrapper').style.display = 'none';
+  ['sEmailNote','sEmailError','sEmailOk','sMobileError','sMobileOk'].forEach(function(id) {
+    document.getElementById(id).style.display = 'none';
+  });
+  ['sEmail','sMobile'].forEach(function(id) {
+    document.getElementById(id).classList.remove('input-error','input-ok');
+  });
+  document.getElementById('sDupContactMsg').style.display = 'none';
+  document.getElementById('sDupConfirmBox').style.display = 'none';
+  document.getElementById('sDupConfirmCheck').checked = false;
+  sDupScore = 0;
 }
 
-// ── REBUILD DROPDOWNS ────────────────────────
-function rebuildInstitutionDropdown(filterBy) {
+function makeSCityStateEditable() {
+  ['sCity','sState','sCountry'].forEach(function(id) {
+    var el = document.getElementById(id);
+    el.value = id === 'sCountry' ? 'India' : '';
+    el.removeAttribute('readonly');
+    el.style.background = '#fff'; el.style.color = '#111827';
+  });
+}
+
+function makeSCityStateReadonly() {
+  ['sCity','sState','sCountry'].forEach(function(id) {
+    var el = document.getElementById(id);
+    el.value = ''; el.setAttribute('readonly', true);
+    el.style.background = '#F3F4F6'; el.style.color = '#6B7280';
+  });
+}
+
+// ── DROPDOWN BUILDERS ─────────────────────────
+function rebuildFContactDropdown(filterBy) {
+  var items = [];
+  allFContacts.forEach(function(r) {
+    if (!r[0]) return;
+    if (filterBy && r[1] !== filterBy) return;
+    items.push({ value: r[0], label: r[0] });
+  });
+  items.push({ value: '__NEW__', label: '+ Add New Contact', cls: 'add-new' });
+  dropdownData['sdFContact'] = items;
+  renderItems('sdFContact', items);
+}
+
+function rebuildFInstitutionDropdown(filterBy) {
   var items = [];
   allInstitutions.forEach(function(r) {
     if (!r[0]) return;
@@ -803,23 +1084,35 @@ function rebuildInstitutionDropdown(filterBy) {
     items.push({ value: r[0], label: r[0] });
   });
   items.push({ value: '__NEW__', label: '+ Add New Institution', cls: 'add-new' });
-  dropdownData['sdInstitution'] = items;
-  renderItems('sdInstitution', items);
+  dropdownData['sdFInstitution'] = items;
+  renderItems('sdFInstitution', items);
 }
 
-function rebuildContactDropdown(filterBy) {
+function rebuildSContactDropdown(filterBy) {
   var items = [];
-  allContacts.forEach(function(r) {
+  allSContacts.forEach(function(r) {
     if (!r[0]) return;
     if (filterBy && r[1] !== filterBy) return;
     items.push({ value: r[0], label: r[0] });
   });
-  items.push({ value: '__NEW__', label: '+ Add New Contact', cls: 'add-new' });
-  dropdownData['sdContact'] = items;
-  renderItems('sdContact', items);
+  items.push({ value: '__NEW__', label: '+ Add New Student', cls: 'add-new' });
+  dropdownData['sdSContact'] = items;
+  renderItems('sdSContact', items);
 }
 
-// ── RENDER ITEMS ─────────────────────────────
+function rebuildSInstitutionDropdown(filterBy) {
+  var items = [];
+  allInstitutions.forEach(function(r) {
+    if (!r[0]) return;
+    if (filterBy && r[0] !== filterBy) return;
+    items.push({ value: r[0], label: r[0] });
+  });
+  items.push({ value: '__NEW__', label: '+ Add New Institution', cls: 'add-new' });
+  dropdownData['sdSInstitution'] = items;
+  renderItems('sdSInstitution', items);
+}
+
+// ── RENDER & TOGGLE ───────────────────────────
 function renderItems(id, items, search) {
   var container = document.getElementById(id + '_items');
   if (!container) return;
@@ -833,8 +1126,7 @@ function renderItems(id, items, search) {
     var div = document.createElement('div');
     div.className = 'dropdown-item no-results';
     div.textContent = 'No results found';
-    container.appendChild(div);
-    return;
+    container.appendChild(div); return;
   }
   filtered.forEach(function(item) {
     var div = document.createElement('div');
@@ -845,138 +1137,20 @@ function renderItems(id, items, search) {
   });
 }
 
-// ── SELECT ITEM ──────────────────────────────
-function selectItem(id, value, label) {
-  document.getElementById(id + '_list').classList.remove('open');
-  var display = document.getElementById(id + '_display');
-
-  if (value === '__NEW__') {
-    document.getElementById(id + '_text').textContent = label;
-    document.getElementById(id + '_text').style.color = '#2563EB';
-    display.classList.add('has-value');
-    if (id === 'sdContact') {
-      document.getElementById('contact').value = '__NEW__';
-      document.getElementById('newContactBox').style.display = 'block';
-      document.getElementById('sdContact_clear').style.display = 'inline';
-      makeContactFieldsEditable();
-      var instVal = document.getElementById('institution').value;
-      if (!instVal || instVal === '__NEW__') makeCityStateCountryEditable();
-      if (!instVal) {
-        document.getElementById('sdInstitution_text').textContent = '-- Select Institution --';
-        document.getElementById('sdInstitution_text').style.color = '#9CA3AF';
-        document.getElementById('sdInstitution_display').classList.remove('has-value');
-        document.getElementById('sdInstitution_clear').style.display = 'none';
-        rebuildInstitutionDropdown(null);
-      }
-    }
-    if (id === 'sdInstitution') {
-      document.getElementById('institution').value = '__NEW__';
-      document.getElementById('newInstitutionBox').style.display = 'block';
-      document.getElementById('sdInstitution_clear').style.display = 'inline';
-      makeCityStateCountryEditable();
-      var contactVal = document.getElementById('contact').value;
-      if (contactVal !== '__NEW__') { resetContactSelection(); rebuildContactDropdown(null); }
-    }
-    return;
-  }
-
-  document.getElementById(id + '_text').textContent = label;
-  document.getElementById(id + '_text').style.color = '#111827';
-  display.classList.add('has-value');
-
-  if (id === 'sdDesignation') {
-    document.getElementById('designation').value = value;
-  }
-
-  if (id === 'sdDepartment') {
-    document.getElementById('department').value = value;
-  }
-
-  if (id === 'sdInstitution') {
-    document.getElementById('institution').value = value;
-    document.getElementById('sdInstitution_clear').style.display = 'inline';
-    document.getElementById('newInstitutionBox').style.display = 'none';
-    document.getElementById('newInstitutionName').value = '';
-    document.getElementById('dupInstitutionMsg').style.display = 'none';
-    makeCityStateCountryReadonly();
-    allInstitutions.forEach(function(r) {
-      if (r[0] === value) {
-        document.getElementById('city').value    = r[1] || '';
-        document.getElementById('state').value   = r[2] || '';
-        document.getElementById('country').value = r[3] || 'India';
-      }
-    });
-    var contactVal = document.getElementById('contact').value;
-    if (contactVal !== '__NEW__') { rebuildContactDropdown(value); resetContactSelection(); }
-    else { rebuildContactDropdown(value); }
-  }
-
-  if (id === 'sdContact') {
-    document.getElementById('contact').value = value;
-    document.getElementById('sdContact_clear').style.display = 'inline';
-    document.getElementById('newContactBox').style.display = 'none';
-    document.getElementById('newContactName').value = '';
-    document.getElementById('dupContactMsg').style.display = 'none';
-
-    var contactData = null;
-    allContacts.forEach(function(r) { if (r[0] === value && !contactData) contactData = r; });
-
-    if (contactData) {
-      makeContactFieldsReadonly();
-      document.getElementById('designation').value = contactData[2] || '';
-      document.getElementById('department').value  = contactData[3] || '';
-      document.getElementById('email').value       = contactData[4] || '';
-      document.getElementById('mobile').value      = contactData[5] || '';
-      document.getElementById('altMobile').value   = contactData[6] || '';
-      document.getElementById('landline').value    = contactData[7] || '';
-
-      var contactInst = contactData[1] || '';
-      document.getElementById('institution').value = contactInst;
-      document.getElementById('sdInstitution_text').textContent = contactInst || '-- Select Institution --';
-      document.getElementById('sdInstitution_text').style.color = contactInst ? '#111827' : '#9CA3AF';
-
-      if (contactInst) {
-        document.getElementById('sdInstitution_display').classList.add('has-value');
-        document.getElementById('sdInstitution_clear').style.display = 'inline';
-        document.getElementById('newInstitutionBox').style.display = 'none';
-        makeCityStateCountryReadonly();
-        allInstitutions.forEach(function(inst) {
-          if (inst[0] === contactInst) {
-            document.getElementById('city').value    = inst[1] || '';
-            document.getElementById('state').value   = inst[2] || '';
-            document.getElementById('country').value = inst[3] || 'India';
-          }
-        });
-        rebuildInstitutionDropdown(contactInst);
-      } else {
-        document.getElementById('sdInstitution_display').classList.remove('has-value');
-        document.getElementById('sdInstitution_clear').style.display = 'none';
-        makeCityStateCountryReadonly();
-        rebuildInstitutionDropdown(null);
-      }
-    }
-  }
-}
-
-// ── TOGGLE DROPDOWN ──────────────────────────
 function toggleDropdown(id) {
   var list = document.getElementById(id + '_list');
   var isOpen = list.classList.contains('open');
   document.querySelectorAll('.dropdown-list').forEach(function(l) { l.classList.remove('open'); });
   if (!isOpen) {
     list.classList.add('open');
-    var searchInput = list.querySelector('input[type="text"]');
-    if (searchInput) {
-      searchInput.value = '';
-      renderItems(id, dropdownData[id] || []);
-      setTimeout(function() { searchInput.focus(); }, 50);
-    }
+    var si = list.querySelector('input[type="text"]');
+    if (si) { si.value = ''; renderItems(id, dropdownData[id] || []); setTimeout(function() { si.focus(); }, 50); }
   }
 }
 
 function filterList(id) {
-  var searchInput = document.getElementById(id + '_list').querySelector('input[type="text"]');
-  renderItems(id, dropdownData[id] || [], searchInput.value);
+  var si = document.getElementById(id + '_list').querySelector('input[type="text"]');
+  renderItems(id, dropdownData[id] || [], si.value);
 }
 
 document.addEventListener('click', function(e) {
@@ -985,369 +1159,698 @@ document.addEventListener('click', function(e) {
   }
 });
 
-// ── CLEAR BUTTONS ────────────────────────────
-function clearContact() {
-  makeContactFieldsReadonly();
-  makeCityStateCountryReadonly();
-  document.getElementById('city').value    = '';
-  document.getElementById('state').value   = '';
-  document.getElementById('country').value = '';
-  document.getElementById('contact').value = '';
-  document.getElementById('sdContact_text').textContent = '-- Select Contact --';
-  document.getElementById('sdContact_text').style.color = '#9CA3AF';
-  document.getElementById('sdContact_display').classList.remove('has-value');
-  document.getElementById('sdContact_clear').style.display = 'none';
-  document.getElementById('newContactBox').style.display = 'none';
-  document.getElementById('newContactName').value = '';
-  document.getElementById('dupContactMsg').style.display = 'none';
-  rebuildContactDropdown(null);
-  rebuildInstitutionDropdown(null);
-  document.getElementById('institution').value = '';
-  document.getElementById('sdInstitution_text').textContent = '-- Select Institution --';
-  document.getElementById('sdInstitution_text').style.color = '#9CA3AF';
-  document.getElementById('sdInstitution_display').classList.remove('has-value');
-  document.getElementById('sdInstitution_clear').style.display = 'none';
-  document.getElementById('newInstitutionBox').style.display = 'none';
-  document.getElementById('dupInstitutionMsg').style.display = 'none';
-}
+// ── SELECT ITEM ──────────────────────────────
+function selectItem(id, value, label) {
+  document.getElementById(id + '_list').classList.remove('open');
+  var display = document.getElementById(id + '_display');
 
-function clearInstitution() {
-  makeCityStateCountryReadonly();
-  document.getElementById('city').value    = '';
-  document.getElementById('state').value   = '';
-  document.getElementById('country').value = '';
-  document.getElementById('institution').value = '';
-  document.getElementById('sdInstitution_text').textContent = '-- Select Institution --';
-  document.getElementById('sdInstitution_text').style.color = '#9CA3AF';
-  document.getElementById('sdInstitution_display').classList.remove('has-value');
-  document.getElementById('sdInstitution_clear').style.display = 'none';
-  document.getElementById('newInstitutionBox').style.display = 'none';
-  document.getElementById('newInstitutionName').value = '';
-  document.getElementById('dupInstitutionMsg').style.display = 'none';
-  rebuildInstitutionDropdown(null);
-  var contactVal = document.getElementById('contact').value;
-  if (contactVal !== '__NEW__') { rebuildContactDropdown(null); resetContactSelection(); }
-  else { rebuildContactDropdown(null); makeCityStateCountryEditable(); }
-}
+  // ── Designation / Department / Year / Course ──
+  if (id === 'sdFDesignation') { document.getElementById('fDesignation').value = value; setSelected(id, label); return; }
+  if (id === 'sdFDepartment')  { document.getElementById('fDepartment').value  = value; setSelected(id, label); return; }
+  if (id === 'sdSYear')   { document.getElementById('sYear').value   = value; setSelected(id, label); return; }
+  if (id === 'sdSCourse') { document.getElementById('sCourse').value = value; setSelected(id, label); return; }
 
-// ── DUPLICATE CHECKS ─────────────────────────
-function checkDuplicateInstitution() {
-  var typed = document.getElementById('newInstitutionName').value.trim().toLowerCase();
-  var msg   = document.getElementById('dupInstitutionMsg');
-  if (!typed) { msg.style.display = 'none'; return; }
-  var exact = allInstitutions.find(function(r) { return r[0] && r[0].trim().toLowerCase() === typed; });
-  if (exact) {
-    msg.textContent = '⚠️ "' + exact[0] + '" already exists. Please select it from the dropdown instead.';
-    msg.className = 'warn-msg warn-red'; msg.style.display = 'block'; return;
-  }
-  if (typed.length > 4) {
-    var similar = allInstitutions.find(function(r) { return r[0] && r[0].trim().toLowerCase().indexOf(typed) !== -1; });
-    if (similar) {
-      msg.textContent = '⚠️ Similar entry found: "' + similar[0] + '". Is this the same institution?';
-      msg.className = 'warn-msg warn-amber'; msg.style.display = 'block'; return;
+  // ── ADD NEW ──
+  if (value === '__NEW__') {
+    setSelected(id, label, true);
+
+    if (id === 'sdFContact') {
+      document.getElementById('fContact').value = '__NEW__';
+      document.getElementById('fNewContactBox').style.display = 'block';
+      document.getElementById('sdFContact_clear').style.display = 'inline';
+      makeFContactEditable();
+      var iv = document.getElementById('fInstitution').value;
+      if (!iv || iv === '__NEW__') makeFCityStateEditable();
+      if (!iv) resetFInstitutionDisplay();
     }
+    if (id === 'sdFInstitution') {
+      document.getElementById('fInstitution').value = '__NEW__';
+      document.getElementById('fNewInstitutionBox').style.display = 'block';
+      document.getElementById('sdFInstitution_clear').style.display = 'inline';
+      makeFCityStateEditable();
+      if (document.getElementById('fContact').value !== '__NEW__') { resetFContactSelection(); rebuildFContactDropdown(null); }
+      else { checkFDuplicate(); }
+    }
+    if (id === 'sdSContact') {
+      document.getElementById('sContact').value = '__NEW__';
+      document.getElementById('sNewContactBox').style.display = 'block';
+      document.getElementById('sdSContact_clear').style.display = 'inline';
+      makeSContactEditable();
+      var siv = document.getElementById('sInstitution').value;
+      if (!siv || siv === '__NEW__') makeSCityStateEditable();
+      if (!siv) resetSInstitutionDisplay();
+    }
+    if (id === 'sdSInstitution') {
+      document.getElementById('sInstitution').value = '__NEW__';
+      document.getElementById('sNewInstitutionBox').style.display = 'block';
+      document.getElementById('sdSInstitution_clear').style.display = 'inline';
+      makeSCityStateEditable();
+      if (document.getElementById('sContact').value !== '__NEW__') { resetSContactSelection(); rebuildSContactDropdown(null); }
+      else { checkSDuplicate(); }
+    }
+    return;
+  }
+
+  setSelected(id, label, false);
+
+  // ── FACULTY INSTITUTION ──
+  if (id === 'sdFInstitution') {
+    document.getElementById('fInstitution').value = value;
+    document.getElementById('sdFInstitution_clear').style.display = 'inline';
+    document.getElementById('fNewInstitutionBox').style.display = 'none';
+    document.getElementById('fNewInstitutionName').value = '';
+    document.getElementById('fDupInstitutionMsg').style.display = 'none';
+    makeFCityStateReadonly();
+    allInstitutions.forEach(function(r) {
+      if (r[0] === value) {
+        document.getElementById('fCity').value    = r[1] || '';
+        document.getElementById('fState').value   = r[2] || '';
+        document.getElementById('fCountry').value = r[3] || 'India';
+      }
+    });
+    if (document.getElementById('fContact').value !== '__NEW__') { rebuildFContactDropdown(value); resetFContactSelection(); }
+    else { rebuildFContactDropdown(value); checkFDuplicate(); }
+  }
+
+  // ── FACULTY CONTACT ──
+  if (id === 'sdFContact') {
+    document.getElementById('fContact').value = value;
+    document.getElementById('sdFContact_clear').style.display = 'inline';
+    document.getElementById('fNewContactBox').style.display = 'none';
+    document.getElementById('fNewContactName').value = '';
+    document.getElementById('fDupContactMsg').style.display = 'none';
+    document.getElementById('fDupConfirmBox').style.display = 'none';
+    fDupScore = 0;
+    var cd = null;
+    allFContacts.forEach(function(r) { if (r[0] === value && !cd) cd = r; });
+    if (cd) {
+      makeFContactReadonly();
+      document.getElementById('fDesignation').value = cd[2] || '';
+      document.getElementById('fDepartment').value  = cd[3] || '';
+      document.getElementById('fEmail').value       = cd[4] || '';
+      document.getElementById('fMobile').value      = cd[5] || '';
+      document.getElementById('fAltMobile').value   = cd[6] || '';
+      document.getElementById('fLandline').value    = cd[7] || '';
+      var ci = cd[1] || '';
+      document.getElementById('fInstitution').value = ci;
+      if (ci) {
+        document.getElementById('sdFInstitution_text').textContent = ci;
+        document.getElementById('sdFInstitution_text').style.color = '#111827';
+        document.getElementById('sdFInstitution_display').classList.add('has-value');
+        document.getElementById('sdFInstitution_clear').style.display = 'inline';
+        document.getElementById('fNewInstitutionBox').style.display = 'none';
+        makeFCityStateReadonly();
+        allInstitutions.forEach(function(r) {
+          if (r[0] === ci) {
+            document.getElementById('fCity').value    = r[1] || '';
+            document.getElementById('fState').value   = r[2] || '';
+            document.getElementById('fCountry').value = r[3] || 'India';
+          }
+        });
+        rebuildFInstitutionDropdown(ci);
+      } else {
+        resetFInstitutionDisplay(); makeFCityStateReadonly(); rebuildFInstitutionDropdown(null);
+      }
+    }
+  }
+
+  // ── STUDENT INSTITUTION ──
+  if (id === 'sdSInstitution') {
+    document.getElementById('sInstitution').value = value;
+    document.getElementById('sdSInstitution_clear').style.display = 'inline';
+    document.getElementById('sNewInstitutionBox').style.display = 'none';
+    document.getElementById('sNewInstitutionName').value = '';
+    document.getElementById('sDupInstitutionMsg').style.display = 'none';
+    makeSCityStateReadonly();
+    allInstitutions.forEach(function(r) {
+      if (r[0] === value) {
+        document.getElementById('sCity').value    = r[1] || '';
+        document.getElementById('sState').value   = r[2] || '';
+        document.getElementById('sCountry').value = r[3] || 'India';
+      }
+    });
+    if (document.getElementById('sContact').value !== '__NEW__') { rebuildSContactDropdown(value); resetSContactSelection(); }
+    else { rebuildSContactDropdown(value); checkSDuplicate(); }
+  }
+
+  // ── STUDENT CONTACT ──
+  if (id === 'sdSContact') {
+    document.getElementById('sContact').value = value;
+    document.getElementById('sdSContact_clear').style.display = 'inline';
+    document.getElementById('sNewContactBox').style.display = 'none';
+    document.getElementById('sNewContactName').value = '';
+    document.getElementById('sDupContactMsg').style.display = 'none';
+    document.getElementById('sDupConfirmBox').style.display = 'none';
+    sDupScore = 0;
+    var sd = null;
+    allSContacts.forEach(function(r) { if (r[0] === value && !sd) sd = r; });
+    if (sd) {
+      makeSContactReadonly();
+      document.getElementById('sYear').value   = sd[6] || '';
+      document.getElementById('sCourse').value = sd[7] || '';
+      document.getElementById('sBatch').value  = sd[8] || '';
+      document.getElementById('sEmail').value  = sd[2] || '';
+      document.getElementById('sMobile').value = sd[3] || '';
+      var si2 = sd[1] || '';
+      document.getElementById('sInstitution').value = si2;
+      if (si2) {
+        document.getElementById('sdSInstitution_text').textContent = si2;
+        document.getElementById('sdSInstitution_text').style.color = '#111827';
+        document.getElementById('sdSInstitution_display').classList.add('has-value');
+        document.getElementById('sdSInstitution_clear').style.display = 'inline';
+        document.getElementById('sNewInstitutionBox').style.display = 'none';
+        makeSCityStateReadonly();
+        allInstitutions.forEach(function(r) {
+          if (r[0] === si2) {
+            document.getElementById('sCity').value    = r[1] || '';
+            document.getElementById('sState').value   = r[2] || '';
+            document.getElementById('sCountry').value = r[3] || 'India';
+          }
+        });
+        rebuildSInstitutionDropdown(si2);
+      } else {
+        resetSInstitutionDisplay(); makeSCityStateReadonly(); rebuildSInstitutionDropdown(null);
+      }
+    }
+  }
+}
+
+function setSelected(id, label, isNew) {
+  var textEl = document.getElementById(id + '_text');
+  var dispEl = document.getElementById(id + '_display');
+  if (textEl) { textEl.textContent = label; textEl.style.color = isNew ? '#2563EB' : '#111827'; }
+  if (dispEl) { if (isNew) dispEl.classList.add('has-value'); else dispEl.classList.add('has-value'); }
+}
+
+// ── CLEAR FUNCTIONS ───────────────────────────
+function resetFContactSelection() {
+  makeFContactReadonly();
+  document.getElementById('fContact').value = '';
+  document.getElementById('sdFContact_text').textContent = '-- Select Contact --';
+  document.getElementById('sdFContact_text').style.color = '#9CA3AF';
+  document.getElementById('sdFContact_display').classList.remove('has-value');
+  document.getElementById('sdFContact_clear').style.display = 'none';
+  document.getElementById('fNewContactBox').style.display = 'none';
+  document.getElementById('fNewContactName').value = '';
+  document.getElementById('fDupContactMsg').style.display = 'none';
+  document.getElementById('fDupConfirmBox').style.display = 'none';
+  document.getElementById('fDupConfirmCheck').checked = false;
+  fDupScore = 0;
+}
+
+function resetFInstitutionDisplay() {
+  document.getElementById('fInstitution').value = '';
+  document.getElementById('sdFInstitution_text').textContent = '-- Select Institution --';
+  document.getElementById('sdFInstitution_text').style.color = '#9CA3AF';
+  document.getElementById('sdFInstitution_display').classList.remove('has-value');
+  document.getElementById('sdFInstitution_clear').style.display = 'none';
+  document.getElementById('fNewInstitutionBox').style.display = 'none';
+  rebuildFInstitutionDropdown(null);
+}
+
+function clearFContact() {
+  makeFContactReadonly(); makeFCityStateReadonly();
+  document.getElementById('fCity').value = ''; document.getElementById('fState').value = ''; document.getElementById('fCountry').value = '';
+  resetFContactSelection();
+  rebuildFContactDropdown(null); rebuildFInstitutionDropdown(null);
+  document.getElementById('fInstitution').value = '';
+  document.getElementById('sdFInstitution_text').textContent = '-- Select Institution --';
+  document.getElementById('sdFInstitution_text').style.color = '#9CA3AF';
+  document.getElementById('sdFInstitution_display').classList.remove('has-value');
+  document.getElementById('sdFInstitution_clear').style.display = 'none';
+  document.getElementById('fNewInstitutionBox').style.display = 'none';
+  document.getElementById('fDupInstitutionMsg').style.display = 'none';
+}
+
+function clearFInstitution() {
+  makeFCityStateReadonly();
+  document.getElementById('fCity').value = ''; document.getElementById('fState').value = ''; document.getElementById('fCountry').value = '';
+  document.getElementById('fInstitution').value = '';
+  document.getElementById('sdFInstitution_text').textContent = '-- Select Institution --';
+  document.getElementById('sdFInstitution_text').style.color = '#9CA3AF';
+  document.getElementById('sdFInstitution_display').classList.remove('has-value');
+  document.getElementById('sdFInstitution_clear').style.display = 'none';
+  document.getElementById('fNewInstitutionBox').style.display = 'none';
+  document.getElementById('fNewInstitutionName').value = '';
+  document.getElementById('fDupInstitutionMsg').style.display = 'none';
+  rebuildFInstitutionDropdown(null);
+  if (document.getElementById('fContact').value !== '__NEW__') { rebuildFContactDropdown(null); resetFContactSelection(); }
+  else { rebuildFContactDropdown(null); makeFCityStateEditable(); checkFDuplicate(); }
+}
+
+function resetSContactSelection() {
+  makeSContactReadonly();
+  document.getElementById('sContact').value = '';
+  document.getElementById('sdSContact_text').textContent = '-- Select Student --';
+  document.getElementById('sdSContact_text').style.color = '#9CA3AF';
+  document.getElementById('sdSContact_display').classList.remove('has-value');
+  document.getElementById('sdSContact_clear').style.display = 'none';
+  document.getElementById('sNewContactBox').style.display = 'none';
+  document.getElementById('sNewContactName').value = '';
+  document.getElementById('sDupContactMsg').style.display = 'none';
+  document.getElementById('sDupConfirmBox').style.display = 'none';
+  document.getElementById('sDupConfirmCheck').checked = false;
+  sDupScore = 0;
+}
+
+function resetSInstitutionDisplay() {
+  document.getElementById('sInstitution').value = '';
+  document.getElementById('sdSInstitution_text').textContent = '-- Select Institution --';
+  document.getElementById('sdSInstitution_text').style.color = '#9CA3AF';
+  document.getElementById('sdSInstitution_display').classList.remove('has-value');
+  document.getElementById('sdSInstitution_clear').style.display = 'none';
+  document.getElementById('sNewInstitutionBox').style.display = 'none';
+  rebuildSInstitutionDropdown(null);
+}
+
+function clearSContact() {
+  makeSContactReadonly(); makeSCityStateReadonly();
+  document.getElementById('sCity').value = ''; document.getElementById('sState').value = ''; document.getElementById('sCountry').value = '';
+  resetSContactSelection();
+  rebuildSContactDropdown(null); rebuildSInstitutionDropdown(null);
+  document.getElementById('sInstitution').value = '';
+  document.getElementById('sdSInstitution_text').textContent = '-- Select Institution --';
+  document.getElementById('sdSInstitution_text').style.color = '#9CA3AF';
+  document.getElementById('sdSInstitution_display').classList.remove('has-value');
+  document.getElementById('sdSInstitution_clear').style.display = 'none';
+  document.getElementById('sNewInstitutionBox').style.display = 'none';
+  document.getElementById('sDupInstitutionMsg').style.display = 'none';
+}
+
+function clearSInstitution() {
+  makeSCityStateReadonly();
+  document.getElementById('sCity').value = ''; document.getElementById('sState').value = ''; document.getElementById('sCountry').value = '';
+  document.getElementById('sInstitution').value = '';
+  document.getElementById('sdSInstitution_text').textContent = '-- Select Institution --';
+  document.getElementById('sdSInstitution_text').style.color = '#9CA3AF';
+  document.getElementById('sdSInstitution_display').classList.remove('has-value');
+  document.getElementById('sdSInstitution_clear').style.display = 'none';
+  document.getElementById('sNewInstitutionBox').style.display = 'none';
+  document.getElementById('sNewInstitutionName').value = '';
+  document.getElementById('sDupInstitutionMsg').style.display = 'none';
+  rebuildSInstitutionDropdown(null);
+  if (document.getElementById('sContact').value !== '__NEW__') { rebuildSContactDropdown(null); resetSContactSelection(); }
+  else { rebuildSContactDropdown(null); makeSCityStateEditable(); checkSDuplicate(); }
+}
+
+// ── DUPLICATE INSTITUTION CHECKS ─────────────
+function checkFDupInstitution() {
+  var typed = document.getElementById('fNewInstitutionName').value.trim().toLowerCase();
+  var msg   = document.getElementById('fDupInstitutionMsg');
+  if (!typed) { msg.style.display = 'none'; return; }
+  var ex = allInstitutions.find(function(r) { return r[0] && r[0].trim().toLowerCase() === typed; });
+  if (ex) { msg.textContent = '⚠️ "' + ex[0] + '" already exists. Please select from dropdown.'; msg.className = 'warn-msg warn-red'; msg.style.display = 'block'; return; }
+  if (typed.length > 4) {
+    var sim = allInstitutions.find(function(r) { return r[0] && r[0].trim().toLowerCase().indexOf(typed) !== -1; });
+    if (sim) { msg.textContent = '⚠️ Similar: "' + sim[0] + '". Is this the same?'; msg.className = 'warn-msg warn-amber'; msg.style.display = 'block'; return; }
   }
   msg.style.display = 'none';
 }
 
-function checkDuplicateContact() {
-  var typed = document.getElementById('newContactName').value.trim().toLowerCase();
-  var msg   = document.getElementById('dupContactMsg');
+function checkSDupInstitution() {
+  var typed = document.getElementById('sNewInstitutionName').value.trim().toLowerCase();
+  var msg   = document.getElementById('sDupInstitutionMsg');
   if (!typed) { msg.style.display = 'none'; return; }
-  var exact = allContacts.find(function(r) { return r[0] && r[0].trim().toLowerCase() === typed; });
-  if (exact) {
-    msg.textContent = '⚠️ "' + exact[0] + '" already exists at ' + exact[1] + '. Please select from the dropdown instead.';
-    msg.className = 'warn-msg warn-red'; msg.style.display = 'block'; return;
-  }
+  var ex = allInstitutions.find(function(r) { return r[0] && r[0].trim().toLowerCase() === typed; });
+  if (ex) { msg.textContent = '⚠️ "' + ex[0] + '" already exists. Please select from dropdown.'; msg.className = 'warn-msg warn-red'; msg.style.display = 'block'; return; }
   if (typed.length > 4) {
-    var similar = allContacts.find(function(r) { return r[0] && r[0].trim().toLowerCase().indexOf(typed) !== -1; });
-    if (similar) {
-      msg.textContent = '⚠️ Similar contact found: "' + similar[0] + '" at ' + similar[1] + '. Is this the same person?';
-      msg.className = 'warn-msg warn-amber'; msg.style.display = 'block'; return;
-    }
+    var sim = allInstitutions.find(function(r) { return r[0] && r[0].trim().toLowerCase().indexOf(typed) !== -1; });
+    if (sim) { msg.textContent = '⚠️ Similar: "' + sim[0] + '". Is this the same?'; msg.className = 'warn-msg warn-amber'; msg.style.display = 'block'; return; }
   }
   msg.style.display = 'none';
 }
 
-// ── SUBMIT ───────────────────────────────────
-function submitForm() {
-  var salesperson = document.getElementById('salesperson').value;
-  var visitDate   = document.getElementById('visitDate').value;
-  var numBooks    = document.getElementById('numBooks').value;
-  var bookTitle   = document.getElementById('bookTitle').value;
-  var isbn        = document.getElementById('isbn').value.trim();
-  var instVal     = document.getElementById('institution').value;
-  var contactVal  = document.getElementById('contact').value;
-  var email       = document.getElementById('email').value.trim();
-  var mobile      = document.getElementById('mobile').value.trim();
-  var designation = document.getElementById('designation').value.trim();
-  var department  = document.getElementById('department').value.trim();
-  var city        = document.getElementById('city').value.trim();
-  var state       = document.getElementById('state').value.trim();
-  var country     = document.getElementById('country').value.trim();
+// ── DRAFT SAVE/RESTORE ────────────────────────
+function saveFDraft() {
+  var d = {
+    rep: currentRep, visitDate: document.getElementById('fVisitDate').value,
+    contact: document.getElementById('fContact').value,
+    contactText: document.getElementById('sdFContact_text').textContent,
+    institution: document.getElementById('fInstitution').value,
+    institutionText: document.getElementById('sdFInstitution_text').textContent,
+    city: document.getElementById('fCity').value, state: document.getElementById('fState').value,
+    country: document.getElementById('fCountry').value,
+    email: document.getElementById('fEmail').value, mobile: document.getElementById('fMobile').value,
+    altMobile: document.getElementById('fAltMobile').value, landline: document.getElementById('fLandline').value,
+    designation: document.getElementById('fDesignation').value, department: document.getElementById('fDepartment').value,
+    isbn: document.getElementById('fIsbn').value, bookTitle: document.getElementById('fBookTitle').value,
+    author: document.getElementById('fAuthor').value, edition: document.getElementById('fEdition').value,
+    numBooks: document.getElementById('fNumBooks').value, remarks: document.getElementById('fRemarks').value,
+    newContactName: document.getElementById('fNewContactName').value,
+    newInstitutionName: document.getElementById('fNewInstitutionName').value,
+    contactIsNew: document.getElementById('fContact').value === '__NEW__',
+    institutionIsNew: document.getElementById('fInstitution').value === '__NEW__',
+  };
+  localStorage.setItem(F_DRAFT_KEY, JSON.stringify(d));
+  showFMsg('Draft saved.', true);
+}
 
-  var institution = instVal === '__NEW__'
-    ? document.getElementById('newInstitutionName').value.trim() : instVal;
-  var contact = contactVal === '__NEW__'
-    ? document.getElementById('newContactName').value.trim() : contactVal;
-
-  if (!salesperson || !visitDate || !institution || !contact || !bookTitle || !numBooks) {
-    showMsg('Please fill all required fields marked with *', false); return;
+function checkFDraft() {
+  var saved = localStorage.getItem(F_DRAFT_KEY);
+  if (!saved) return;
+  var d = JSON.parse(saved);
+  if (!d.rep || d.rep !== currentRep) return;
+  if (!d.contact && !d.institution && !d.isbn) return;
+  document.getElementById('facultyDraftBanner').style.display = 'block';
+  if (d.visitDate) document.getElementById('fVisitDate').value = d.visitDate;
+  if (d.contact) {
+    document.getElementById('fContact').value = d.contact;
+    document.getElementById('sdFContact_text').textContent = d.contactText;
+    document.getElementById('sdFContact_text').style.color = d.contactIsNew ? '#2563EB' : '#111827';
+    document.getElementById('sdFContact_display').classList.add('has-value');
+    document.getElementById('sdFContact_clear').style.display = 'inline';
+    if (d.contactIsNew) { document.getElementById('fNewContactBox').style.display = 'block'; document.getElementById('fNewContactName').value = d.newContactName || ''; makeFContactEditable(); }
   }
-  if (!isbn) {
-    showMsg('ISBN is required.', false); return;
+  if (d.institution) {
+    document.getElementById('fInstitution').value = d.institution;
+    document.getElementById('sdFInstitution_text').textContent = d.institutionText;
+    document.getElementById('sdFInstitution_text').style.color = d.institutionIsNew ? '#2563EB' : '#111827';
+    document.getElementById('sdFInstitution_display').classList.add('has-value');
+    document.getElementById('sdFInstitution_clear').style.display = 'inline';
+    if (d.institutionIsNew) { document.getElementById('fNewInstitutionBox').style.display = 'block'; document.getElementById('fNewInstitutionName').value = d.newInstitutionName || ''; makeFCityStateEditable(); }
   }
-  if (isbn.length !== 13 || /[^0-9]/.test(isbn)) {
-    showMsg('ISBN must be exactly 13 digits with no letters or special characters.', false); return;
+  ['city','state','country','email','mobile','altMobile','landline','isbn','bookTitle','author','edition','numBooks','remarks'].forEach(function(k) {
+    if (d[k]) document.getElementById('f' + k.charAt(0).toUpperCase() + k.slice(1)).value = d[k];
+  });
+  if (d.designation) { document.getElementById('fDesignation').value = d.designation; if (d.contactIsNew) { document.getElementById('sdFDesignation_text').textContent = d.designation; document.getElementById('sdFDesignation_text').style.color = '#111827'; document.getElementById('sdFDesignation_display').classList.add('has-value'); } }
+  if (d.department)  { document.getElementById('fDepartment').value  = d.department;  if (d.contactIsNew) { document.getElementById('sdFDepartment_text').textContent  = d.department;  document.getElementById('sdFDepartment_text').style.color  = '#111827'; document.getElementById('sdFDepartment_display').classList.add('has-value');  } }
+}
+
+function saveSDraft() {
+  var d = {
+    rep: currentRep, visitDate: document.getElementById('sVisitDate').value,
+    contact: document.getElementById('sContact').value,
+    contactText: document.getElementById('sdSContact_text').textContent,
+    institution: document.getElementById('sInstitution').value,
+    institutionText: document.getElementById('sdSInstitution_text').textContent,
+    city: document.getElementById('sCity').value, state: document.getElementById('sState').value,
+    country: document.getElementById('sCountry').value,
+    email: document.getElementById('sEmail').value, mobile: document.getElementById('sMobile').value,
+    year: document.getElementById('sYear').value, course: document.getElementById('sCourse').value,
+    batch: document.getElementById('sBatch').value,
+    isbn: document.getElementById('sIsbn').value, bookTitle: document.getElementById('sBookTitle').value,
+    author: document.getElementById('sAuthor').value, edition: document.getElementById('sEdition').value,
+    numBooks: document.getElementById('sNumBooks').value, remarks: document.getElementById('sRemarks').value,
+    newContactName: document.getElementById('sNewContactName').value,
+    newInstitutionName: document.getElementById('sNewInstitutionName').value,
+    contactIsNew: document.getElementById('sContact').value === '__NEW__',
+    institutionIsNew: document.getElementById('sInstitution').value === '__NEW__',
+  };
+  localStorage.setItem(S_DRAFT_KEY, JSON.stringify(d));
+  showSMsg('Draft saved.', true);
+}
+
+function checkSDraft() {
+  var saved = localStorage.getItem(S_DRAFT_KEY);
+  if (!saved) return;
+  var d = JSON.parse(saved);
+  if (!d.rep || d.rep !== currentRep) return;
+  if (!d.contact && !d.institution && !d.isbn) return;
+  document.getElementById('studentDraftBanner').style.display = 'block';
+  if (d.visitDate) document.getElementById('sVisitDate').value = d.visitDate;
+  if (d.contact) {
+    document.getElementById('sContact').value = d.contact;
+    document.getElementById('sdSContact_text').textContent = d.contactText;
+    document.getElementById('sdSContact_text').style.color = d.contactIsNew ? '#2563EB' : '#111827';
+    document.getElementById('sdSContact_display').classList.add('has-value');
+    document.getElementById('sdSContact_clear').style.display = 'inline';
+    if (d.contactIsNew) { document.getElementById('sNewContactBox').style.display = 'block'; document.getElementById('sNewContactName').value = d.newContactName || ''; makeSContactEditable(); }
   }
-  if (!email)       { showMsg('Email is required.', false); return; }
-  if (!mobile)      { showMsg('Mobile number is required.', false); return; }
-  if (!designation) { showMsg('Designation is required.', false); return; }
-  if (!department)  { showMsg('Department is required.', false); return; }
-  if (!city)        { showMsg('City is required.', false); return; }
-  if (!state)       { showMsg('State is required.', false); return; }
+  if (d.institution) {
+    document.getElementById('sInstitution').value = d.institution;
+    document.getElementById('sdSInstitution_text').textContent = d.institutionText;
+    document.getElementById('sdSInstitution_text').style.color = d.institutionIsNew ? '#2563EB' : '#111827';
+    document.getElementById('sdSInstitution_display').classList.add('has-value');
+    document.getElementById('sdSInstitution_clear').style.display = 'inline';
+    if (d.institutionIsNew) { document.getElementById('sNewInstitutionBox').style.display = 'block'; document.getElementById('sNewInstitutionName').value = d.newInstitutionName || ''; makeSCityStateEditable(); }
+  }
+  ['city','state','country','email','mobile','isbn','bookTitle','author','edition','numBooks','remarks'].forEach(function(k) {
+    if (d[k]) document.getElementById('s' + k.charAt(0).toUpperCase() + k.slice(1)).value = d[k];
+  });
+  if (d.batch) document.getElementById('sBatch').value = d.batch;
+  if (d.year)   { document.getElementById('sYear').value   = d.year;   if (d.contactIsNew) { document.getElementById('sdSYear_text').textContent   = d.year;   document.getElementById('sdSYear_text').style.color   = '#111827'; document.getElementById('sdSYear_display').classList.add('has-value');   } }
+  if (d.course) { document.getElementById('sCourse').value = d.course; if (d.contactIsNew) { document.getElementById('sdSCourse_text').textContent = d.course; document.getElementById('sdSCourse_text').style.color = '#111827'; document.getElementById('sdSCourse_display').classList.add('has-value'); } }
+}
 
-  if (isNewContact) {
-    if (!validateEmail())  { showMsg('Please fix the email address before submitting.', false); return; }
-    if (!validateMobile()) { showMsg('Please fix the mobile number before submitting.', false); return; }
-    var altVal  = document.getElementById('altMobile').value.trim();
-    var landVal = document.getElementById('landline').value.trim();
-    if (altVal  && !validateAltMobile())  { showMsg('Please fix the alternative mobile number.', false); return; }
-    if (landVal && !validateLandline())   { showMsg('Please fix the landline number.', false); return; }
+// ── SUBMIT FACULTY ────────────────────────────
+function submitFacultyForm() {
+  var salesperson = document.getElementById('fSalesperson').value;
+  var visitDate   = document.getElementById('fVisitDate').value;
+  var instVal     = document.getElementById('fInstitution').value;
+  var contactVal  = document.getElementById('fContact').value;
+  var email       = document.getElementById('fEmail').value.trim();
+  var mobile      = document.getElementById('fMobile').value.trim();
+  var designation = document.getElementById('fDesignation').value.trim();
+  var department  = document.getElementById('fDepartment').value.trim();
+  var city        = document.getElementById('fCity').value.trim();
+  var state       = document.getElementById('fState').value.trim();
+  var country     = document.getElementById('fCountry').value.trim();
+  var isbn        = document.getElementById('fIsbn').value.trim();
+  var bookTitle   = document.getElementById('fBookTitle').value.trim();
+  var numBooks    = document.getElementById('fNumBooks').value;
+
+  var institution = instVal === '__NEW__' ? document.getElementById('fNewInstitutionName').value.trim() : instVal;
+  var contact     = contactVal === '__NEW__' ? document.getElementById('fNewContactName').value.trim() : contactVal;
+
+  if (!salesperson || !visitDate || !institution || !contact || !bookTitle || !numBooks) { showFMsg('Please fill all required fields marked with *', false); return; }
+  if (!isbn || isbn.length !== 13 || /[^0-9]/.test(isbn)) { showFMsg('ISBN must be exactly 13 digits.', false); return; }
+  if (!email) { showFMsg('Email is required.', false); return; }
+  if (!mobile) { showFMsg('Mobile is required.', false); return; }
+  if (!designation) { showFMsg('Designation is required.', false); return; }
+  if (!department)  { showFMsg('Department is required.', false); return; }
+  if (!city)  { showFMsg('City is required.', false); return; }
+  if (!state) { showFMsg('State is required.', false); return; }
+
+  if (fIsNewContact && fDupScore === 4) { showFMsg('Exact duplicate. Please select existing contact from dropdown.', false); return; }
+  if (fIsNewContact && fDupScore >= 2 && !document.getElementById('fDupConfirmCheck').checked) { showFMsg('Please confirm this is not a duplicate by ticking the checkbox.', false); return; }
+
+  if (fIsNewContact) {
+    if (!validateEmailField('fEmail','fEmailError','fEmailOk','fEmailNote'))  { showFMsg('Please fix the email.', false); return; }
+    if (!validateMobileField('fMobile','fMobileError','fMobileOk'))            { showFMsg('Please fix the mobile.', false); return; }
+    var alt = document.getElementById('fAltMobile').value.trim();
+    var land = document.getElementById('fLandline').value.trim();
+    if (alt  && !validateMobileField('fAltMobile','fAltMobileError','fAltMobileOk')) { showFMsg('Please fix alt mobile.', false); return; }
+    if (land && !validateFLandline()) { showFMsg('Please fix the landline.', false); return; }
   }
 
-  if (instVal === '__NEW__') {
-    var dupInst = allInstitutions.find(function(r) {
-      return r[0] && r[0].trim().toLowerCase() === institution.toLowerCase();
-    });
-    if (dupInst) { showMsg('Institution already exists. Please select from dropdown.', false); return; }
-  }
+  var mR = document.getElementById('fMobile').value.trim();
+  var aR = document.getElementById('fAltMobile').value.trim();
 
-  if (contactVal === '__NEW__') {
-    var dupCont = allContacts.find(function(r) {
-      return r[0] && r[0].trim().toLowerCase() === contact.toLowerCase();
-    });
-    if (dupCont) { showMsg('Contact already exists. Please select from dropdown.', false); return; }
-  }
-
-  var mobileRaw    = document.getElementById('mobile').value.trim();
-  var altMobileRaw = document.getElementById('altMobile').value.trim();
-
-  var row = [
-    visitDate, salesperson, institution,
-    city, state, country,
+  var row = [visitDate, salesperson, 'Faculty', institution, city, state, country,
     contact, designation, department, email,
-    mobileRaw    ? '+91 ' + mobileRaw    : '',
-    altMobileRaw ? '+91 ' + altMobileRaw : '',
-    document.getElementById('landline').value,
-    bookTitle, isbn,
-    document.getElementById('author').value,
-    document.getElementById('edition').value,
-    numBooks,
-    document.getElementById('remarks').value,
-  ];
+    mR ? '+91 ' + mR : '', aR ? '+91 ' + aR : '',
+    document.getElementById('fLandline').value,
+    bookTitle, isbn, document.getElementById('fAuthor').value,
+    document.getElementById('fEdition').value, numBooks,
+    document.getElementById('fRemarks').value];
 
-  lastSubmission = {
-    date: visitDate, salesperson: salesperson,
-    institution: institution, city: city, state: state, country: country,
-    contact: contact, designation: designation, department: department, email: email,
-    mobile:    mobileRaw    ? '+91 ' + mobileRaw    : '',
-    altMobile: altMobileRaw ? '+91 ' + altMobileRaw : '',
-    landline:  document.getElementById('landline').value,
+  fLastSubmission = {
+    date: visitDate, salesperson: salesperson, institution: institution,
+    city: city, state: state, country: country, contact: contact,
+    designation: designation, department: department, email: email,
+    mobile: mR ? '+91 ' + mR : '', altMobile: aR ? '+91 ' + aR : '',
+    landline: document.getElementById('fLandline').value,
     bookTitle: bookTitle, isbn: isbn,
-    author:  document.getElementById('author').value,
-    edition: document.getElementById('edition').value,
-    numBooks: numBooks,
-    remarks: document.getElementById('remarks').value,
+    author: document.getElementById('fAuthor').value,
+    edition: document.getElementById('fEdition').value,
+    numBooks: numBooks, remarks: document.getElementById('fRemarks').value,
   };
 
-  var SUBMIT_URL = 'YOUR_DEVELOPER_ENDPOINT_HERE';
+  fetch(FACULTY_SUBMIT_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ values: row }) })
+  .then(function() { localStorage.removeItem(F_DRAFT_KEY); showFMsg('Submitted successfully!', true); clearFForm(); showFReceipt(); })
+  .catch(function() { localStorage.removeItem(F_DRAFT_KEY); showFMsg('Submitted successfully!', true); clearFForm(); showFReceipt(); });
+}
 
-  fetch(SUBMIT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ values: row })
-  })
-  .then(function(res) { return res.json(); })
-  .then(function() {
-    localStorage.removeItem(DRAFT_KEY);
-    showMsg('Submitted successfully!', true);
-    clearForm();
-    showReceipt();
-  })
-  .catch(function() {
-    localStorage.removeItem(DRAFT_KEY);
-    showMsg('Submitted successfully!', true);
-    clearForm();
-    showReceipt();
+// ── SUBMIT STUDENT ────────────────────────────
+function submitStudentForm() {
+  var salesperson = document.getElementById('sSalesperson').value;
+  var visitDate   = document.getElementById('sVisitDate').value;
+  var instVal     = document.getElementById('sInstitution').value;
+  var contactVal  = document.getElementById('sContact').value;
+  var email       = document.getElementById('sEmail').value.trim();
+  var mobile      = document.getElementById('sMobile').value.trim();
+  var year        = document.getElementById('sYear').value.trim();
+  var course      = document.getElementById('sCourse').value.trim();
+  var batch       = document.getElementById('sBatch').value.trim();
+  var city        = document.getElementById('sCity').value.trim();
+  var state       = document.getElementById('sState').value.trim();
+  var country     = document.getElementById('sCountry').value.trim();
+  var isbn        = document.getElementById('sIsbn').value.trim();
+  var bookTitle   = document.getElementById('sBookTitle').value.trim();
+  var numBooks    = document.getElementById('sNumBooks').value;
+
+  var institution = instVal === '__NEW__' ? document.getElementById('sNewInstitutionName').value.trim() : instVal;
+  var contact     = contactVal === '__NEW__' ? document.getElementById('sNewContactName').value.trim() : contactVal;
+
+  if (!salesperson || !visitDate || !institution || !contact || !bookTitle || !numBooks) { showSMsg('Please fill all required fields marked with *', false); return; }
+  if (!isbn || isbn.length !== 13 || /[^0-9]/.test(isbn)) { showSMsg('ISBN must be exactly 13 digits.', false); return; }
+  if (!email)  { showSMsg('Email is required.', false); return; }
+  if (!mobile) { showSMsg('Mobile is required.', false); return; }
+  if (!year)   { showSMsg('Year is required.', false); return; }
+  if (!course) { showSMsg('Course is required.', false); return; }
+  if (!city)   { showSMsg('City is required.', false); return; }
+  if (!state)  { showSMsg('State is required.', false); return; }
+
+  if (sIsNewContact && sDupScore === 4) { showSMsg('Exact duplicate. Please select existing student from dropdown.', false); return; }
+  if (sIsNewContact && sDupScore >= 2 && !document.getElementById('sDupConfirmCheck').checked) { showSMsg('Please confirm this is not a duplicate by ticking the checkbox.', false); return; }
+
+  if (sIsNewContact) {
+    if (!validateEmailField('sEmail','sEmailError','sEmailOk','sEmailNote')) { showSMsg('Please fix the email.', false); return; }
+    if (!validateMobileField('sMobile','sMobileError','sMobileOk'))           { showSMsg('Please fix the mobile.', false); return; }
+  }
+
+  var mR = document.getElementById('sMobile').value.trim();
+
+  var row = [visitDate, salesperson, 'Student', institution, city, state, country,
+    contact, year, course, batch, email, mR ? '+91 ' + mR : '',
+    bookTitle, isbn, document.getElementById('sAuthor').value,
+    document.getElementById('sEdition').value, numBooks,
+    document.getElementById('sRemarks').value];
+
+  sLastSubmission = {
+    date: visitDate, salesperson: salesperson, institution: institution,
+    city: city, state: state, country: country, contact: contact,
+    year: year, course: course, batch: batch, email: email,
+    mobile: mR ? '+91 ' + mR : '',
+    bookTitle: bookTitle, isbn: isbn,
+    author: document.getElementById('sAuthor').value,
+    edition: document.getElementById('sEdition').value,
+    numBooks: numBooks, remarks: document.getElementById('sRemarks').value,
+  };
+
+  fetch(STUDENT_SUBMIT_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ values: row }) })
+  .then(function() { localStorage.removeItem(S_DRAFT_KEY); showSMsg('Submitted successfully!', true); clearSForm(); showSReceipt(); })
+  .catch(function() { localStorage.removeItem(S_DRAFT_KEY); showSMsg('Submitted successfully!', true); clearSForm(); showSReceipt(); });
+}
+
+// ── RECEIPTS ─────────────────────────────────
+function showFReceipt() {
+  if (!fLastSubmission) return;
+  var s = fLastSubmission;
+  ['date','salesperson','institution','city','state','country','contact','designation','department',
+   'email','mobile','altMobile','landline','bookTitle','isbn','author','edition','numBooks','remarks'].forEach(function(k) {
+    var el = document.getElementById('fr_' + k);
+    if (el) el.textContent = s[k] || '—';
   });
+  document.getElementById('fReceipt').style.display = 'block';
 }
 
-// ── RECEIPT ──────────────────────────────────
-function showReceipt() {
-  if (!lastSubmission) return;
-  var s = lastSubmission;
-  document.getElementById('r_date').textContent        = s.date;
-  document.getElementById('r_salesperson').textContent = s.salesperson;
-  document.getElementById('r_institution').textContent = s.institution;
-  document.getElementById('r_city').textContent        = s.city;
-  document.getElementById('r_state').textContent       = s.state;
-  document.getElementById('r_country').textContent     = s.country;
-  document.getElementById('r_contact').textContent     = s.contact;
-  document.getElementById('r_designation').textContent = s.designation;
-  document.getElementById('r_department').textContent  = s.department;
-  document.getElementById('r_email').textContent       = s.email;
-  document.getElementById('r_mobile').textContent      = s.mobile    || '—';
-  document.getElementById('r_altMobile').textContent   = s.altMobile || '—';
-  document.getElementById('r_landline').textContent    = s.landline  || '—';
-  document.getElementById('r_bookTitle').textContent   = s.bookTitle;
-  document.getElementById('r_isbn').textContent        = s.isbn;
-  document.getElementById('r_author').textContent      = s.author;
-  document.getElementById('r_edition').textContent     = s.edition;
-  document.getElementById('r_numBooks').textContent    = s.numBooks;
-  document.getElementById('r_remarks').textContent     = s.remarks   || '—';
-  document.getElementById('receipt').style.display     = 'block';
+function showSReceipt() {
+  if (!sLastSubmission) return;
+  var s = sLastSubmission;
+  ['date','salesperson','institution','city','state','country','contact','year','course','batch',
+   'email','mobile','bookTitle','isbn','author','edition','numBooks','remarks'].forEach(function(k) {
+    var el = document.getElementById('sr_' + k);
+    if (el) el.textContent = s[k] || '—';
+  });
+  document.getElementById('sReceipt').style.display = 'block';
 }
 
-// ── PDF DOWNLOAD ─────────────────────────────
-function downloadPDF() {
-  if (!lastSubmission) return;
-  var s = lastSubmission;
+function downloadReceipt(type) {
+  var s = type === 'faculty' ? fLastSubmission : sLastSubmission;
+  if (!s) return;
 
-  var rows = [
-    ['Date of Visit',   s.date],
-    ['Salesperson',     s.salesperson],
-    ['Institution',     s.institution],
-    ['City',            s.city],
-    ['State',           s.state],
-    ['Country',         s.country],
-    ['Contact Person',  s.contact],
-    ['Designation',     s.designation],
-    ['Department',      s.department],
-    ['Email',           s.email],
-    ['Mobile',          s.mobile    || '—'],
-    ['Alt Mobile',      s.altMobile || '—'],
-    ['Landline',        s.landline  || '—'],
-    ['Book Title',      s.bookTitle],
-    ['ISBN',            s.isbn],
-    ['Author',          s.author],
-    ['Edition',         s.edition],
-    ['Number of Books', s.numBooks],
-    ['Remarks',         s.remarks   || '—'],
+  var rows = type === 'faculty' ? [
+    ['Date of Visit', s.date], ['Salesperson', s.salesperson],
+    ['Institution', s.institution], ['City', s.city], ['State', s.state], ['Country', s.country],
+    ['Contact Person', s.contact], ['Designation', s.designation], ['Department', s.department],
+    ['Email', s.email], ['Mobile', s.mobile || '—'], ['Alt Mobile', s.altMobile || '—'],
+    ['Landline', s.landline || '—'], ['Book Title', s.bookTitle], ['ISBN', s.isbn],
+    ['Author', s.author], ['Edition', s.edition], ['Number of Books', s.numBooks], ['Remarks', s.remarks || '—'],
+  ] : [
+    ['Date of Visit', s.date], ['Salesperson', s.salesperson],
+    ['Institution', s.institution], ['City', s.city], ['State', s.state], ['Country', s.country],
+    ['Student Name', s.contact], ['Year', s.year], ['Course', s.course], ['Batch', s.batch || '—'],
+    ['Email', s.email], ['Mobile', s.mobile || '—'],
+    ['Book Title', s.bookTitle], ['ISBN', s.isbn],
+    ['Author', s.author], ['Edition', s.edition], ['Number of Books', s.numBooks], ['Remarks', s.remarks || '—'],
   ];
 
-  var tableRows = rows.map(function(r) {
-    return r[0] + '\t' + r[1];
-  }).join('\n');
-
-  // Build CSV for download
-  var csv = 'Field,Value\n';
-  rows.forEach(function(r) {
-    var val = String(r[1]).replace(/"/g, '""');
-    csv += '"' + r[0] + '","' + val + '"\n';
-  });
-
-  // Build a clean HTML receipt for download
   var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">';
   html += '<title>Receipt - ' + s.contact + ' - ' + s.date + '</title>';
-  html += '<style>';
-  html += '@media print { body { margin: 0; } }';
-  html += 'body { font-family: Arial, sans-serif; padding: 32px; color: #111827; max-width: 600px; margin: auto; }';
-  html += 'h1 { color: #1B3A6B; text-align: center; font-size: 20px; margin-bottom: 4px; }';
-  html += 'p.sub { text-align: center; color: #6B7280; font-size: 12px; margin-bottom: 24px; }';
-  html += 'table { width: 100%; border-collapse: collapse; }';
-  html += 'tr:nth-child(even) { background: #F9FAFB; }';
-  html += 'td { padding: 9px 12px; border-bottom: 1px solid #E5E7EB; font-size: 13px; }';
-  html += 'td:first-child { color: #6B7280; font-weight: bold; width: 42%; }';
-  html += 'td:last-child { color: #111827; }';
-  html += '.footer { margin-top: 24px; text-align: center; font-size: 11px; color: #9CA3AF; }';
+  html += '<style>body{font-family:Arial,sans-serif;padding:32px;color:#111827;max-width:600px;margin:auto;}';
+  html += 'h1{color:#1B3A6B;text-align:center;font-size:20px;margin-bottom:4px;}';
+  html += 'p.sub{text-align:center;color:#6B7280;font-size:12px;margin-bottom:24px;}';
+  html += 'table{width:100%;border-collapse:collapse;}';
+  html += 'tr:nth-child(even){background:#F9FAFB;}';
+  html += 'td{padding:9px 12px;border-bottom:1px solid #E5E7EB;font-size:13px;}';
+  html += 'td:first-child{color:#6B7280;font-weight:bold;width:42%;}';
+  html += '.footer{margin-top:24px;text-align:center;font-size:11px;color:#9CA3AF;}';
   html += '</style></head><body>';
   html += '<h1>📚 ' + COMPANY + '</h1>';
-  html += '<p class="sub">Complementary Book Distribution Receipt</p>';
+  html += '<p class="sub">Complementary Book Distribution Receipt — ' + (type === 'faculty' ? 'Faculty' : 'Student') + '</p>';
   html += '<table>';
-  rows.forEach(function(r) {
-    html += '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>';
-  });
+  rows.forEach(function(r) { html += '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>'; });
   html += '</table>';
   html += '<p class="footer">Generated on ' + new Date().toLocaleString() + ' &nbsp;|&nbsp; ' + COMPANY + '</p>';
   html += '</body></html>';
 
-  // Download as HTML file — opens cleanly in any browser
-  var filename = 'Receipt_' + (s.contact || 'Contact').replace(/\s+/g, '_') + '_' + s.date + '.html';
+  var filename = 'Receipt_' + (type === 'faculty' ? 'Faculty' : 'Student') + '_' + (s.contact || '').replace(/\s+/g,'_') + '_' + s.date + '.html';
   var blob = new Blob([html], { type: 'text/html' });
   var url  = URL.createObjectURL(blob);
   var a    = document.createElement('a');
-  a.href     = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 
-// ── HELPERS ─────────────────────────────────
+// ── CLEAR FORMS ───────────────────────────────
+function clearFForm() {
+  resetFContactSelection(); clearFContact();
+  makeFCityStateReadonly();
+  ['fCity','fState','fCountry','fIsbn','fBookTitle','fAuthor','fEdition','fNumBooks','fRemarks'].forEach(function(id) {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('fIsbn').classList.remove('input-error','input-ok');
+  document.getElementById('fIsbnNotFound').style.display = 'none';
+  document.getElementById('fVisitDate').valueAsDate = new Date();
+  document.getElementById('facultyDraftBanner').style.display = 'none';
+  document.getElementById('fReceipt').style.display = 'none';
+}
+
+function clearSForm() {
+  resetSContactSelection(); clearSContact();
+  makeSCityStateReadonly();
+  ['sCity','sState','sCountry','sIsbn','sBookTitle','sAuthor','sEdition','sNumBooks','sRemarks'].forEach(function(id) {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('sIsbn').classList.remove('input-error','input-ok');
+  document.getElementById('sIsbnNotFound').style.display = 'none';
+  document.getElementById('sVisitDate').valueAsDate = new Date();
+  document.getElementById('studentDraftBanner').style.display = 'none';
+  document.getElementById('sReceipt').style.display = 'none';
+}
+
+// ── MSG HELPERS ───────────────────────────────
+function showFMsg(text, success) {
+  var el = document.getElementById('fFormMsg');
+  el.textContent = text; el.className = 'msg ' + (success ? 'success' : 'error');
+  el.style.display = 'block';
+  setTimeout(function() { el.style.display = 'none'; }, 4000);
+}
+
+function showSMsg(text, success) {
+  var el = document.getElementById('sFormMsg');
+  el.textContent = text; el.className = 'msg ' + (success ? 'success' : 'error');
+  el.style.display = 'block';
+  setTimeout(function() { el.style.display = 'none'; }, 4000);
+}
+
+// ── SHEET LOADER ──────────────────────────────
 function loadSheet(sheetName, callback) {
   fetch(API + encodeURIComponent(sheetName))
   .then(function(r) { return r.text(); })
   .then(function(text) {
     var json = JSON.parse(text.substring(47).slice(0,-2));
-    var rows = json.table.rows.map(function(r) {
-      return r.c.map(function(c) { return c ? c.v : ''; });
-    });
+    var rows = json.table.rows.map(function(r) { return r.c.map(function(c) { return c ? c.v : ''; }); });
     callback(rows.slice(1));
   })
-  .catch(function(e) { console.error('Error loading ' + sheetName, e); });
+  .catch(function(e) { console.error('Error loading ' + sheetName, e); callback([]); });
 }
 
-function clearField(id) {
-  document.getElementById(id).value = '';
-}
-
-function resetContactSelection() {
-  makeContactFieldsReadonly();
-  document.getElementById('contact').value = '';
-  document.getElementById('sdContact_text').textContent = '-- Select Contact --';
-  document.getElementById('sdContact_text').style.color = '#9CA3AF';
-  document.getElementById('sdContact_display').classList.remove('has-value');
-  document.getElementById('sdContact_clear').style.display = 'none';
-  document.getElementById('newContactBox').style.display = 'none';
-  document.getElementById('newContactName').value = '';
-  document.getElementById('dupContactMsg').style.display = 'none';
-}
-
-function clearForm() {
-  document.getElementById('institution').value = '';
-  document.getElementById('sdInstitution_text').textContent = '-- Select Institution --';
-  document.getElementById('sdInstitution_text').style.color = '#9CA3AF';
-  document.getElementById('sdInstitution_display').classList.remove('has-value');
-  document.getElementById('sdInstitution_clear').style.display = 'none';
-  document.getElementById('newInstitutionBox').style.display = 'none';
-  document.getElementById('newInstitutionName').value = '';
-  document.getElementById('dupInstitutionMsg').style.display = 'none';
-  rebuildInstitutionDropdown(null);
-  resetContactSelection();
-  document.getElementById('newContactName').value = '';
-  rebuildContactDropdown(null);
-  makeCityStateCountryReadonly();
-  document.getElementById('city').value    = '';
-  document.getElementById('state').value   = '';
-  document.getElementById('country').value = '';
-  document.getElementById('isbn').value = '';
-  document.getElementById('isbn').classList.remove('input-error','input-ok');
-  document.getElementById('isbnNotFound').style.display = 'none';
-  ['bookTitle','author','edition','numBooks','remarks'].forEach(clearField);
-  document.getElementById('visitDate').valueAsDate = new Date();
-  document.getElementById('draftBanner').style.display = 'none';
-  document.getElementById('receipt').style.display = 'none';
-}
-
-function showMsg(text, success) {
-  var el = document.getElementById('formMsg');
-  el.textContent = text;
-  el.className = 'msg ' + (success ? 'success' : 'error');
-  el.style.display = 'block';
-  setTimeout(function() { el.style.display = 'none'; }, 4000);
-}
+document.getElementById('isbn') && document.getElementById('isbn').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') lookupISBN('f');
+});
 
 </script>
 </body>
