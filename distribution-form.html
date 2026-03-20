@@ -1777,43 +1777,56 @@ function searchContactByField(prefix, field) {
   });
 
  if (found) {
-    // Switch to new contact mode so all fields become editable and auto-fillable
+    // Set contact as existing — use the found record's name as the contact value
+    // This prevents duplicate check from triggering
+    var foundName = found[0] || '';
     if (isStudent) {
-      if (!sIsNewContact) {
-        // Reset contact selection and switch to new contact mode
-        document.getElementById('sContact').value = '__NEW__';
-        document.getElementById('sNewContactBox').style.display = 'block';
-        document.getElementById('sdSContact_clear').style.display = 'inline';
-        makeSContactEditable();
-      }
+      makeSContactReadonly();
+      document.getElementById('sContact').value = foundName;
+      document.getElementById('sdSContact_text').textContent = foundName;
+      document.getElementById('sdSContact_text').style.color = '#111827';
+      document.getElementById('sdSContact_display').classList.add('has-value');
+      document.getElementById('sdSContact_clear').style.display = 'inline';
+      document.getElementById('sNewContactBox').style.display = 'none';
+      // Make fields show values but stay readonly
+      ['sEmail','sMobile','sYear','sCourse','sBatch'].forEach(function(id) {
+        var el = document.getElementById(id);
+        el.setAttribute('readonly', true);
+        el.style.background = '#F3F4F6';
+        el.style.color = '#6B7280';
+      });
     } else {
-      if (!fIsNewContact) {
-        document.getElementById('fContact').value = '__NEW__';
-        document.getElementById('fNewContactBox').style.display = 'block';
-        document.getElementById('sdFContact_clear').style.display = 'inline';
-        makeFContactEditable();
-      }
+      makeFContactReadonly();
+      document.getElementById('fContact').value = foundName;
+      document.getElementById('sdFContact_text').textContent = foundName;
+      document.getElementById('sdFContact_text').style.color = '#111827';
+      document.getElementById('sdFContact_display').classList.add('has-value');
+      document.getElementById('sdFContact_clear').style.display = 'inline';
+      document.getElementById('fNewContactBox').style.display = 'none';
+      // Make fields show values but stay readonly
+      ['fEmail','fMobile','fAltMobile','fLandline','fDesignation','fDepartment'].forEach(function(id) {
+        var el = document.getElementById(id);
+        el.setAttribute('readonly', true);
+        el.style.background = '#F3F4F6';
+        el.style.color = '#6B7280';
+      });
     }
     // Auto-fill all fields
     if (isStudent) {
-      document.getElementById('sNewContactName').value = found[0] || '';
-      document.getElementById('sEmail').value          = found[2] || '';
-      document.getElementById('sMobile').value         = (found[3] || '').replace(/^\+91\s*/,'').replace(/\s/g,'');
-      document.getElementById('sYear').value           = found[6] || '';
-      document.getElementById('sCourse').value         = found[7] || '';
-      document.getElementById('sBatch').value          = found[8] || '';
-      // Update year and course display
-      if (found[6]) { document.getElementById('sdSYear_text').textContent = found[6]; document.getElementById('sdSYear_text').style.color = '#111827'; document.getElementById('sdSYear_display').classList.add('has-value'); }
+      document.getElementById('sEmail').value  = found[2] || '';
+      document.getElementById('sMobile').value = (found[3] || '').replace(/^\+91\s*/,'').replace(/\s/g,'');
+      document.getElementById('sYear').value   = found[6] || '';
+      document.getElementById('sCourse').value = found[7] || '';
+      document.getElementById('sBatch').value  = found[8] || '';
+      if (found[6]) { document.getElementById('sdSYear_text').textContent   = found[6]; document.getElementById('sdSYear_text').style.color   = '#111827'; document.getElementById('sdSYear_display').classList.add('has-value'); }
       if (found[7]) { document.getElementById('sdSCourse_text').textContent = found[7]; document.getElementById('sdSCourse_text').style.color = '#111827'; document.getElementById('sdSCourse_display').classList.add('has-value'); }
     } else {
-      document.getElementById('fNewContactName').value = found[0] || '';
-      document.getElementById('fDesignation').value    = found[2] || '';
-      document.getElementById('fDepartment').value     = found[3] || '';
-      document.getElementById('fEmail').value          = found[4] || '';
-      document.getElementById('fMobile').value         = (found[5] || '').replace(/^\+91\s*/,'').replace(/\s/g,'');
-      document.getElementById('fAltMobile').value      = (found[6] || '').replace(/^\+91\s*/,'').replace(/\s/g,'');
-      document.getElementById('fLandline').value       = found[7] || '';
-      // Update designation and department display
+      document.getElementById('fDesignation').value = found[2] || '';
+      document.getElementById('fDepartment').value  = found[3] || '';
+      document.getElementById('fEmail').value       = found[4] || '';
+      document.getElementById('fMobile').value      = (found[5] || '').replace(/^\+91\s*/,'').replace(/\s/g,'');
+      document.getElementById('fAltMobile').value   = (found[6] || '').replace(/^\+91\s*/,'').replace(/\s/g,'');
+      document.getElementById('fLandline').value    = found[7] || '';
       if (found[2]) { document.getElementById('sdFDesignation_text').textContent = found[2]; document.getElementById('sdFDesignation_text').style.color = '#111827'; document.getElementById('sdFDesignation_display').classList.add('has-value'); }
       if (found[3]) { document.getElementById('sdFDepartment_text').textContent  = found[3]; document.getElementById('sdFDepartment_text').style.color  = '#111827'; document.getElementById('sdFDepartment_display').classList.add('has-value'); }
     }
@@ -1838,7 +1851,7 @@ function searchContactByField(prefix, field) {
 
     resultEl.textContent   = '✓ Record found for "' + (found[0] || '') + '" — details have been auto-filled. Please verify before submitting.';
     resultEl.style.display = 'block';
-    checkFDuplicate();
+    // Do not run duplicate check — this is an existing contact found via search
 
   } else {
     notFoundEl.innerHTML   = '⚠️ No record found for this ' + (field === 'email' ? 'email' : 'mobile number') + '. ' +
