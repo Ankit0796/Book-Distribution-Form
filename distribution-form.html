@@ -95,7 +95,7 @@ input.input-ok { border-color: #15803D; }
 .optional { color: #9CA3AF; font-weight: normal; }
   .field-with-search { display: flex; gap: 8px; align-items: flex-start; }
 .field-with-search input { flex: 1; }
-.field-search-btn { padding: 10px 14px; background: #1B3A6B; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+.field-search-btn { width: 100%; padding: 10px 14px; background: #1B3A6B; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; display: block; }
 .field-search-btn:hover { background: #2563EB; }
 .contact-found-banner { background: #F0FDF4; border: 1px solid #15803D; border-radius: 8px; padding: 10px 14px; margin-top: 8px; font-size: 13px; color: #166534; display: none; }
 .contact-not-found-banner { background: #FFF7ED; border: 1px solid #F59E0B; border-radius: 8px; padding: 10px 14px; margin-top: 8px; font-size: 13px; color: #92400E; display: none; }
@@ -302,10 +302,8 @@ input.input-ok { border-color: #15803D; }
     <!-- EMAIL -->
     <div class="field">
       <label>Email *</label>
-      <div class="field-with-search">
-        <input type="text" id="fEmail" readonly placeholder="Auto-filled or type if new" oninput="validateFEmail(); checkFDuplicate();" />
-        <button class="field-search-btn" id="fEmailSearchBtn" style="display:none;" onclick="searchContactByField('f','email')">Search</button>
-      </div>
+      <input type="text" id="fEmail" readonly placeholder="Auto-filled or type if new" oninput="validateFEmail(); checkFDuplicate();" />
+      <button class="field-search-btn" id="fEmailSearchBtn" onclick="searchContactByField('f','email')" style="margin-top:8px;">🔍 Search by Email</button>
       <p id="fEmailNote" class="field-note" style="display:none;">📧 Verification email will be sent to this address.</p>
       <p id="fEmailError" class="field-error"></p>
       <p id="fEmailOk" class="field-ok">✓ Valid email address</p>
@@ -320,8 +318,8 @@ input.input-ok { border-color: #15803D; }
       <div class="phone-row">
         <div class="country-code">+91</div>
         <input type="text" id="fMobile" readonly placeholder="Auto-filled or type if new" maxlength="10" oninput="validateFMobile(); checkFDuplicate();" />
-        <button class="field-search-btn" id="fMobileSearchBtn" style="display:none;" onclick="searchContactByField('f','mobile')">Search</button>
       </div>
+      <button class="field-search-btn" id="fMobileSearchBtn" onclick="searchContactByField('f','mobile')" style="margin-top:8px;">🔍 Search by Mobile</button>
       <p id="fMobileError" class="field-error"></p>
       <p id="fMobileOk" class="field-ok">✓ Valid mobile number</p>
       <p id="fMobileDupMsg" class="warn-msg"></p>
@@ -504,10 +502,8 @@ input.input-ok { border-color: #15803D; }
     <!-- EMAIL -->
     <div class="field">
       <label>Email *</label>
-      <div class="field-with-search">
-        <input type="text" id="sEmail" readonly placeholder="Auto-filled or type if new" oninput="validateSEmail(); checkSDuplicate();" />
-        <button class="field-search-btn" id="sEmailSearchBtn" style="display:none;" onclick="searchContactByField('s','email')">Search</button>
-      </div>
+      <input type="text" id="sEmail" readonly placeholder="Auto-filled or type if new" oninput="validateSEmail(); checkSDuplicate();" />
+      <button class="field-search-btn" id="sEmailSearchBtn" onclick="searchContactByField('s','email')" style="margin-top:8px;">🔍 Search by Email</button>
       <p id="sEmailNote" class="field-note" style="display:none;">📧 Verification email will be sent to this address.</p>
       <p id="sEmailError" class="field-error"></p>
       <p id="sEmailOk" class="field-ok">✓ Valid email address</p>
@@ -522,8 +518,8 @@ input.input-ok { border-color: #15803D; }
       <div class="phone-row">
         <div class="country-code">+91</div>
         <input type="text" id="sMobile" readonly placeholder="Auto-filled or type if new" maxlength="10" oninput="validateSMobile(); checkSDuplicate();" />
-        <button class="field-search-btn" id="sMobileSearchBtn" style="display:none;" onclick="searchContactByField('s','mobile')">Search</button>
       </div>
+      <button class="field-search-btn" id="sMobileSearchBtn" onclick="searchContactByField('s','mobile')" style="margin-top:8px;">🔍 Search by Mobile</button>
       <p id="sMobileError" class="field-error"></p>
       <p id="sMobileOk" class="field-ok">✓ Valid mobile number</p>
       <p id="sMobileDupMsg" class="warn-msg"></p>
@@ -1174,9 +1170,7 @@ function makeFContactEditable() {
   ['fEmailNote','fEmailError','fEmailOk','fMobileError','fMobileOk','fAltMobileError','fAltMobileOk','fLandlineError'].forEach(function(id) {
     document.getElementById(id).style.display = 'none';
   });
-  document.getElementById('fEmailSearchBtn').style.display  = 'block';
-  document.getElementById('fMobileSearchBtn').style.display = 'block';
-  clearContactSearchResults('f');
+ clearContactSearchResults('f');
   ['fEmail','fMobile','fAltMobile','fLandline'].forEach(function(id) {
     document.getElementById(id).classList.remove('input-error','input-ok');
   });
@@ -1203,8 +1197,6 @@ function makeFContactReadonly() {
   ['fEmailNote','fEmailError','fEmailOk','fMobileError','fMobileOk','fAltMobileError','fAltMobileOk','fLandlineError'].forEach(function(id) {
     document.getElementById(id).style.display = 'none';
   });
-  document.getElementById('fEmailSearchBtn').style.display  = 'none';
-  document.getElementById('fMobileSearchBtn').style.display = 'none';
   clearContactSearchResults('f');
   ['fEmail','fMobile','fAltMobile','fLandline'].forEach(function(id) {
     document.getElementById(id).classList.remove('input-error','input-ok');
@@ -1271,8 +1263,6 @@ function makeSContactEditable() {
   ['sEmailNote','sEmailError','sEmailOk','sMobileError','sMobileOk'].forEach(function(id) {
     document.getElementById(id).style.display = 'none';
   });
-  document.getElementById('sEmailSearchBtn').style.display  = 'block';
-  document.getElementById('sMobileSearchBtn').style.display = 'block';
   clearContactSearchResults('s');
   ['sEmail','sMobile'].forEach(function(id) {
     document.getElementById(id).classList.remove('input-error','input-ok');
@@ -1300,8 +1290,6 @@ function makeSContactReadonly() {
   ['sEmailNote','sEmailError','sEmailOk','sMobileError','sMobileOk'].forEach(function(id) {
     document.getElementById(id).style.display = 'none';
   });
-  document.getElementById('sEmailSearchBtn').style.display  = 'none';
-  document.getElementById('sMobileSearchBtn').style.display = 'none';
   clearContactSearchResults('s');
   ['sEmail','sMobile'].forEach(function(id) {
     document.getElementById(id).classList.remove('input-error','input-ok');
@@ -1737,7 +1725,18 @@ function searchContactByField(prefix, field) {
   var isStudent   = prefix === 's';
   var contacts    = isStudent ? allSContacts : allFContacts;
   var instVal     = document.getElementById(prefix === 'f' ? 'fInstitution' : 'sInstitution').value || '';
-  var searchVal   = document.getElementById(prefix + (field === 'email' ? 'Email' : 'Mobile')).value.trim().toLowerCase();
+  var fieldInputId = prefix + (field === 'email' ? 'Email' : 'Mobile');
+  var inputEl     = document.getElementById(fieldInputId);
+
+  // If field is readonly (existing contact selected), make it temporarily readable for search
+  var wasReadonly = inputEl.hasAttribute('readonly');
+  if (wasReadonly) {
+    inputEl.removeAttribute('readonly');
+    inputEl.style.background = '#fff';
+    inputEl.style.color = '#111827';
+  }
+
+  var searchVal   = inputEl.value.trim().toLowerCase();
   var resultEl    = document.getElementById(prefix + (field === 'email' ? 'Email' : 'Mobile') + 'SearchResult');
   var notFoundEl  = document.getElementById(prefix + (field === 'email' ? 'Email' : 'Mobile') + 'NotFound');
 
@@ -1777,7 +1776,24 @@ function searchContactByField(prefix, field) {
     }
   });
 
-  if (found) {
+ if (found) {
+    // Switch to new contact mode so all fields become editable and auto-fillable
+    if (isStudent) {
+      if (!sIsNewContact) {
+        // Reset contact selection and switch to new contact mode
+        document.getElementById('sContact').value = '__NEW__';
+        document.getElementById('sNewContactBox').style.display = 'block';
+        document.getElementById('sdSContact_clear').style.display = 'inline';
+        makeSContactEditable();
+      }
+    } else {
+      if (!fIsNewContact) {
+        document.getElementById('fContact').value = '__NEW__';
+        document.getElementById('fNewContactBox').style.display = 'block';
+        document.getElementById('sdFContact_clear').style.display = 'inline';
+        makeFContactEditable();
+      }
+    }
     // Auto-fill all fields
     if (isStudent) {
       document.getElementById('sNewContactName').value = found[0] || '';
