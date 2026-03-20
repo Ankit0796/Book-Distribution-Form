@@ -1854,19 +1854,52 @@ function searchContactByField(prefix, field) {
     // Do not run duplicate check — this is an existing contact found via search
 
   } else {
-    notFoundEl.innerHTML   = '⚠️ No record found for this ' + (field === 'email' ? 'email' : 'mobile number') + '. ' +
-      '<strong style="cursor:pointer;text-decoration:underline;" onclick="triggerAddNewContact(\'' + prefix + '\')">Click here to add as new contact.</strong>';
+    notFoundEl.innerHTML = '';
     notFoundEl.style.display = 'block';
+
+    var notFoundText = document.createTextNode('⚠️ No record found for this ' + (field === 'email' ? 'email' : 'mobile number') + '. ');
+    var notFoundLink = document.createElement('strong');
+    notFoundLink.textContent = 'Tap here to add as new contact.';
+    notFoundLink.style.cursor = 'pointer';
+    notFoundLink.style.textDecoration = 'underline';
+    notFoundLink.onclick = function() { triggerAddNewContact(prefix); };
+    notFoundEl.appendChild(notFoundText);
+    notFoundEl.appendChild(notFoundLink);
   }
 }
 
 function triggerAddNewContact(prefix) {
-  // Clear not found banners
   clearContactSearchResults(prefix);
-  // The new contact box is already open since we are in new contact mode
-  // Just scroll to the name field
-  var nameField = document.getElementById(prefix === 'f' ? 'fNewContactName' : 'sNewContactName');
-  if (nameField) { nameField.focus(); nameField.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+
+  if (prefix === 'f') {
+    // Set contact to new mode
+    document.getElementById('fContact').value = '__NEW__';
+    document.getElementById('sdFContact_text').textContent = '+ Add New Contact';
+    document.getElementById('sdFContact_text').style.color = '#2563EB';
+    document.getElementById('sdFContact_display').classList.add('has-value');
+    document.getElementById('sdFContact_clear').style.display = 'inline';
+    document.getElementById('fNewContactBox').style.display = 'block';
+    makeFContactEditable();
+    // Scroll to name field
+    setTimeout(function() {
+      var el = document.getElementById('fNewContactName');
+      if (el) { el.focus(); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    }, 100);
+  } else {
+    // Set contact to new mode
+    document.getElementById('sContact').value = '__NEW__';
+    document.getElementById('sdSContact_text').textContent = '+ Add New Student';
+    document.getElementById('sdSContact_text').style.color = '#2563EB';
+    document.getElementById('sdSContact_display').classList.add('has-value');
+    document.getElementById('sdSContact_clear').style.display = 'inline';
+    document.getElementById('sNewContactBox').style.display = 'block';
+    makeSContactEditable();
+    // Scroll to name field
+    setTimeout(function() {
+      var el = document.getElementById('sNewContactName');
+      if (el) { el.focus(); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    }, 100);
+  }
 }
   
   function checkFDupInstitution() {
