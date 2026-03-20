@@ -1897,27 +1897,35 @@ function checkSDupInstitution() {
 
 // ── DRAFT SAVE/RESTORE ────────────────────────
 function saveFDraft() {
-  var d = {
-    rep: currentRep, visitDate: document.getElementById('fVisitDate').value,
-    contact: document.getElementById('fContact').value,
-    contactText: document.getElementById('sdFContact_text').textContent,
-    institution: document.getElementById('fInstitution').value,
-    institutionText: document.getElementById('sdFInstitution_text').textContent,
-    city: document.getElementById('fCity').value, state: document.getElementById('fState').value,
-    country: document.getElementById('fCountry').value,
-    email: document.getElementById('fEmail').value, mobile: document.getElementById('fMobile').value,
-    altMobile: document.getElementById('fAltMobile').value, landline: document.getElementById('fLandline').value,
-    designation: document.getElementById('fDesignation').value, department: document.getElementById('fDepartment').value,
-    isbn: document.getElementById('fIsbn').value, bookTitle: document.getElementById('fBookTitle').value,
-    author: document.getElementById('fAuthor').value, edition: document.getElementById('fEdition').value,
-    numBooks: document.getElementById('fNumBooks').value, remarks: document.getElementById('fRemarks').value,
-    newContactName: document.getElementById('fNewContactName').value,
-    newInstitutionName: document.getElementById('fNewInstitutionName').value,
-    contactIsNew: document.getElementById('fContact').value === '__NEW__',
-    institutionIsNew: document.getElementById('fInstitution').value === '__NEW__',
-  };
-  localStorage.setItem(F_DRAFT_KEY, JSON.stringify(d));
-  showFMsg('Draft saved.', true);
+  try {
+    var d = {
+      rep:                currentRep,
+      visitDate:          document.getElementById('fVisitDate').value,
+      contact:            document.getElementById('fContact').value,
+      contactText:        document.getElementById('sdFContact_text').textContent,
+      institution:        document.getElementById('fInstitution').value,
+      institutionText:    document.getElementById('sdFInstitution_text').textContent,
+      city:               document.getElementById('fCity').value,
+      state:              document.getElementById('fState').value,
+      country:            document.getElementById('fCountry').value,
+      email:              document.getElementById('fEmail').value,
+      mobile:             document.getElementById('fMobile').value,
+      altMobile:          document.getElementById('fAltMobile').value,
+      landline:           document.getElementById('fLandline').value,
+      designation:        document.getElementById('fDesignation').value,
+      department:         document.getElementById('fDepartment').value,
+      remarks:            document.getElementById('fRemarks').value,
+      newContactName:     document.getElementById('fNewContactName').value,
+      newInstitutionName: document.getElementById('fNewInstitutionName').value,
+      contactIsNew:       document.getElementById('fContact').value === '__NEW__',
+      institutionIsNew:   document.getElementById('fInstitution').value === '__NEW__',
+    };
+    localStorage.setItem(F_DRAFT_KEY, JSON.stringify(d));
+    showFMsg('Draft saved.', true);
+  } catch(e) {
+    console.error('Save draft error:', e);
+    showFMsg('Could not save draft. Please try again.', false);
+  }
 }
 
 function checkFDraft() {
@@ -1952,27 +1960,34 @@ function checkFDraft() {
 }
 
 function saveSDraft() {
-  var d = {
-    rep: currentRep, visitDate: document.getElementById('sVisitDate').value,
-    contact: document.getElementById('sContact').value,
-    contactText: document.getElementById('sdSContact_text').textContent,
-    institution: document.getElementById('sInstitution').value,
-    institutionText: document.getElementById('sdSInstitution_text').textContent,
-    city: document.getElementById('sCity').value, state: document.getElementById('sState').value,
-    country: document.getElementById('sCountry').value,
-    email: document.getElementById('sEmail').value, mobile: document.getElementById('sMobile').value,
-    year: document.getElementById('sYear').value, course: document.getElementById('sCourse').value,
-    batch: document.getElementById('sBatch').value,
-    isbn: document.getElementById('sIsbn').value, bookTitle: document.getElementById('sBookTitle').value,
-    author: document.getElementById('sAuthor').value, edition: document.getElementById('sEdition').value,
-    numBooks: document.getElementById('sNumBooks').value, remarks: document.getElementById('sRemarks').value,
-    newContactName: document.getElementById('sNewContactName').value,
-    newInstitutionName: document.getElementById('sNewInstitutionName').value,
-    contactIsNew: document.getElementById('sContact').value === '__NEW__',
-    institutionIsNew: document.getElementById('sInstitution').value === '__NEW__',
-  };
-  localStorage.setItem(S_DRAFT_KEY, JSON.stringify(d));
-  showSMsg('Draft saved.', true);
+  try {
+    var d = {
+      rep:                currentRep,
+      visitDate:          document.getElementById('sVisitDate').value,
+      contact:            document.getElementById('sContact').value,
+      contactText:        document.getElementById('sdSContact_text').textContent,
+      institution:        document.getElementById('sInstitution').value,
+      institutionText:    document.getElementById('sdSInstitution_text').textContent,
+      city:               document.getElementById('sCity').value,
+      state:              document.getElementById('sState').value,
+      country:            document.getElementById('sCountry').value,
+      email:              document.getElementById('sEmail').value,
+      mobile:             document.getElementById('sMobile').value,
+      year:               document.getElementById('sYear').value,
+      course:             document.getElementById('sCourse').value,
+      batch:              document.getElementById('sBatch').value,
+      remarks:            document.getElementById('sRemarks').value,
+      newContactName:     document.getElementById('sNewContactName').value,
+      newInstitutionName: document.getElementById('sNewInstitutionName').value,
+      contactIsNew:       document.getElementById('sContact').value === '__NEW__',
+      institutionIsNew:   document.getElementById('sInstitution').value === '__NEW__',
+    };
+    localStorage.setItem(S_DRAFT_KEY, JSON.stringify(d));
+    showSMsg('Draft saved.', true);
+  } catch(e) {
+    console.error('Save draft error:', e);
+    showSMsg('Could not save draft. Please try again.', false);
+  }
 }
 
 function checkSDraft() {
