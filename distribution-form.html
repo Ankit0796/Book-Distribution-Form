@@ -93,6 +93,12 @@ input.input-ok { border-color: #15803D; }
 .receipt-label { color: #6B7280; font-weight: bold; flex: 1; }
 .receipt-value { color: #111827; flex: 2; text-align: right; }
 .optional { color: #9CA3AF; font-weight: normal; }
+  .field-with-search { display: flex; gap: 8px; align-items: flex-start; }
+.field-with-search input { flex: 1; }
+.field-search-btn { padding: 10px 14px; background: #1B3A6B; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+.field-search-btn:hover { background: #2563EB; }
+.contact-found-banner { background: #F0FDF4; border: 1px solid #15803D; border-radius: 8px; padding: 10px 14px; margin-top: 8px; font-size: 13px; color: #166534; display: none; }
+.contact-not-found-banner { background: #FFF7ED; border: 1px solid #F59E0B; border-radius: 8px; padding: 10px 14px; margin-top: 8px; font-size: 13px; color: #92400E; display: none; }
   .book-entry { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 10px; padding: 16px; margin-bottom: 12px; position: relative; }
 .book-entry-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .book-entry-title { font-size: 14px; font-weight: bold; color: #1B3A6B; }
@@ -296,11 +302,16 @@ input.input-ok { border-color: #15803D; }
     <!-- EMAIL -->
     <div class="field">
       <label>Email *</label>
-      <input type="text" id="fEmail" readonly placeholder="Auto-filled or type if new" oninput="validateFEmail(); checkFDuplicate();" />
+      <div class="field-with-search">
+        <input type="text" id="fEmail" readonly placeholder="Auto-filled or type if new" oninput="validateFEmail(); checkFDuplicate();" />
+        <button class="field-search-btn" id="fEmailSearchBtn" style="display:none;" onclick="searchContactByField('f','email')">Search</button>
+      </div>
       <p id="fEmailNote" class="field-note" style="display:none;">📧 Verification email will be sent to this address.</p>
       <p id="fEmailError" class="field-error"></p>
       <p id="fEmailOk" class="field-ok">✓ Valid email address</p>
       <p id="fEmailDupMsg" class="warn-msg"></p>
+      <div id="fEmailSearchResult" class="contact-found-banner"></div>
+      <div id="fEmailNotFound" class="contact-not-found-banner"></div>
     </div>
 
     <!-- MOBILE -->
@@ -309,10 +320,13 @@ input.input-ok { border-color: #15803D; }
       <div class="phone-row">
         <div class="country-code">+91</div>
         <input type="text" id="fMobile" readonly placeholder="Auto-filled or type if new" maxlength="10" oninput="validateFMobile(); checkFDuplicate();" />
+        <button class="field-search-btn" id="fMobileSearchBtn" style="display:none;" onclick="searchContactByField('f','mobile')">Search</button>
       </div>
       <p id="fMobileError" class="field-error"></p>
       <p id="fMobileOk" class="field-ok">✓ Valid mobile number</p>
       <p id="fMobileDupMsg" class="warn-msg"></p>
+      <div id="fMobileSearchResult" class="contact-found-banner"></div>
+      <div id="fMobileNotFound" class="contact-not-found-banner"></div>
     </div>
 
     <!-- ALT MOBILE -->
@@ -490,11 +504,16 @@ input.input-ok { border-color: #15803D; }
     <!-- EMAIL -->
     <div class="field">
       <label>Email *</label>
-      <input type="text" id="sEmail" readonly placeholder="Auto-filled or type if new" oninput="validateSEmail(); checkSDuplicate();" />
+      <div class="field-with-search">
+        <input type="text" id="sEmail" readonly placeholder="Auto-filled or type if new" oninput="validateSEmail(); checkSDuplicate();" />
+        <button class="field-search-btn" id="sEmailSearchBtn" style="display:none;" onclick="searchContactByField('s','email')">Search</button>
+      </div>
       <p id="sEmailNote" class="field-note" style="display:none;">📧 Verification email will be sent to this address.</p>
       <p id="sEmailError" class="field-error"></p>
       <p id="sEmailOk" class="field-ok">✓ Valid email address</p>
       <p id="sEmailDupMsg" class="warn-msg"></p>
+      <div id="sEmailSearchResult" class="contact-found-banner"></div>
+      <div id="sEmailNotFound" class="contact-not-found-banner"></div>
     </div>
 
     <!-- MOBILE -->
@@ -503,10 +522,13 @@ input.input-ok { border-color: #15803D; }
       <div class="phone-row">
         <div class="country-code">+91</div>
         <input type="text" id="sMobile" readonly placeholder="Auto-filled or type if new" maxlength="10" oninput="validateSMobile(); checkSDuplicate();" />
+        <button class="field-search-btn" id="sMobileSearchBtn" style="display:none;" onclick="searchContactByField('s','mobile')">Search</button>
       </div>
       <p id="sMobileError" class="field-error"></p>
       <p id="sMobileOk" class="field-ok">✓ Valid mobile number</p>
       <p id="sMobileDupMsg" class="warn-msg"></p>
+      <div id="sMobileSearchResult" class="contact-found-banner"></div>
+      <div id="sMobileNotFound" class="contact-not-found-banner"></div>
     </div>
 
     
@@ -1152,6 +1174,9 @@ function makeFContactEditable() {
   ['fEmailNote','fEmailError','fEmailOk','fMobileError','fMobileOk','fAltMobileError','fAltMobileOk','fLandlineError'].forEach(function(id) {
     document.getElementById(id).style.display = 'none';
   });
+  document.getElementById('fEmailSearchBtn').style.display  = 'block';
+  document.getElementById('fMobileSearchBtn').style.display = 'block';
+  clearContactSearchResults('f');
   ['fEmail','fMobile','fAltMobile','fLandline'].forEach(function(id) {
     document.getElementById(id).classList.remove('input-error','input-ok');
   });
@@ -1178,6 +1203,9 @@ function makeFContactReadonly() {
   ['fEmailNote','fEmailError','fEmailOk','fMobileError','fMobileOk','fAltMobileError','fAltMobileOk','fLandlineError'].forEach(function(id) {
     document.getElementById(id).style.display = 'none';
   });
+  document.getElementById('fEmailSearchBtn').style.display  = 'none';
+  document.getElementById('fMobileSearchBtn').style.display = 'none';
+  clearContactSearchResults('f');
   ['fEmail','fMobile','fAltMobile','fLandline'].forEach(function(id) {
     document.getElementById(id).classList.remove('input-error','input-ok');
   });
@@ -1243,6 +1271,9 @@ function makeSContactEditable() {
   ['sEmailNote','sEmailError','sEmailOk','sMobileError','sMobileOk'].forEach(function(id) {
     document.getElementById(id).style.display = 'none';
   });
+  document.getElementById('sEmailSearchBtn').style.display  = 'block';
+  document.getElementById('sMobileSearchBtn').style.display = 'block';
+  clearContactSearchResults('s');
   ['sEmail','sMobile'].forEach(function(id) {
     document.getElementById(id).classList.remove('input-error','input-ok');
   });
@@ -1269,6 +1300,9 @@ function makeSContactReadonly() {
   ['sEmailNote','sEmailError','sEmailOk','sMobileError','sMobileOk'].forEach(function(id) {
     document.getElementById(id).style.display = 'none';
   });
+  document.getElementById('sEmailSearchBtn').style.display  = 'none';
+  document.getElementById('sMobileSearchBtn').style.display = 'none';
+  clearContactSearchResults('s');
   ['sEmail','sMobile'].forEach(function(id) {
     document.getElementById(id).classList.remove('input-error','input-ok');
   });
@@ -1690,7 +1724,123 @@ function clearSInstitution() {
 }
 
 // ── DUPLICATE INSTITUTION CHECKS ─────────────
-function checkFDupInstitution() {
+function clearContactSearchResults(prefix) {
+  ['Email','Mobile'].forEach(function(field) {
+    var res = document.getElementById(prefix + field + 'SearchResult');
+    var nf  = document.getElementById(prefix + field + 'NotFound');
+    if (res) { res.style.display = 'none'; res.textContent = ''; }
+    if (nf)  { nf.style.display  = 'none'; nf.textContent  = ''; }
+  });
+}
+
+function searchContactByField(prefix, field) {
+  var isStudent   = prefix === 's';
+  var contacts    = isStudent ? allSContacts : allFContacts;
+  var instVal     = document.getElementById(prefix === 'f' ? 'fInstitution' : 'sInstitution').value || '';
+  var searchVal   = document.getElementById(prefix + (field === 'email' ? 'Email' : 'Mobile')).value.trim().toLowerCase();
+  var resultEl    = document.getElementById(prefix + (field === 'email' ? 'Email' : 'Mobile') + 'SearchResult');
+  var notFoundEl  = document.getElementById(prefix + (field === 'email' ? 'Email' : 'Mobile') + 'NotFound');
+
+  resultEl.style.display   = 'none';
+  notFoundEl.style.display = 'none';
+
+  if (!searchVal) {
+    notFoundEl.textContent   = '⚠️ Please enter a ' + (field === 'email' ? 'valid email' : '10-digit mobile number') + ' to search.';
+    notFoundEl.style.display = 'block'; return;
+  }
+
+  // Validate completeness
+  if (field === 'mobile' && (searchVal.length !== 10 || /[^0-9]/.test(searchVal))) {
+    notFoundEl.textContent   = '⚠️ Please enter a complete 10-digit mobile number before searching.';
+    notFoundEl.style.display = 'block'; return;
+  }
+  if (field === 'email' && !/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(searchVal)) {
+    notFoundEl.textContent   = '⚠️ Please enter a valid email address before searching.';
+    notFoundEl.style.display = 'block'; return;
+  }
+
+  // Search in contacts
+  var found = null;
+  contacts.forEach(function(r) {
+    if (found) return;
+    var rInst = (r[1] || '').trim().toLowerCase();
+    // If institution selected, filter by it — otherwise search all
+    if (instVal && instVal !== '__NEW__') {
+      if (rInst !== instVal.trim().toLowerCase()) return;
+    }
+    if (field === 'mobile') {
+      var rPhone = (isStudent ? (r[3] || '') : (r[5] || '')).trim().replace(/^\+91\s*/,'').replace(/\s/g,'');
+      if (rPhone === searchVal) found = r;
+    } else {
+      var rEmail = (isStudent ? (r[2] || '') : (r[4] || '')).trim().toLowerCase();
+      if (rEmail === searchVal) found = r;
+    }
+  });
+
+  if (found) {
+    // Auto-fill all fields
+    if (isStudent) {
+      document.getElementById('sNewContactName').value = found[0] || '';
+      document.getElementById('sEmail').value          = found[2] || '';
+      document.getElementById('sMobile').value         = (found[3] || '').replace(/^\+91\s*/,'').replace(/\s/g,'');
+      document.getElementById('sYear').value           = found[6] || '';
+      document.getElementById('sCourse').value         = found[7] || '';
+      document.getElementById('sBatch').value          = found[8] || '';
+      // Update year and course display
+      if (found[6]) { document.getElementById('sdSYear_text').textContent = found[6]; document.getElementById('sdSYear_text').style.color = '#111827'; document.getElementById('sdSYear_display').classList.add('has-value'); }
+      if (found[7]) { document.getElementById('sdSCourse_text').textContent = found[7]; document.getElementById('sdSCourse_text').style.color = '#111827'; document.getElementById('sdSCourse_display').classList.add('has-value'); }
+    } else {
+      document.getElementById('fNewContactName').value = found[0] || '';
+      document.getElementById('fDesignation').value    = found[2] || '';
+      document.getElementById('fDepartment').value     = found[3] || '';
+      document.getElementById('fEmail').value          = found[4] || '';
+      document.getElementById('fMobile').value         = (found[5] || '').replace(/^\+91\s*/,'').replace(/\s/g,'');
+      document.getElementById('fAltMobile').value      = (found[6] || '').replace(/^\+91\s*/,'').replace(/\s/g,'');
+      document.getElementById('fLandline').value       = found[7] || '';
+      // Update designation and department display
+      if (found[2]) { document.getElementById('sdFDesignation_text').textContent = found[2]; document.getElementById('sdFDesignation_text').style.color = '#111827'; document.getElementById('sdFDesignation_display').classList.add('has-value'); }
+      if (found[3]) { document.getElementById('sdFDepartment_text').textContent  = found[3]; document.getElementById('sdFDepartment_text').style.color  = '#111827'; document.getElementById('sdFDepartment_display').classList.add('has-value'); }
+    }
+
+    // Also update institution if not already selected
+    var instName = found[1] || '';
+    if (instName && (!instVal || instVal === '__NEW__')) {
+      document.getElementById(prefix === 'f' ? 'fInstitution' : 'sInstitution').value = instName;
+      var instTextEl    = document.getElementById(prefix === 'f' ? 'sdFInstitution_text' : 'sdSInstitution_text');
+      var instDisplayEl = document.getElementById(prefix === 'f' ? 'sdFInstitution_display' : 'sdSInstitution_display');
+      instTextEl.textContent = instName; instTextEl.style.color = '#111827';
+      instDisplayEl.classList.add('has-value');
+      // Fill city state country
+      allInstitutions.forEach(function(inst) {
+        if ((inst[0] || '').trim().toLowerCase() === instName.trim().toLowerCase()) {
+          document.getElementById(prefix === 'f' ? 'fCity' : 'sCity').value    = inst[1] || '';
+          document.getElementById(prefix === 'f' ? 'fState' : 'sState').value  = inst[2] || '';
+          document.getElementById(prefix === 'f' ? 'fCountry' : 'sCountry').value = inst[3] || 'India';
+        }
+      });
+    }
+
+    resultEl.textContent   = '✓ Record found for "' + (found[0] || '') + '" — details have been auto-filled. Please verify before submitting.';
+    resultEl.style.display = 'block';
+    checkFDuplicate();
+
+  } else {
+    notFoundEl.innerHTML   = '⚠️ No record found for this ' + (field === 'email' ? 'email' : 'mobile number') + '. ' +
+      '<strong style="cursor:pointer;text-decoration:underline;" onclick="triggerAddNewContact(\'' + prefix + '\')">Click here to add as new contact.</strong>';
+    notFoundEl.style.display = 'block';
+  }
+}
+
+function triggerAddNewContact(prefix) {
+  // Clear not found banners
+  clearContactSearchResults(prefix);
+  // The new contact box is already open since we are in new contact mode
+  // Just scroll to the name field
+  var nameField = document.getElementById(prefix === 'f' ? 'fNewContactName' : 'sNewContactName');
+  if (nameField) { nameField.focus(); nameField.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+}
+  
+  function checkFDupInstitution() {
   var typed = document.getElementById('fNewInstitutionName').value.trim().toLowerCase();
   var msg   = document.getElementById('fDupInstitutionMsg');
   if (!typed) { msg.style.display = 'none'; return; }
